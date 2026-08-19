@@ -6,7 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-mono: "Geist Mono", "Fira Code", monospace;
+  --font-sans: var(--font-outfit), sans-serif;
+  --font-mono: var(--font-outfit), sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -229,7 +230,7 @@
     --popover: var(--color-white);
     --popover-foreground: var(--color-zinc-950);
 
-    --primary: var(--color-indigo-500);
+    --primary: oklch(68.5% 0.204 39.4); /* #FF5400 */
     --primary-foreground: var(--color-white);
 
     --secondary: var(--color-sky-100);
@@ -269,7 +270,7 @@
     --popover: var(--color-zinc-950);
     --popover-foreground: var(--color-white);
 
-    --primary: var(--color-indigo-500);
+    --primary: oklch(68.5% 0.204 39.4); /* #FF5400 */
     --primary-foreground: var(--color-white);
 
     --secondary: var(--color-zinc-800);

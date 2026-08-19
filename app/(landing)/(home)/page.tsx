@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { LogoCloud } from "@/components/logo-cloud";
-import { Manifesto } from "@/app/(marketing)/(home)/sections/manifesto";
-import { PlatformFeatures } from "@/app/(marketing)/(home)/sections/platform-features";
-import { AnalyticsFeatures } from "@/app/(marketing)/(home)/sections/analytics-features";
-import { IntegrationsSection } from "@/app/(marketing)/(home)/sections/integrations-section";
-import { TestimonialsSection } from "@/app/(marketing)/(home)/sections/testimonials-section";
+import { Manifesto } from "@/app/(landing)/(home)/sections/manifesto";
+import { PlatformFeatures } from "@/app/(landing)/(home)/sections/platform-features";
+import { AnalyticsFeatures } from "@/app/(landing)/(home)/sections/analytics-features";
+import { IntegrationsSection } from "@/app/(landing)/(home)/sections/integrations-section";
+import { TestimonialsSection } from "@/app/(landing)/(home)/sections/testimonials-section";
 import { CallToAction } from "@/components/call-to-action";
 import { Container } from "@/components/container";
 import { CampaignIllustration } from "@/components/illustrations/campaign-illustration";
@@ -17,7 +17,7 @@ import {
   FeatureCardContent,
   FeatureCardTitle,
 } from "@/components/ui/feature-card";
-import { EnterpriseFeatures } from "@/app/(marketing)/(home)/sections/enterprise-features";
+import { EnterpriseFeatures } from "@/app/(landing)/(home)/sections/enterprise-features";
 import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

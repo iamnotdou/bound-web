@@ -3,9 +3,9 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Grid 2 | Tailark Quartz pages",
+  title: "Bound — A surety bond for AI agents, on-chain",
   description:
-    "The grid-2 design system uses a distinctive grid paper aesthetic where content is laid out inside card-like cells separated by `0.5px` gaps, flanked by decorative side columns. Every visible section on the page is built from a small set of composable primitives.",
+    "Know your worst case before you transact. Bound replaces \u201ccan I trust this agent?\u201d with a number you can look up: a pre-funded, auditor-staked worst-case loss, verifiable on Stellar.",
 };
 
 export default function LandingLayout({

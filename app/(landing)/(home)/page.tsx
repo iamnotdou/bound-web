@@ -1,10 +1,7 @@
 import Link from "next/link";
-import { LogoCloud } from "@/components/logo-cloud";
-import { Manifesto } from "@/app/(landing)/(home)/sections/manifesto";
 import { PlatformFeatures } from "@/app/(landing)/(home)/sections/platform-features";
 import { AnalyticsFeatures } from "@/app/(landing)/(home)/sections/analytics-features";
 import { IntegrationsSection } from "@/app/(landing)/(home)/sections/integrations-section";
-import { TestimonialsSection } from "@/app/(landing)/(home)/sections/testimonials-section";
 import { CallToAction } from "@/components/call-to-action";
 import { Container } from "@/components/container";
 import { CampaignIllustration } from "@/components/illustrations/campaign-illustration";
@@ -18,8 +15,9 @@ import {
   FeatureCardTitle,
 } from "@/components/ui/feature-card";
 import { EnterpriseFeatures } from "@/app/(landing)/(home)/sections/enterprise-features";
-import Image from "next/image";
+import { PixelBlastBackground } from "@/components/pixel-blast-background";
 import { buttonVariants } from "@/components/ui/button";
+import { Stellar } from "@/components/ui/svgs/stellar";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -30,20 +28,9 @@ export default function Home() {
           <Container asGrid className="relative">
             <div
               aria-hidden
-              className="dither-xs mask-x-from-65% mask-x-to-95% mask-y-from-75% pointer-events-none absolute inset-0 opacity-40 max-lg:opacity-20 2xl:mx-auto 2xl:max-w-7xl"
+              className="absolute inset-0 opacity-60 max-lg:opacity-30 2xl:mx-auto 2xl:max-w-7xl"
             >
-              <div className="size-full">
-                <Image
-                  src="https://raw.githubusercontent.com/tailark/assets/refs/heads/main/grid-2-bg_bqde4m.webp"
-                  alt="tailark hero section background"
-                  className="contrast-35 size-full -scale-x-100 object-cover brightness-75"
-                  width={2224}
-                  height={1589}
-                  priority
-                  fetchPriority="high"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1520px"
-                />
-              </div>
+              <PixelBlastBackground />
             </div>
 
             <div aria-hidden className="col-span-full grid grid-cols-10 gap-px">
@@ -64,28 +51,33 @@ export default function Home() {
               </div>
 
               <div className="@4xl:col-span-8 col-span-full">
-                <div data-grid-content className="py-12 text-center">
+                <div
+                  data-grid-content
+                  className="bg-card! relative z-10 py-12 text-center"
+                >
                   <div className="relative mx-auto max-w-3xl text-center">
                     <h1 className="text-foreground text-balance text-5xl font-semibold md:text-6xl">
-                      <span className="@max-md:hidden">Modern</span> Solutions
-                      for Customer Engagement
+                      Know your worst case{" "}
+                      <span className="@max-md:hidden">
+                        before you transact
+                      </span>
                     </h1>
                     <p className="text-muted-foreground mb-9 mt-5 text-balance text-lg">
-                      Our comprehensive analytics and experimentation platform
-                      empowers your team to make data-driven decisions.
+                      Bound is a surety bond for AI agents, on-chain. It
+                      replaces &ldquo;can I trust this agent?&rdquo; with a
+                      number you can look up: a pre-funded, auditor-staked
+                      worst-case loss.
                     </p>
 
                     <Link
-                      className={cn(
-                        buttonVariants({ size: "lg" }),
-                        "text-sm shadow-xl shadow-indigo-900/40",
-                      )}
-                      href="#"
+                      className={cn(buttonVariants({ size: "lg" }), "text-sm")}
+                      href="/app"
                     >
-                      Start Testing for free
+                      Bond your agent
                     </Link>
-                    <span className="text-muted-foreground mt-3 block text-center text-sm">
-                      No credit card required!
+                    <span className="text-muted-foreground mt-3 flex items-center justify-center gap-1.5 text-center text-sm">
+                      <Stellar className="size-3.5" />
+                      Verifiable on Stellar.
                     </span>
                   </div>
                 </div>
@@ -111,7 +103,7 @@ export default function Home() {
 
           <Container asGrid className="relative shadow-indigo-900/20">
             <h2 className="sr-only">Features</h2>
-            <div className="@2xl:grid-cols-2 @4xl:grid-cols-10 grid gap-px [--color-primary:var(--color-indigo-500)]">
+            <div className="@2xl:grid-cols-2 @4xl:grid-cols-10 grid gap-px">
               <div className="@max-4xl:hidden">
                 <div data-grid-content />
               </div>
@@ -120,14 +112,14 @@ export default function Home() {
                   <FeatureCardContent>
                     <FeatureCardTitle>
                       <Target className="size-4" />
-                      Marketing Campaigns
+                      Issue a Bond in Minutes
                     </FeatureCardTitle>
                     <FeatureCardDescription>
                       <span className="text-foreground">
-                        Launch and manage campaigns seamlessly.
+                        Fund coverage for your agent and go live.
                       </span>{" "}
-                      Collaborate with your team to deliver impactful
-                      strategies.
+                      Set the worst-case amount, stake it, and publish it
+                      on-chain.
                     </FeatureCardDescription>
                   </FeatureCardContent>
                   <FeatureCardCIllustration>
@@ -140,13 +132,13 @@ export default function Home() {
                   <FeatureCardContent>
                     <FeatureCardTitle>
                       <MessageCircle className="size-4" />
-                      Collaborative Campaigns
+                      Trust, Answered in One Message
                     </FeatureCardTitle>
                     <FeatureCardDescription>
                       <span className="text-foreground">
-                        Work together for greater impact.
+                        Any counterparty can check a bond before acting.
                       </span>{" "}
-                      Engage with your team on comprehensive campaigns.
+                      Humans and agents look up coverage by agent ID, instantly.
                     </FeatureCardDescription>
                   </FeatureCardContent>
                   <FeatureCardCIllustration>
@@ -160,14 +152,11 @@ export default function Home() {
             </div>
           </Container>
         </div>
-        <LogoCloud />
       </section>
-      <Manifesto />
       <PlatformFeatures />
       <AnalyticsFeatures />
       <IntegrationsSection />
       <EnterpriseFeatures />
-      <TestimonialsSection />
       <CallToAction />
     </>
   );

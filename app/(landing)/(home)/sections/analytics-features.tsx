@@ -1,7 +1,8 @@
-import { CalendarDays, Clock2, Database, Globe2, Zap } from "lucide-react";
+import { Database, Globe2 } from "lucide-react";
 import { MapIllustration } from "@/components/illustrations/map-illustration";
 import { VisualizationIllustration } from "@/components/illustrations/visualization-illustration";
 import { Container } from "@/components/container";
+import { SUB_FEATURES } from "@/lib/const";
 import {
   FeatureCard,
   FeatureCardDescription,
@@ -10,41 +11,17 @@ import {
   FeatureCardTitle,
 } from "@/components/ui/feature-card";
 
-const subFeatures = [
-  {
-    icon: Clock2,
-    title: "Time Management",
-    description:
-      "Effectively manage your time with precision and speed using our tools.",
-  },
-  {
-    icon: Zap,
-    title: "Instant Performance",
-    description: "Experience lightning-fast processing and quick responses.",
-  },
-  {
-    icon: CalendarDays,
-    title: "Schedule Management",
-    description: "Organize your tasks seamlessly with our integrated calendar.",
-  },
-  {
-    icon: CalendarDays,
-    title: "Event Planning",
-    description: "Plan and keep track of your events effortlessly.",
-  },
-];
-
 export function AnalyticsFeatures() {
   return (
-    <section className="overflow-hidden">
+    <section id="registry" className="overflow-hidden">
       <Container className="py-16 lg:py-24">
         <div className="mx-auto max-w-2xl space-y-6 text-center">
           <h2 className="text-foreground text-balance text-4xl font-semibold lg:text-5xl">
-            Transform your data into visual insights
+            Risk you can read
           </h2>
           <p className="text-muted-foreground text-balance text-lg">
-            Our powerful analytics platform helps you visualize complex data,
-            identify trends, and make data-driven decisions with confidence.
+            Every bond, stake, and claim lives on Stellar. Anyone can inspect an
+            agent&apos;s worst case before deciding to transact.
           </p>
         </div>
       </Container>
@@ -58,14 +35,14 @@ export function AnalyticsFeatures() {
             <FeatureCard>
               <FeatureCardContent>
                 <FeatureCardTitle>
-                  <Globe2 className="size-4" />
-                  Global Data Visualization
+                  <Globe2 className="size-4" />A Global Registry of Bonded
+                  Agents
                 </FeatureCardTitle>
                 <FeatureCardDescription>
                   <span className="text-foreground">
-                    Visualize data globally.
+                    One public registry, everywhere.
                   </span>{" "}
-                  Utilize interactive maps to enhance your data insights.
+                  Bonded agents are discoverable and verifiable from anywhere.
                 </FeatureCardDescription>
               </FeatureCardContent>
               <FeatureCardCIllustration className="@4xl:px-0 relative px-0">
@@ -81,13 +58,13 @@ export function AnalyticsFeatures() {
               <FeatureCardContent>
                 <FeatureCardTitle>
                   <Database className="size-4" />
-                  Advanced Analytics Engine
+                  Worst-Case Analytics
                 </FeatureCardTitle>
                 <FeatureCardDescription>
                   <span className="text-foreground">
-                    Leverage advanced analytics.
+                    See exposure over time.
                   </span>{" "}
-                  Collaborate on data-driven strategies with precision.
+                  Track coverage utilization, stakes, and claims per agent.
                 </FeatureCardDescription>
               </FeatureCardContent>
               <FeatureCardCIllustration>
@@ -109,7 +86,7 @@ export function AnalyticsFeatures() {
           <div data-grid-content />
         </div>
         <div className="@4xl:grid-cols-3 @sm:grid-cols-2 col-span-8 grid gap-px">
-          {subFeatures.map((feature, index) => (
+          {SUB_FEATURES.map((feature, index) => (
             <div key={index} className="@4xl:last:hidden">
               <div data-grid-content className="space-y-3">
                 <feature.icon className="size-4" />

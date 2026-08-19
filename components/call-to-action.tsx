@@ -12,21 +12,18 @@ export function CallToAction() {
         <div className="@3xl:p-20 @lg:p-8 relative overflow-hidden p-6">
           <div className="mx-auto max-w-xl text-center">
             <h2 className="text-foreground text-balance text-4xl font-semibold lg:text-5xl">
-              Create, Sell and Grow
+              Give your agent a number
             </h2>
             <p className="text-foreground mb-6 mt-4 text-balance text-lg">
-              Join a community of over 1000+ companies and developers who have
-              already discovered the power of Tailark.{" "}
+              Ship agents people can trust — with a pre-funded worst case anyone
+              can verify on Stellar. Open source, built in public.
             </p>
 
             <Link
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "px-4 text-sm shadow-xl shadow-indigo-900/40",
-              )}
-              href="#"
+              className={cn(buttonVariants({ size: "lg" }), "px-4 text-sm")}
+              href="/app"
             >
-              Start Testing for free
+              Bond your agent
             </Link>
           </div>
         </div>

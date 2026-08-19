@@ -2,30 +2,21 @@ import { cn } from "@/lib/utils";
 import { GooglePalm } from "@/components/ui/svgs/google-palm";
 import { Vercel } from "@/components/ui/svgs/vercel";
 import { Claude as ClaudeAiIcon } from "@/components/ui/svgs/claude";
-import Link from "next/link";
 import { Container } from "@/components/container";
 import { Cloudflare } from "@/components/ui/svgs/cloudflare";
-import { buttonVariants } from "@/components/ui/button";
 export function IntegrationsSection() {
   return (
-    <section>
+    <section id="integrations">
       <Container className="py-16 lg:py-24">
         <div className="mx-auto w-full max-w-5xl px-6 xl:px-0">
           <div className="mx-auto max-w-2xl space-y-6 text-center">
             <h2 className="text-foreground text-balance text-4xl font-semibold lg:text-5xl">
-              Connect all your preferred applications
+              Plugs into your agent stack
             </h2>
-            <p className="text-muted-foreground mb-8 text-balance text-lg">
-              Tailark provides a seamless integration experience, allowing you
-              to connect and synchronize data from multiple sources with ease.
+            <p className="text-muted-foreground text-balance text-lg">
+              Bound works wherever your agents run — check and enforce bonds
+              from your platform of choice, with any model behind them.
             </p>
-
-            <Link
-              className={buttonVariants({ variant: "outline", size: "sm" })}
-              href="#"
-            >
-              See all integrations
-            </Link>
           </div>
         </div>
       </Container>
@@ -60,7 +51,7 @@ export function IntegrationsSection() {
               <Vercel />
             </Integration>
 
-            <Integration label="Google PaLM">
+            <Integration label="Gemini">
               <GooglePalm />
             </Integration>
 

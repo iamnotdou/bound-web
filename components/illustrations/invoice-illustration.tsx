@@ -14,18 +14,18 @@ export const InvoiceIllustration = () => {
           <div data-grid-content className="h-fit! p-6!">
             <div className="w-full space-y-1 text-sm [--color-border:color-mix(in_oklab,var(--color-foreground)10%,transparent)]">
               <div className="grid grid-cols-[auto_1fr] items-center">
-                <span className="text-muted-foreground w-18 block">To</span>
+                <span className="text-muted-foreground w-18 block">Agent</span>
                 <span className="bg-border h-2 w-1/4 rounded-full px-2" />
               </div>
 
               <div className="grid grid-cols-[auto_1fr] items-center">
-                <span className="text-muted-foreground w-18 block">From</span>
+                <span className="text-muted-foreground w-18 block">Issuer</span>
                 <span className="bg-border h-2 w-1/2 rounded-full px-2" />
               </div>
 
               <div className="grid grid-cols-[auto_1fr] items-center">
                 <span className="text-muted-foreground w-18 block">
-                  Address
+                  Network
                 </span>
                 <span className="bg-border h-2 w-3/4 rounded-full px-2" />
               </div>
@@ -39,17 +39,19 @@ export const InvoiceIllustration = () => {
               <div className="mb-6 flex items-start justify-between">
                 <div className="space-y-0.5">
                   <LogoIcon />
-                  <div className="mt-4 font-mono text-xs">INV-456789</div>
+                  <div className="mt-4 font-mono text-xs">BND-456789</div>
                   <div className="mt-1 -translate-x-1 font-mono text-2xl font-semibold">
                     $284,342.57
                   </div>
-                  <div className="text-xs font-medium">Due in 15 days</div>
+                  <div className="text-xs font-medium">
+                    Worst-case coverage · active
+                  </div>
                 </div>
               </div>
 
               <div className="border-foreground/15 bg-foreground/3 mt-6 flex h-16 items-center justify-center rounded-md border border-dashed">
                 <div className="text-foreground/50 border-foreground/35 border-b px-6 font-serif text-lg">
-                  Sign here
+                  Auditor stake
                 </div>
               </div>
             </div>
@@ -62,11 +64,11 @@ export const InvoiceIllustration = () => {
                   uniColor
                   className="*:stroke-foreground opacity-50 *:fill-transparent"
                 />
-                <div className="mt-4 font-mono text-xs">INV-456349</div>
+                <div className="mt-4 font-mono text-xs">BND-456349</div>
                 <div className="mt-1 -translate-x-1 font-mono text-2xl font-semibold">
                   $57,452.64
                 </div>
-                <div className="text-xs font-medium">Due today</div>
+                <div className="text-xs font-medium">Expires in 15 days</div>
               </div>
             </div>
           </div>

@@ -1,47 +1,23 @@
-import { CalendarDays, Check, Clock2, Zap, TrendingUp } from "lucide-react";
+import { Check, TrendingUp } from "lucide-react";
 import { Container } from "@/components/container";
 import { FeatureCard, FeatureCardContent } from "@/components/ui/feature-card";
 import Link from "next/link";
 import { EnterpriseMessageIllustration } from "@/components/illustrations/enterprise-message-illustration";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const subFeatures = [
-  {
-    icon: Clock2,
-    title: "Time Management",
-    description:
-      "Effectively manage your time with precision and speed using our tools.",
-  },
-  {
-    icon: Zap,
-    title: "Instant Performance",
-    description: "Experience lightning-fast processing and quick responses.",
-  },
-  {
-    icon: CalendarDays,
-    title: "Schedule Management",
-    description: "Organize your tasks seamlessly with our integrated calendar.",
-  },
-  {
-    icon: CalendarDays,
-    title: "Event Planning",
-    description: "Plan and keep track of your events effortlessly.",
-  },
-];
+import { SUB_FEATURES } from "@/lib/const";
 
 export function EnterpriseFeatures() {
   return (
-    <section>
+    <section id="enterprise">
       <Container className="py-16 lg:py-24">
         <div className="mx-auto max-w-2xl space-y-6 text-center">
           <h2 className="text-foreground text-balance text-4xl font-semibold lg:text-5xl">
-            Enterprise Grade Security
+            Underwriting for the Agent Economy
           </h2>
           <p className="text-muted-foreground text-balance text-lg">
-            Tailark is built with the highest level of security in mind,
-            ensuring that your data is protected from breaches and unauthorized
-            access.
+            Bond entire fleets of agents with custom coverage, backed by auditor
+            stakes and settled on Stellar.
           </p>
         </div>
       </Container>
@@ -58,14 +34,15 @@ export function EnterpriseFeatures() {
                 </div>
                 <h3 className="text-3xl font-semibold">Scale to Infinity</h3>
                 <p className="text-muted-foreground text-balance">
-                  Tailark is built to handle the largest volumes of transactions
-                  with ease, ensuring that your business can scale to any size.
+                  From one agent to a fleet of thousands — every one carries its
+                  own verifiable worst case, so your risk never outruns your
+                  coverage.
                 </p>
                 <ul className="w-full space-y-2">
                   {[
-                    "Secure Credit Card Transactions",
-                    "Instant Payment Notifications",
-                    "Flexible Payment Options",
+                    "Fleet bonding with shared coverage pools",
+                    "Custom coverage tiers per agent role",
+                    "Auditor marketplace for attestations",
                   ].map((feature, index) => (
                     <li
                       key={index}
@@ -81,7 +58,7 @@ export function EnterpriseFeatures() {
                     buttonVariants({ variant: "outline", size: "sm" }),
                     "mt-auto w-fit",
                   )}
-                  href="#"
+                  href="/docs"
                 >
                   Learn more
                 </Link>
@@ -104,7 +81,7 @@ export function EnterpriseFeatures() {
           <div data-grid-content />
         </div>
         <div className="@4xl:grid-cols-3 @sm:grid-cols-2 col-span-8 grid gap-px">
-          {subFeatures.map((feature, index) => (
+          {SUB_FEATURES.map((feature, index) => (
             <div key={index} className="@4xl:last:hidden">
               <div data-grid-content className="space-y-3">
                 <feature.icon className="size-4" />

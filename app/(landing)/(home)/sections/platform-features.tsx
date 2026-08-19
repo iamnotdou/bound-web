@@ -3,18 +3,15 @@ import { FlowIllustration } from "@/components/illustrations/flow-illustration";
 import { Container, Separator } from "@/components/container";
 import { FeatureCard, FeatureCardContent } from "@/components/ui/feature-card";
 import { CreditCardIllustration } from "@/components/illustrations/credit-card-illustration";
-import { VercelWordmark as VercelFull } from "@/components/ui/svgs/vercel";
 
 import Link from "next/link";
 import { Check, CreditCard, ScanFace, Scroll } from "lucide-react";
-import { MESCHAC_AVATAR } from "@/lib/const";
-import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function PlatformFeatures() {
   return (
-    <section>
+    <section id="features">
       <Container asGrid className="@4xl:grid-cols-4 grid-cols-2">
         <FeatureCard className="@4xl:col-span-2 col-span-full grid-rows-1">
           <FeatureCardContent className="@4xl:pb-12 flex h-full flex-col space-y-6">
@@ -22,24 +19,22 @@ export function PlatformFeatures() {
               <Scroll className="text-muted-foreground m-auto size-4" />
             </div>
 
-            <h2 className="text-3xl font-semibold">
-              Innovative Invoicing Solutions
-            </h2>
+            <h2 className="text-3xl font-semibold">Bonds, Not Promises</h2>
 
             <p className="text-muted-foreground text-balance">
-              Elevate your business with our{" "}
+              Every bonded agent carries a{" "}
               <strong className="text-foreground font-semibold">
-                streamlined invoicing
+                pre-funded coverage amount
               </strong>{" "}
-              tools designed to optimize financial operations and enhance
-              productivity.
+              — a hard number for the worst case, locked before the first
+              transaction.
             </p>
 
             <ul className="w-full space-y-2">
               {[
-                "Automated Invoice Processing",
-                "Real-time Payment Tracking",
-                "Multi-currency Support",
+                "Pre-funded, on-chain coverage",
+                "Transparent bond terms",
+                "Instant lookup by agent ID",
               ].map((feature, index) => (
                 <li
                   key={index}
@@ -56,7 +51,7 @@ export function PlatformFeatures() {
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "mt-auto w-fit",
               )}
-              href="#"
+              href="/docs"
             >
               Learn more
             </Link>
@@ -85,21 +80,23 @@ export function PlatformFeatures() {
               <ScanFace className="text-muted-foreground m-auto size-4" />
             </div>
 
-            <h2 className="text-3xl font-semibold">Secure ID Verification</h2>
+            <h2 className="text-3xl font-semibold">
+              Auditor-Staked Verification
+            </h2>
 
             <p className="text-muted-foreground text-balance">
-              Ensure the safety and security of your operations with our{" "}
+              Independent auditors review each agent and{" "}
               <strong className="text-foreground font-semibold">
-                comprehensive ID verification
+                stake their own funds
               </strong>{" "}
-              solutions.
+              behind the attestation — skin in the game, not a badge.
             </p>
 
             <ul className="w-full space-y-2">
               {[
-                "Instant Identity Checks",
-                "Fraud Prevention",
-                "Global Coverage",
+                "Auditors stake on every review",
+                "Bad attestations get slashed",
+                "Attestations verifiable on Stellar",
               ].map((feature, index) => (
                 <li
                   key={index}
@@ -116,7 +113,7 @@ export function PlatformFeatures() {
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "mt-auto w-fit",
               )}
-              href="#"
+              href="/docs"
             >
               Learn more
             </Link>
@@ -133,23 +130,21 @@ export function PlatformFeatures() {
               <CreditCard className="text-muted-foreground m-auto size-4" />
             </div>
 
-            <h2 className="text-3xl font-semibold">
-              Comprehensive Payment Solutions
-            </h2>
+            <h2 className="text-3xl font-semibold">Claims That Actually Pay</h2>
 
             <p className="text-muted-foreground text-balance">
-              Streamline your transactions with our{" "}
+              When an agent causes a loss, the claim{" "}
               <strong className="text-foreground font-semibold">
-                cutting-edge payment processing
+                pays out from the bond
               </strong>{" "}
-              tools designed to enhance efficiency and security.
+              — on-chain, without negotiating with a counterparty.
             </p>
 
             <ul className="w-full space-y-2">
               {[
-                "Secure Credit Card Transactions",
-                "Instant Payment Notifications",
-                "Flexible Payment Options",
+                "Payouts settle on Stellar",
+                "No counterparty negotiation",
+                "Worst case is the ceiling, always",
               ].map((feature, index) => (
                 <li
                   key={index}
@@ -166,7 +161,7 @@ export function PlatformFeatures() {
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "mt-auto w-fit",
               )}
-              href="#"
+              href="/docs"
             >
               Learn more
             </Link>
@@ -175,40 +170,6 @@ export function PlatformFeatures() {
 
         <div className="@4xl:col-span-2 col-span-full">
           <CreditCardIllustration />
-        </div>
-      </Container>
-
-      <Separator className="h-24" />
-
-      <Container className="bg-card border-dashed">
-        <div className="mx-auto max-w-2xl p-6 md:py-12 lg:py-20">
-          <VercelFull className="h-6 w-24" />
-
-          <div className="mt-6 lg:mt-12">
-            <p className='text-xl *:leading-relaxed before:mr-1 before:content-["\201C"] after:ml-1 after:content-["\201D"] md:text-2xl'>
-              Using Tailark has been like unlocking a secret design superpower.
-              It's the perfect fusion of simplicity and versatility, enabling us
-              to create UIs that are as stunning as they are user-friendly.
-            </p>
-
-            <div className="mt-12 flex items-center gap-3">
-              <div className="before:border-foreground/10 relative size-10 overflow-hidden rounded-lg shadow before:absolute before:inset-0 before:rounded-lg before:border">
-                <Image
-                  src={MESCHAC_AVATAR}
-                  alt="Méschac Irung"
-                  width={56}
-                  height={56}
-                />
-              </div>
-
-              <div className="space-y-px">
-                <p className="text-sm font-medium">Méschac Irung</p>
-                <p className="text-muted-foreground text-xs">
-                  Founder & CEO, Stripe
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </Container>
 

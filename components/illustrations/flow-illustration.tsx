@@ -12,8 +12,8 @@ export const FlowIllustration = () => {
           <div data-grid-content className="p-6! flex">
             <div className="bg-radial mask-[radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] relative my-auto aspect-square size-fit opacity-75 group-hover:opacity-95">
               <Image
-                src="https://raw.githubusercontent.com/tailark/assets/refs/heads/main/portrait_vsoxqd.jpg"
-                alt="tailark hero section portrait"
+                src="/portrait.jpg"
+                alt="portrait"
                 className="size-full object-cover"
                 width={200}
                 height={133}
@@ -29,16 +29,16 @@ export const FlowIllustration = () => {
             <div className="w-full space-y-1 text-sm [--color-border:color-mix(in_oklab,var(--color-foreground)10%,transparent)]">
               <span className="text-muted-foreground mb-3 block size-12 rounded border" />
               <div className="grid grid-cols-[auto_1fr] items-center">
-                <span className="text-muted-foreground w-18 block">Name</span>
+                <span className="text-muted-foreground w-18 block">Agent</span>
                 <span className="bg-border h-2 w-1/4 rounded-full px-2" />
               </div>
 
               <div className="grid grid-cols-[auto_1fr] items-center">
-                <span className="text-muted-foreground w-18 block">Email</span>
+                <span className="text-muted-foreground w-18 block">Scope</span>
                 <span className="bg-border h-2 w-1/2 rounded-full px-2" />
               </div>
               <div className="grid grid-cols-[auto_1fr] items-center">
-                <span className="text-muted-foreground w-18 block">Phone</span>
+                <span className="text-muted-foreground w-18 block">Stake</span>
                 <span className="bg-border h-2 w-3/4 rounded-full px-2" />
               </div>
             </div>
@@ -53,7 +53,7 @@ export const FlowIllustration = () => {
           <div data-grid-content className="h-fit! p-6!">
             <div className="flex items-center gap-2">
               <ShieldCheck className="size-4 fill-emerald-200 stroke-emerald-900" />
-              <span className="rounded-full text-sm">Verified</span>
+              <span className="rounded-full text-sm">Attested on Stellar</span>
             </div>
           </div>
         </div>
@@ -64,8 +64,8 @@ export const FlowIllustration = () => {
           <div data-grid-content className="p-6! flex">
             <div className="bg-radial mask-[radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] relative my-auto aspect-square size-fit opacity-75 group-hover:opacity-95">
               <Image
-                src="https://raw.githubusercontent.com/tailark/assets/refs/heads/main/portrait_vsoxqd.jpg"
-                alt="tailark hero section portrait"
+                src="/portrait.jpg"
+                alt="portrait"
                 className="size-full object-cover"
                 width={200}
                 height={133}

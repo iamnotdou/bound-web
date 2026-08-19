@@ -28,16 +28,9 @@
       "headers": {
         "Authorization": "Bearer ${TAILARK_API_KEY}"
       }
-    }
+    },
+    "@react-bits": "https://reactbits.dev/r/{name}.json"
   },
   "menuColor": "default",
-  "menuAccent": "subtle",
-  "registries": {
-    "@tailark-pro": {
-      "url": "https://pro.tailark.com/registry/{name}",
-      "headers": {
-        "Authorization": "Bearer ${TAILARK_API_KEY}"
-      }
-    }
-  }
+  "menuAccent": "subtle"
 }

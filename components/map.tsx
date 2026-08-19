@@ -67,9 +67,10 @@ export const Map = () => {
   });
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- inline data-URI SVG, nothing for next/image to optimize
     <img
       src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
-      alt="tailark stats map"
+      alt="stats map"
     />
   );
 };

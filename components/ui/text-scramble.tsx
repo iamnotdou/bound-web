@@ -2,6 +2,19 @@
 import { type JSX, useEffect, useState } from "react";
 import { motion, MotionProps } from "motion/react";
 
+const motionComponentCache = new Map<React.ElementType, React.ElementType>();
+
+function getMotionComponent(component: React.ElementType): React.ElementType {
+  let cached = motionComponentCache.get(component);
+  if (!cached) {
+    cached = motion.create(
+      component as keyof JSX.IntrinsicElements,
+    ) as React.ElementType;
+    motionComponentCache.set(component, cached);
+  }
+  return cached;
+}
+
 export type TextScrambleProps = {
   children: string;
   duration?: number;
@@ -27,17 +40,13 @@ export function TextScramble({
   onScrambleComplete,
   ...props
 }: TextScrambleProps) {
-  const MotionComponent = motion.create(
-    Component as keyof JSX.IntrinsicElements,
-  );
+  const MotionComponent = getMotionComponent(Component);
   const [displayText, setDisplayText] = useState(children);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const text = children;
 
-  const scramble = async () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
+  useEffect(() => {
+    if (!trigger) return;
 
+    const text = children;
     const steps = duration / speed;
     let step = 0;
 
@@ -65,20 +74,16 @@ export function TextScramble({
       if (step > steps) {
         clearInterval(interval);
         setDisplayText(text);
-        setIsAnimating(false);
         onScrambleComplete?.();
       }
     }, speed * 1000);
-  };
 
-  useEffect(() => {
-    if (!trigger) return;
-
-    scramble();
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trigger]);
 
   return (
+    // eslint-disable-next-line react-hooks/static-components -- resolved from a module-level cache, stable across renders
     <MotionComponent className={className} {...props}>
       {displayText}
     </MotionComponent>

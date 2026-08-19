@@ -11,7 +11,16 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import { Menu, X, ArrowRight } from "lucide-react";
+import {
+  Menu,
+  X,
+  ArrowRight,
+  Braces,
+  SquareTerminal,
+  Plug,
+  BookOpen,
+  type LucideIcon,
+} from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -25,6 +34,7 @@ interface FeatureLink {
   href: string;
   name: string;
   description?: string;
+  icon?: LucideIcon;
 }
 
 interface MobileLink {
@@ -35,87 +45,52 @@ interface MobileLink {
 }
 const features: FeatureLink[] = [
   {
-    href: "/grid-2/product-one",
-    name: "AI",
-    description: "Generate Insights and Recommendations",
+    href: "/docs",
+    name: "SDK",
+    description: "Check and enforce bonds from your code",
+    icon: Braces,
   },
   {
-    href: "/grid-2/product-two",
-    name: "Performance",
-    description: "Lightning-fast load times",
+    href: "/docs",
+    name: "CLI",
+    description: "Issue and inspect bonds from the terminal",
+    icon: SquareTerminal,
   },
   {
-    href: "/grid-2/product-one",
-    name: "Agents",
-    description: "Lightning-fast load times",
+    href: "/docs",
+    name: "MCP Server",
+    description: "Let agents verify bonds natively",
+    icon: Plug,
   },
   {
-    href: "/grid-2/product-two",
-    name: "Security",
-    description: "Keep your data safe and secure",
+    href: "/docs",
+    name: "Docs",
+    description: "Guides, references and examples",
+    icon: BookOpen,
   },
 ];
 
 const moreFeatures: FeatureLink[] = [
   {
-    href: "/grid-2/product-one",
-    name: "Automation",
-    description: "Automate your workflow",
+    href: "/#features",
+    name: "Bonds",
+    description: "Pre-funded, on-chain worst-case coverage",
   },
   {
-    href: "/grid-2/product-two",
-    name: "Scalability",
-    description: "Scale your application",
+    href: "/#registry",
+    name: "Registry",
+    description: "Look up any bonded agent",
   },
   {
-    href: "/grid-2/product-one",
-    name: "Backup",
-    description: "Keep your data backed up",
+    href: "/#integrations",
+    name: "Integrations",
+    description: "Works with your agent stack",
   },
   {
-    href: "/grid-2/product-two",
-    name: "Security",
-    description: "Keep your data safe and secure",
+    href: "/#enterprise",
+    name: "Enterprise",
+    description: "Fleet bonding and custom coverage",
   },
-  {
-    href: "/grid-2/product-one",
-    name: "Partnerships",
-    description: "Get help when you need it",
-  },
-  {
-    href: "/grid-2/product-two",
-    name: "Mobile App",
-    description: "Get help when you need it",
-  },
-];
-
-const useCases: FeatureLink[] = [
-  {
-    href: "/grid-2/solution-one",
-    name: "Marketplace",
-    description: "Find and buy AI tools",
-  },
-  {
-    href: "/grid-2/solution-one",
-    name: "API Integration",
-    description: "Integrate AI tools into your app",
-  },
-  {
-    href: "/grid-2/solution-one",
-    name: "Partnerships",
-    description: "Get help when you need it",
-  },
-  {
-    href: "/grid-2/solution-one",
-    name: "Mobile App",
-    description: "Get help when you need it",
-  },
-];
-
-const contentLinks: FeatureLink[] = [
-  { name: "Announcements", href: "#link" },
-  { name: "Resources", href: "#link" },
-  { name: "Blog", href: "#link" },
 ];
 
 const mobileLinks: MobileLink[] = [
@@ -123,12 +98,8 @@ const mobileLinks: MobileLink[] = [
     groupName: "Product",
     links: features,
   },
-  {
-    groupName: "Solutions",
-    links: [...useCases, ...contentLinks],
-  },
-  { name: "Pricing", href: "#" },
-  { name: "Company", href: "#" },
+  { name: "Docs", href: "/docs" },
+  { name: "Contact", href: "/contact" },
 ];
 
 export function Header() {
@@ -212,12 +183,25 @@ export function Header() {
                       variant: "outline",
                       size: "sm",
                     })}
-                    href="#"
+                    href="https://github.com/iamnotdou/bound"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    <span>Login</span>
+                    <svg
+                      className="size-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      aria-hidden
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5c.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34c-.46-1.16-1.11-1.47-1.11-1.47c-.91-.62.07-.6.07-.6c1 .07 1.53 1.03 1.53 1.03c.87 1.52 2.34 1.07 2.91.83c.09-.65.35-1.09.63-1.34c-2.22-.25-4.55-1.11-4.55-4.92c0-1.11.38-2 1.03-2.71c-.1-.25-.45-1.29.1-2.64c0 0 .84-.27 2.75 1.02c.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02c.55 1.35.2 2.39.1 2.64c.65.71 1.03 1.6 1.03 2.71c0 3.82-2.34 4.66-4.57 4.91c.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"
+                      />
+                    </svg>
+                    <span>GitHub</span>
                   </Link>
-                  <Link className={buttonVariants({ size: "sm" })} href="#">
-                    <span>Get Started</span>
+                  <Link className={buttonVariants({ size: "sm" })} href="/app">
+                    <span>App</span>
                   </Link>
                 </div>
               </div>
@@ -310,6 +294,7 @@ const NavMenu = () => {
                       href={feature.href}
                       title={feature.name}
                       description={feature.description}
+                      icon={feature.icon}
                     />
                   ))}
                 </ul>
@@ -338,86 +323,30 @@ const NavMenu = () => {
               </div>
               <div className="space-y-0.5">
                 <Link
-                  href="#"
+                  href="https://github.com/iamnotdou/bound"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm font-medium before:absolute before:inset-0"
                 >
-                  Multimodal Learning
+                  Open Source
                 </Link>
 
                 <p className="text-foreground/60 line-clamp-1 text-sm">
-                  Explore how our platform integrates text, image, and audio
-                  processing into a unified framework.
+                  Bound is built in public — read the code, open issues, and
+                  contribute on GitHub.
                 </p>
               </div>
             </div>
           </NavigationMenuContent>
         </NavigationMenuItem>
-        <NavigationMenuItem value="solutions">
-          <NavigationMenuTrigger>Solutions</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <div className="grid w-full grid-cols-3 gap-2">
-              <div>
-                <span className="text-muted-foreground mb-3 ml-3 block border-b pb-3 text-sm">
-                  Use Cases
-                </span>
-                <ul>
-                  {useCases.map((useCase, index) => (
-                    <ListItem
-                      key={index}
-                      href={useCase.href}
-                      title={useCase.name}
-                      description={useCase.description}
-                    />
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <span className="text-muted-foreground mb-3 ml-3 block border-b pb-3 text-sm">
-                  Apps
-                </span>
-                <ul>
-                  {features
-                    .slice(0, features.length - 1)
-                    .map((feature, index) => (
-                      <ListItem
-                        key={index}
-                        href={feature.href}
-                        title={feature.name}
-                        description={feature.description}
-                      />
-                    ))}
-                </ul>
-              </div>
-              <div>
-                <span className="text-muted-foreground mb-3 ml-3 block border-b pb-3 text-sm">
-                  Content
-                </span>
-                <ul>
-                  {contentLinks.map((content, index) => (
-                    <NavigationMenuLink key={index} asChild>
-                      <Link
-                        href={content.href}
-                        className="grid grid-cols-[auto_1fr] items-center gap-2.5 px-3"
-                      >
-                        <div className="text-foreground text-sm font-medium">
-                          {content.name}
-                        </div>
-                      </Link>
-                    </NavigationMenuLink>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-        <NavigationMenuItem value="pricing">
+        <NavigationMenuItem value="docs">
           <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-            <Link href="/grid-2/pricing-one">Pricing</Link>
+            <Link href="/docs">Docs</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        <NavigationMenuItem value="company">
+        <NavigationMenuItem value="contact">
           <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-            <Link href="/grid-2/about-one">Company</Link>
+            <Link href="/contact">Contact</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
@@ -429,16 +358,23 @@ function ListItem({
   title,
   description,
   href,
+  icon: Icon,
   ...props
 }: React.ComponentPropsWithoutRef<"li"> & {
   href: string;
   title: string;
   description?: string;
+  icon?: LucideIcon;
 }) {
   return (
     <li {...props}>
       <NavigationMenuLink asChild className="group rounded-xl p-3">
         <Link href={href} className="grid grid-cols-[auto_1fr] gap-3.5">
+          {Icon && (
+            <div className="bg-card ring-foreground/10 flex size-9 items-center justify-center rounded-lg shadow-sm ring-1">
+              <Icon className="text-muted-foreground size-4" />
+            </div>
+          )}
           <div className="space-y-1">
             <div className="text-foreground flex items-center gap-2 text-sm font-medium">
               {title}

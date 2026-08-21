@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/components/app/app-header";
+import { WalletProvider } from "@/lib/wallet/wallet-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -14,12 +15,12 @@ export default function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <>
+    <WalletProvider>
       <AppHeader />
       <main className="bg-background flex-1">{children}</main>
       <footer className="border-border text-muted-foreground border-t py-6 text-center text-xs">
         Bound — a certificate proves committed capital, not good behaviour.
       </footer>
-    </>
+    </WalletProvider>
   );
 }

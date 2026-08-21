@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Info, ShieldAlert } from "lucide-react";
 import { Address } from "@/components/app/address";
+import { ChallengeCertificate } from "@/components/app/challenge-certificate";
 import { StatusBadge } from "@/components/app/status-badge";
 import {
   formatExpiry,
@@ -143,6 +144,8 @@ export default async function CertificatePage({
           </span>
         </Row>
       </dl>
+
+      <ChallengeCertificate certId={cert.certId} />
 
       <section
         aria-labelledby="guarantees-heading"

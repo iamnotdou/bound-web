@@ -17,21 +17,21 @@ npm error code ETARGET
 npm error notarget No matching version found for @bound/sdk@^0.2.0
 ```
 
-This is expected and there is exactly one fix. The app needs `@bound/sdk@0.2.0`
-for `listCertificates`, `getCertificate` and the transaction builders. Only
-`0.1.0` is on the registry, and that version is unusable by anyone: it was
-published without its `dist/` directory, so the tarball contains no code.
+The app needs `@bound/sdk@0.2.0` for `listCertificates`, `getCertificate` and the
+transaction builders. Only `0.1.0` is on the registry, and it predates those
+APIs — so the dependency cannot resolve until `0.2.0` is published.
 
-Until `0.2.0` is published, `package-lock.json` is stale — it still records
-`0.1.0` and has no entry for `@creit.tech/stellar-wallets-kit`. A working
-`node_modules` in this tree was assembled out of band and is **not
-reproducible**.
+`package-lock.json` is stale for the same reason: it still records `0.1.0` and
+has no entry for `@creit.tech/stellar-wallets-kit`. A working `node_modules` in
+this tree was assembled out of band and is **not reproducible**.
 
-To unblock:
+To unblock, publish the SDK from the protocol repo. It has a tag-triggered
+release workflow with `NPM_TOKEN` already configured, so this needs no local npm
+login:
 
 ```bash
-cd ../bound/packages/sdk && npm publish   # prepack guarantees dist ships
-cd ../../../bound-web && npm install      # regenerates the lock
+cd ../bound && git tag v0.2.0 && git push origin v0.2.0   # CI publishes with provenance
+cd ../bound-web && npm install                            # regenerates the lock
 ```
 
 ## Development

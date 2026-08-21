@@ -10,7 +10,9 @@ import {
   isExpired,
   relativeFromNow,
 } from "@/components/app/relative-time";
-import { getCertificate } from "@/lib/bound";
+import { CoveragePanel } from "@/components/app/coverage-panel";
+import { SpendMeterPanel } from "@/components/app/spend-meter";
+import { getCertificate, getCertificateActivity } from "@/lib/bound";
 import { cn } from "@/lib/utils";
 
 function parseCertId(raw: string): number | null {
@@ -44,6 +46,10 @@ export default async function CertificatePage({
   if (!cert) notFound();
 
   const expired = isExpired(cert.expiresAtUnix);
+  const { meter, coverage } = await getCertificateActivity(
+    cert.certId,
+    cert.agent,
+  );
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:py-14">
@@ -144,6 +150,10 @@ export default async function CertificatePage({
           </span>
         </Row>
       </dl>
+
+      <SpendMeterPanel meter={meter} certId={cert.certId} />
+
+      <CoveragePanel coverage={coverage} status={cert.status} />
 
       <ChallengeCertificate certId={cert.certId} />
 

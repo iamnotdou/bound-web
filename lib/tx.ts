@@ -54,11 +54,14 @@ export { buildActionXdr, submitSignedXdr };
 /**
  * Read a challenge's verdict without signing anything.
  *
- * `resolve` is permissionless but still a transaction someone has to pay for,
- * and this app holds no key, so a challenge opened here stays `Pending` until
- * someone resolves it. Reading the verdict back is a simulation against a
- * funded read source — no key, no fee, no state change — which lets the UI say
- * what the chain actually thinks rather than guessing.
+ * A false claim is decided in its own filing transaction, so it comes back
+ * already settled. A true one opens a 72-hour claim window and stays `Pending`
+ * until someone closes it — that call is permissionless but still a transaction
+ * somebody has to pay for, and this app holds no key.
+ *
+ * Reading the verdict back is a simulation against a funded read source — no
+ * key, no fee, no state change — which lets the UI say what the chain actually
+ * thinks rather than guessing which of those two happened.
  */
 export async function readChallengeVerdict(
   challengeId: number,

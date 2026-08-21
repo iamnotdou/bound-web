@@ -29,12 +29,48 @@ const STAGE_HINT: Record<ActionStage, string> = {
     "The challenge was signed but did not land. Your bond was not taken. Check before retrying, in case it landed after all.",
 };
 
+/**
+ * The proofs a browser can file unaided.
+ *
+ * All three are decided by arithmetic over state the contracts already hold,
+ * which is what lets the contract rule on them in the filing transaction
+ * itself. `FakeSignature` is deliberately absent: a forged attestation leaves
+ * no on-chain trace to read, so it waits on an arbiter, and offering it here
+ * would put a claim nobody can adjudicate from this app behind the same button
+ * as three that settle themselves.
+ */
+const PROOFS = [
+  {
+    tag: "InsufficientReserve",
+    label: "The reserve does not back the bound",
+    reads: "the certificate's claimed reserve against the vault's live balance",
+    settles:
+      "The auditor's allocation is slashed to the treasury and you are paid a share of the proven shortfall. It compensates no victim: a shortfall proves the covenant broke, not who lost money.",
+  },
+  {
+    tag: "BoundExceeded",
+    label: "Routed spend has passed the bound",
+    reads: "the payment router's spend counter against the certified bound",
+    settles:
+      "The certificate is killed and you are paid a flat bounty. Nothing is slashed — routed flow is gross conduct, not loss, and a protocol that slashed on a counter would be paying people to run one up.",
+  },
+  {
+    tag: "ExpiredCertificate",
+    label: "The covenant outlived the certificate",
+    reads: "the router's record of payments that settled after expiry",
+    settles:
+      "The certificate is killed and you are paid a flat bounty. Nothing is slashed, for the same reason.",
+  },
+] as const;
+
+type ProofTag = (typeof PROOFS)[number]["tag"];
+
 /** How the contract's verdict reads to someone who did not write the contract. */
 const VERDICT_COPY: Record<string, string> = {
   Pending:
     "Filed, and settling nothing yet. It opened a 72-hour claim window — or joined one already open — so other claimants can file against the same certificate and be paid together. Once the window lapses, anyone may close it; this app holds no key and cannot do that for you.",
   ChallengeWins:
-    "Upheld: the reserve did not back the certificate. The auditor's allocation is slashed to the treasury and the challenger paid a share of the proven shortfall. It compensates no victim — a shortfall proves the covenant broke, not who lost money, and only an arbiter's assessment can name and size a victim.",
+    "Upheld. The certificate is invalidated, and what follows depends on which proof carried it: a reserve shortfall slashes the auditor's allocation to the treasury and pays the challenger a share of the shortfall, while the two conduct proofs pay a flat bounty and slash nothing. Neither compensates a victim — a broken covenant proves that something went wrong, not who lost money, and only an arbiter's assessment can name and size a victim.",
   ChallengeFails: "Rejected: the reserve held up. The bond is forfeit.",
   Cured:
     "The operator remedied the shortfall during the window. The bond is returned in full — the claim was true when it was filed, and being right about that is what the bond is staked on.",
@@ -45,9 +81,11 @@ const VERDICT_COPY: Record<string, string> = {
 export function ChallengeCertificate({ certId }: { certId: number }) {
   const bondId = useId();
   const victimId = useId();
+  const proofId = useId();
   const { address } = useWallet();
   const { run } = useWalletActions();
 
+  const [proofType, setProofType] = useState<ProofTag>("InsufficientReserve");
   const [bondUsd, setBondUsd] = useState("");
   const [victim, setVictim] = useState("");
   const [errors, setErrors] = useState<{ bond?: string; victim?: string }>({});
@@ -88,7 +126,7 @@ export function ChallengeCertificate({ certId }: { certId: number }) {
     try {
       const result = await run("challenge", {
         certId,
-        proofType: "InsufficientReserve",
+        proofType,
         victim: victim.trim(),
         bondUsd: Number(bondUsd),
       });
@@ -130,19 +168,59 @@ export function ChallengeCertificate({ certId }: { certId: number }) {
         Challenge this certificate
       </h2>
       <p className="text-muted-foreground mt-2 text-sm text-balance">
-        Post a bond claiming the reserve does not back the bound — the{" "}
-        <strong className="text-foreground">InsufficientReserve</strong> proof.
-        The contract checks the reserve itself, so no human decides it. Filing
-        does not settle: it opens a 72-hour claim window, and everything
-        admitted is settled together when the window closes. If you are wrong at
-        filing, the bond is forfeit. If you are right, the auditor&apos;s
-        allocation is slashed to the treasury and you are paid a share of the
-        shortfall — the proof establishes that the covenant broke, not who lost
-        money, so it compensates no victim on its own.
+        Post a bond of your own money against a claim the contract can check for
+        itself. No human decides any of these — each is arithmetic over state
+        the contracts already hold, which is why a false one can be rejected in
+        the same transaction that files it, with the bond forfeit. A true one
+        does not settle on filing: it opens a 72-hour claim window so other
+        claimants can join, and everything admitted is settled together when the
+        window closes.
       </p>
 
       <form onSubmit={onSubmit} noValidate className="mt-5">
-        <div className="grid gap-5 sm:grid-cols-2">
+        <fieldset>
+          <legend className="text-foreground text-sm font-medium">
+            What you are claiming
+          </legend>
+          <div className="mt-2 space-y-2">
+            {PROOFS.map((proof) => (
+              <label
+                key={proof.tag}
+                htmlFor={`${proofId}-${proof.tag}`}
+                className={cn(
+                  "flex cursor-pointer gap-3 rounded-lg p-3 ring-1 transition",
+                  proofType === proof.tag
+                    ? "ring-primary/40 bg-primary/5"
+                    : "ring-foreground/10 hover:ring-foreground/20",
+                )}
+              >
+                <input
+                  id={`${proofId}-${proof.tag}`}
+                  type="radio"
+                  name={proofId}
+                  value={proof.tag}
+                  checked={proofType === proof.tag}
+                  onChange={() => setProofType(proof.tag)}
+                  className="accent-primary mt-1 size-4 shrink-0"
+                />
+                <span className="min-w-0">
+                  <span className="text-foreground block text-sm font-medium">
+                    {proof.label}
+                  </span>
+                  <span className="text-muted-foreground mt-1 block text-xs">
+                    <span className="font-address">{proof.tag}</span> — the
+                    contract reads {proof.reads}.
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="text-muted-foreground mt-2 text-xs text-balance">
+            {PROOFS.find((p) => p.tag === proofType)?.settles}
+          </p>
+        </fieldset>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <div>
             <label
               htmlFor={bondId}

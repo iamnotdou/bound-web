@@ -1,6 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    // ES2020 for BigInt literals. The chain deals in 7-decimal integer stroops and
+    // the money helpers do exact integer arithmetic on them — a float divide is
+    // how a live premium accrual renders as "$0", i.e. as "no yield". ES2017 was
+    // the create-next-app default, not a compatibility decision; every browser
+    // that can run React 19 has had BigInt since 2020.
+    "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,

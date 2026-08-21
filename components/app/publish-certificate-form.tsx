@@ -54,14 +54,17 @@ function positiveNumber(raw: string): number | null {
   return Number.isFinite(value) && value > 0 ? value : null;
 }
 
-function validate(fields: Fields): FieldErrors {
+// `agent` is not a user-editable field any more: v2 authenticates the agent as
+// well as the operator, and a browser wallet holds one key, so the wallet can
+// only bond itself. It is validated as the connected address rather than as
+// form input.
+function validate(fields: Fields, agent: string | null): FieldErrors {
   const errors: FieldErrors = {};
 
-  if (!fields.agent.trim()) {
-    errors.agent = "Enter the agent's Stellar address.";
-  } else if (!isAccountId(fields.agent)) {
-    errors.agent =
-      "That is not a Stellar account id. It starts with G and is 56 characters long.";
+  if (!agent) {
+    errors.agent = "Connect a wallet to bond it as the agent.";
+  } else if (!isAccountId(agent)) {
+    errors.agent = "The connected wallet is not a Stellar account id.";
   }
 
   if (positiveNumber(fields.boundUsd) === null) {
@@ -110,12 +113,12 @@ export function PublishCertificateForm() {
   const set = (key: keyof Fields) => (value: string) => {
     const next = { ...fields, [key]: value };
     setFields(next);
-    if (showErrors) setErrors(validate(next));
+    if (showErrors) setErrors(validate(next, address));
   };
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const found = validate(fields);
+    const found = validate(fields, address);
     setErrors(found);
     setShowErrors(true);
     if (Object.keys(found).length > 0) return;
@@ -125,7 +128,8 @@ export function PublishCertificateForm() {
     setBusy(true);
     try {
       const outcome = await run("publish", {
-        agent: fields.agent.trim(),
+        // v2: the wallet bonds itself; see the Agent address field.
+        agent: address,
         boundUsd: Number(fields.boundUsd),
         reserveUsd: Number(fields.reserveUsd),
         expiryDays: Number(fields.expiryDays),
@@ -219,7 +223,7 @@ export function PublishCertificateForm() {
         <Field
           id={ids.agent}
           label="Agent address"
-          hint="The Stellar account the certificate is issued for."
+          hint="This wallet. The registry authenticates the agent as well as the operator, and a browser wallet holds one key — so it can only bond itself. Naming a different agent needs that agent's signature in the same transaction."
           error={showErrors ? errors.agent : undefined}
         >
           {(props) => (
@@ -229,10 +233,13 @@ export function PublishCertificateForm() {
               inputMode="text"
               autoComplete="off"
               spellCheck={false}
-              placeholder="G…"
-              value={fields.agent}
-              onChange={(event) => set("agent")(event.target.value)}
-              className={inputClass(showErrors && errors.agent, "font-address")}
+              readOnly
+              placeholder="Connect a wallet"
+              value={address ?? ""}
+              className={inputClass(
+                showErrors && errors.agent,
+                "font-address opacity-80",
+              )}
             />
           )}
         </Field>

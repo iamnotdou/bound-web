@@ -55,27 +55,37 @@ export default function PublishCertificatePage() {
           </li>
           <li>
             <strong className="text-foreground">
-              You cannot fund that reserve.
+              You bond this wallet as the agent.
             </strong>{" "}
-            On the contracts deployed today,{" "}
-            <code className="font-address">ReserveVault.deposit</code>{" "}
-            authenticates against a single operator address fixed at
-            initialization. Any other publisher — including you — is refused. So
-            the claimed reserve stays a claim.
+            The registry authenticates the agent as well as the operator, so an
+            agent has to consent to being bonded. A browser wallet holds one
+            key, so the only certificate it can publish unaided is one naming
+            itself. Bonding a different agent needs that agent&apos;s signature
+            in the same transaction.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              You can fund the reserve afterwards — and you have to.
+            </strong>{" "}
+            Reserves are held per certificate and{" "}
+            <code className="font-address">deposit</code> authenticates against{" "}
+            <em>that certificate&apos;s</em> operator, so this is your money to
+            commit and nobody else can commit it for you. An auditor cannot
+            attest a certificate whose reserve is not already funded.
           </li>
           <li>
             <strong className="text-foreground">
               The certificate lands as Pending.
             </strong>{" "}
-            Unfunded, and unattested until a registered auditor stakes slashable
+            Unfunded, and unattested until a registered auditor bonds slashable
             capital behind it. Pending is not cover, and a counterparty should
             not treat it as any.
           </li>
         </ul>
         <p className="text-muted-foreground mt-4 text-sm text-balance">
           This is the protocol&apos;s current state on testnet, stated plainly
-          rather than implied. A certificate published here is a public,
-          verifiable claim — nothing more.
+          rather than implied. Until it is funded and attested, a certificate
+          published here is a public, verifiable claim — nothing more.
         </p>
       </section>
 

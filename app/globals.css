@@ -298,6 +298,13 @@
     @apply bg-background text-foreground;
   }
 
+  /* Chain addresses are read character-by-character, so they opt out of the
+     Outfit-based --font-mono token and use a true monospaced stack. */
+  .font-address {
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
   .line {
     counter-increment: line;
     @apply relative pl-10 before:absolute before:opacity-35 before:inset-y-0 before:transition-colors before:duration-200 before:content-[counter(line)] before:text-xs before:left-0 before:text-right before:w-6 before:mr-6 before:my-auto hover:before:opacity-100;

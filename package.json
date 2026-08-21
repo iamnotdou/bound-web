@@ -13,7 +13,7 @@
     "*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
   },
   "dependencies": {
-    "@bound/sdk": "^0.3.0",
+    "@bound/sdk": "^0.4.0",
     "@creit.tech/stellar-wallets-kit": "^2.5.0",
     "@hugeicons/core-free-icons": "^4.2.3",
     "@hugeicons/react": "^1.1.9",

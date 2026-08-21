@@ -165,17 +165,40 @@ export default async function CertificatePage({
               <Info aria-hidden className="text-primary size-4" />
               What it proves
             </h3>
-            <ul className="text-muted-foreground mt-2 space-y-2 text-sm">
-              <li>
-                Capital is committed on-chain up to the bound shown above.
-              </li>
-              <li>The operator has pre-funded the reserve.</li>
-              <li>
-                A named third-party auditor staked slashable capital attesting
-                to this certificate.
-              </li>
-              <li>Anyone can verify all of the above independently.</li>
-            </ul>
+            {/* What a certificate proves depends on what has actually happened
+                to it. An unattested certificate has had no capital committed
+                and no auditor stake behind it, so claiming otherwise on a
+                Pending record would be a plain lie about on-chain state. */}
+            {cert.valid ? (
+              <ul className="text-muted-foreground mt-2 space-y-2 text-sm">
+                <li>
+                  Capital is committed on-chain up to the bound shown above.
+                </li>
+                <li>The operator has pre-funded the reserve.</li>
+                <li>
+                  A named third-party auditor bonded slashable capital to this
+                  certificate.
+                </li>
+                <li>Anyone can verify all of the above independently.</li>
+              </ul>
+            ) : (
+              <ul className="text-muted-foreground mt-2 space-y-2 text-sm">
+                <li>
+                  The bound and reserve above are{" "}
+                  <strong className="text-foreground">claimed numbers</strong>{" "}
+                  recorded on-chain, not capital proven to be committed.
+                </li>
+                <li>
+                  {cert.status === "Pending"
+                    ? "No auditor has bonded capital to this certificate yet, and an auditor cannot attest one whose reserve is not funded."
+                    : "This certificate is not currently valid. Whatever backed it does not back it now."}
+                </li>
+                <li>
+                  Anyone can verify that for themselves — which is the only
+                  thing this record guarantees today.
+                </li>
+              </ul>
+            )}
           </div>
 
           <div>

@@ -67,7 +67,7 @@ export function ChallengeCertificate({ certId }: { certId: number }) {
       found.bond = "Enter the bond as a positive amount in US dollars.";
     }
     if (!victim.trim()) {
-      found.victim = "Enter the address that stands to be compensated.";
+      found.victim = "Enter the address you say was harmed.";
     } else if (!isAccountId(victim)) {
       found.victim =
         "That is not a Stellar account id. It starts with G and is 56 characters long.";

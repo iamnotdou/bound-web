@@ -32,11 +32,14 @@ const STAGE_HINT: Record<ActionStage, string> = {
 /** How the contract's verdict reads to someone who did not write the contract. */
 const VERDICT_COPY: Record<string, string> = {
   Pending:
-    "Open and unresolved. The verdict is decided by a separate, permissionless resolve transaction that nobody has sent yet — this app holds no key and cannot send it for you.",
+    "Filed, and settling nothing yet. It opened a 72-hour claim window — or joined one already open — so other claimants can file against the same certificate and be paid together. Once the window lapses, anyone may close it; this app holds no key and cannot do that for you.",
   ChallengeWins:
-    "Resolved in the challenger's favour: the reserve did not back the certificate. The auditor's stake is slashed and the victim compensated.",
-  ChallengeFails:
-    "Resolved against the challenger: the reserve held up. The bond is forfeit.",
+    "Upheld: the reserve did not back the certificate. The auditor's allocation is slashed to the treasury and the challenger paid a share of the proven shortfall. It compensates no victim — a shortfall proves the covenant broke, not who lost money, and only an arbiter's assessment can name and size a victim.",
+  ChallengeFails: "Rejected: the reserve held up. The bond is forfeit.",
+  Cured:
+    "The operator remedied the shortfall during the window. The bond is returned in full — the claim was true when it was filed, and being right about that is what the bond is staked on.",
+  Unadjudicated:
+    "The window closed without an arbiter ruling on this claim. The bond is returned.",
 };
 
 export function ChallengeCertificate({ certId }: { certId: number }) {
@@ -129,9 +132,13 @@ export function ChallengeCertificate({ certId }: { certId: number }) {
       <p className="text-muted-foreground mt-2 text-sm text-balance">
         Post a bond claiming the reserve does not back the bound — the{" "}
         <strong className="text-foreground">InsufficientReserve</strong> proof.
-        The contract checks the reserve itself. If you are wrong, the bond is
-        forfeit; if you are right, the auditor&apos;s stake is slashed and the
-        victim compensated.
+        The contract checks the reserve itself, so no human decides it. Filing
+        does not settle: it opens a 72-hour claim window, and everything
+        admitted is settled together when the window closes. If you are wrong at
+        filing, the bond is forfeit. If you are right, the auditor&apos;s
+        allocation is slashed to the treasury and you are paid a share of the
+        shortfall — the proof establishes that the covenant broke, not who lost
+        money, so it compensates no victim on its own.
       </p>
 
       <form onSubmit={onSubmit} noValidate className="mt-5">
@@ -190,7 +197,10 @@ export function ChallengeCertificate({ certId }: { certId: number }) {
               id={`${victimId}-hint`}
               className="text-muted-foreground mb-1.5 mt-1 text-xs"
             >
-              Who gets compensated if the challenge succeeds.
+              Recorded on the claim as the party you say was harmed. It is not
+              paid by this proof — naming someone is a filter, not evidence, and
+              the contract has no way to check it. Compensation needs an
+              arbiter&apos;s assessment.
             </p>
             <input
               id={victimId}

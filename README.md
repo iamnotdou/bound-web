@@ -138,3 +138,18 @@ junk this leaves behind.
 ## Stack
 
 Next.js 16 (App Router), React 19, Tailwind v4, shadcn, Outfit, primary `#FF5400`.
+
+## The repositories
+
+|                                                         |                                                                                      |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [`bound`](https://github.com/iamnotdou/bound)           | contracts, SDK, MCP connector, demo scripts                                          |
+| [`bound-web`](https://github.com/iamnotdou/bound-web)   | the marketing site and the app at [boundprotocol.dev](https://www.boundprotocol.dev) |
+| [`bound-docs`](https://github.com/iamnotdou/bound-docs) | the documentation site at [docs.boundprotocol.dev](https://docs.boundprotocol.dev)   |
+
+Published packages: [`@bound/sdk`](https://www.npmjs.com/package/@bound/sdk) ·
+[`@bound/mcp`](https://www.npmjs.com/package/@bound/mcp)
+
+## License
+
+MIT — see [LICENSE](./LICENSE).

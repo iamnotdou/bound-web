@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/components/app/app-header";
+import { PendingTransactions } from "@/components/app/pending-transactions";
 import { WalletProvider } from "@/lib/wallet/wallet-provider";
 
 export const metadata: Metadata = {
@@ -17,7 +18,12 @@ export default function AppLayout({
   return (
     <WalletProvider>
       <AppHeader />
-      <main className="bg-background flex-1">{children}</main>
+      <main className="bg-background flex-1">
+        <div className="px-4 sm:px-6">
+          <PendingTransactions />
+        </div>
+        {children}
+      </main>
       <footer className="border-border text-muted-foreground border-t py-6 text-center text-xs">
         Bound — a certificate proves committed capital, not good behaviour.
       </footer>

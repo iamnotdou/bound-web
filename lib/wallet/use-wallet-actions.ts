@@ -8,14 +8,24 @@
  * message here.
  */
 import { useCallback } from "react";
+import { TransactionBuilder } from "@stellar/stellar-sdk";
 import type { GateCode } from "@/lib/preconditions";
+import { localJournal } from "@/lib/tx-journal";
+import type { AppAction } from "@/lib/tx";
 import { useWallet } from "./wallet-provider";
 
 export type ActionStage = "connect" | "build" | "sign" | "submit";
 
-/** The actions this app asks the server to build. */
-export type ClientAction =
-  "publish" | "challenge" | "trustline" | "deposit" | "stake" | "attest";
+/**
+ * The actions this app asks the server to build.
+ *
+ * Derived from `AppAction` rather than written out again, so an action the
+ * build endpoint stops accepting cannot survive here as a string that compiles.
+ */
+export type ClientAction = Extract<
+  AppAction,
+  "publish" | "challenge" | "trustline" | "deposit" | "stake" | "attest"
+>;
 
 export class WalletActionError extends Error {
   readonly stage: ActionStage;
@@ -27,17 +37,25 @@ export class WalletActionError extends Error {
   readonly code?: GateCode;
   /** The contract's or host's own unedited words. Always kept. */
   readonly raw?: string;
+  /**
+   * The hash of the envelope that was signed, when there was one.
+   *
+   * A `submit` failure with a hash is not a rejection: it is a transaction
+   * whose fate is not known yet, and the journal is what finds out.
+   */
+  readonly hash?: string;
 
   constructor(
     stage: ActionStage,
     message: string,
-    detail?: { code?: GateCode; raw?: string },
+    detail?: { code?: GateCode; raw?: string; hash?: string },
   ) {
     super(message);
     this.name = "WalletActionError";
     this.stage = stage;
     this.code = detail?.code;
     this.raw = detail?.raw;
+    this.hash = detail?.hash;
   }
 }
 
@@ -124,11 +142,43 @@ export function useWalletActions() {
         throw signatureError(error);
       }
 
-      return postJson<ActionOutcome>(
-        "/api/tx/submit",
-        { xdr: signed },
-        "submit",
-      );
+      // The hash is a property of the signed envelope, so it is knowable
+      // *before* the network sees it. Writing it down first is the whole point:
+      // `/api/tx/submit` gives up polling after thirty seconds, and a
+      // transaction that lands at thirty-one used to be reported as rejected.
+      const hash = TransactionBuilder.fromXDR(signed, networkPassphrase)
+        .hash()
+        .toString("hex");
+
+      localJournal.put({
+        hash,
+        action,
+        certId: typeof params.certId === "number" ? params.certId : null,
+        address,
+        submittedAtUnix: Math.floor(Date.now() / 1000),
+      });
+
+      try {
+        const outcome = await postJson<ActionOutcome>(
+          "/api/tx/submit",
+          { xdr: signed },
+          "submit",
+        );
+        localJournal.settle(outcome.hash, "success");
+        return outcome;
+      } catch (error) {
+        // Deliberately *not* settled as failed. The submit route throws on its
+        // own timeout as well as on a real rejection, and it cannot tell them
+        // apart. The journal asks the chain instead.
+        if (error instanceof WalletActionError && error.stage === "submit") {
+          throw new WalletActionError(error.stage, error.message, {
+            code: error.code,
+            raw: error.raw,
+            hash,
+          });
+        }
+        throw error;
+      }
     },
     [address, signXdr],
   );

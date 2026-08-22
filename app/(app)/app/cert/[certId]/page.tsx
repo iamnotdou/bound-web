@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Info, Snowflake, ShieldAlert } from "lucide-react";
 import { Address } from "@/components/app/address";
+import { ArchivedNotice } from "@/components/app/archived-notice";
 import { AttestPanel } from "@/components/app/attest-panel";
 import { ChallengeCertificate } from "@/components/app/challenge-certificate";
 import { DemoAuditorNote } from "@/components/app/demo-auditor-note";
@@ -68,7 +69,11 @@ export default async function CertificatePage({
     // different answers and only one of them is a 404. The certificate count
     // is a separate ledger entry, so it can tell them apart.
     if (parsed !== null && (await isKnownCertId(parsed))) {
-      return <UnreadableCertificate certId={parsed} />;
+      return (
+        <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
+          <ArchivedNotice certId={parsed} />
+        </div>
+      );
     }
     notFound();
   }
@@ -115,6 +120,15 @@ export default async function CertificatePage({
       </header>
 
       {state.lifecycle === "frozen" ? <FrozenNotice facts={facts} /> : null}
+
+      {facts.archived ? (
+        <div className="mt-6">
+          <ArchivedNotice
+            certId={cert.certId}
+            detail="The certificate's own record read back, but one of the contracts holding its capital did not answer with a live figure."
+          />
+        </div>
+      ) : null}
 
       <h2 className="text-foreground mt-10 text-lg font-semibold">
         Capital committed
@@ -290,34 +304,6 @@ function FrozenNotice({
         {closes
           ? ` It can be closed from ${new Date(closes * 1000).toUTCString()}.`
           : ""}
-      </p>
-    </div>
-  );
-}
-
-function UnreadableCertificate({ certId }: { certId: number }) {
-  return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
-      <Link
-        href="/app"
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded text-sm"
-      >
-        <ArrowLeft aria-hidden className="size-4" />
-        All bonded agents
-      </Link>
-      <h1 className="text-foreground mt-6 text-2xl font-semibold">
-        Certificate #{certId} cannot be read
-      </h1>
-      <p className="text-muted-foreground mt-3 text-balance">
-        The registry counts this id among the certificates it has issued, but
-        the record itself did not come back. On Soroban that usually means the
-        ledger entry&apos;s rent lapsed and the entry was archived — the data
-        still exists and can be restored, but nothing can read it until somebody
-        pays to bring it back.
-      </p>
-      <p className="text-muted-foreground mt-3 text-balance">
-        This app detects that state and says so. It does not build the restore
-        transaction.
       </p>
     </div>
   );

@@ -69,15 +69,34 @@ export default function Home() {
                       worst-case loss.
                     </p>
 
-                    <Link
-                      className={cn(buttonVariants({ size: "lg" }), "text-sm")}
-                      href="/app"
-                    >
-                      Bond your agent
-                    </Link>
+                    {/* Points at the first step of the flow rather than at the
+                        listing: /app/new hands a wallet test XLM and test USDC
+                        and then walks it through publish → fund. The listing is
+                        still one click away for someone who only wants to look. */}
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                      <Link
+                        className={cn(
+                          buttonVariants({ size: "lg" }),
+                          "text-sm",
+                        )}
+                        href="/app/new"
+                      >
+                        Bond your agent
+                      </Link>
+                      <Link
+                        className={cn(
+                          buttonVariants({ size: "lg", variant: "outline" }),
+                          "text-sm",
+                        )}
+                        href="/app"
+                      >
+                        Browse bonded agents
+                      </Link>
+                    </div>
                     <span className="text-muted-foreground mt-3 flex items-center justify-center gap-1.5 text-center text-sm">
                       <Stellar className="size-3.5" />
-                      Verifiable on Stellar.
+                      Live on Stellar testnet — the wallet you connect is given
+                      test XLM and test USDC to walk the whole flow.
                     </span>
                   </div>
                 </div>

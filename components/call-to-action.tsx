@@ -15,16 +15,28 @@ export function CallToAction() {
               Give your agent a number
             </h2>
             <p className="text-foreground mb-6 mt-4 text-balance text-lg">
-              Ship agents people can trust — with a pre-funded worst case anyone
-              can verify on Stellar. Open source, built in public.
+              Publish a certificate, fund its reserve, and have an auditor bond
+              slashable capital behind it — on Stellar testnet, in one sitting,
+              with assets this site hands you. Open source, built in public.
             </p>
 
-            <Link
-              className={cn(buttonVariants({ size: "lg" }), "px-4 text-sm")}
-              href="/app"
-            >
-              Bond your agent
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                className={cn(buttonVariants({ size: "lg" }), "px-4 text-sm")}
+                href="/app/new"
+              >
+                Bond your agent
+              </Link>
+              <Link
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "outline" }),
+                  "px-4 text-sm",
+                )}
+                href="/app/auditor"
+              >
+                Audit one instead
+              </Link>
+            </div>
           </div>
         </div>
       </Container>

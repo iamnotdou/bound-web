@@ -22,11 +22,11 @@
  */
 import {
   assertSignableXdr,
-  buildActionXdr,
-  isWalletAction,
+  buildAppActionXdr,
+  isAppAction,
   networkPassphrase,
-  type BuildParams,
-  type WalletAction,
+  type AppAction,
+  type AppBuildParams,
 } from "@/lib/tx";
 import { translateContractError, type ActionKey } from "@/lib/preconditions";
 
@@ -39,13 +39,16 @@ export const maxDuration = 60;
  * through to raw, which is the honest end state for an action nothing here
  * claims to understand.
  */
-function asActionKey(action: WalletAction): ActionKey | null {
+function asActionKey(action: AppAction): ActionKey | null {
   switch (action) {
     case "publish":
     case "stake":
     case "attest":
     case "challenge":
+    case "trustline":
       return action;
+    case "deposit":
+      return "fund";
     default:
       return null;
   }
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
   let body: {
     action?: unknown;
     address?: unknown;
-    params?: BuildParams;
+    params?: AppBuildParams;
   };
 
   try {
@@ -66,9 +69,9 @@ export async function POST(request: Request) {
 
   const { action } = body;
   const address = typeof body.address === "string" ? body.address.trim() : "";
-  const params = (body.params ?? {}) as BuildParams;
+  const params = (body.params ?? {}) as AppBuildParams;
 
-  if (!isWalletAction(action)) {
+  if (!isAppAction(action)) {
     return Response.json(
       { error: `unknown action: ${String(action)}` },
       { status: 400 },
@@ -82,7 +85,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const xdr = await buildActionXdr(action, address, params);
+    const xdr = await buildAppActionXdr(action, address, params);
     await assertSignableXdr(xdr, address);
     return Response.json({ xdr, networkPassphrase: networkPassphrase() });
   } catch (error) {

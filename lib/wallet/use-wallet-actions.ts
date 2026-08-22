@@ -14,7 +14,8 @@ import { useWallet } from "./wallet-provider";
 export type ActionStage = "connect" | "build" | "sign" | "submit";
 
 /** The actions this app asks the server to build. */
-export type ClientAction = "publish" | "challenge";
+export type ClientAction =
+  "publish" | "challenge" | "trustline" | "deposit" | "stake" | "attest";
 
 export class WalletActionError extends Error {
   readonly stage: ActionStage;

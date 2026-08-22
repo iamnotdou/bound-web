@@ -433,8 +433,42 @@ async function main() {
       html.includes(`#${certId}`),
       `#${certId}`,
     );
+    check(
+      "the page does not claim our own auditor attested it",
+      !html.includes("operated by boundprotocol.dev"),
+      "attested by a fresh, unrelated wallet",
+    );
   } catch (error) {
     crashed("rendered page", error);
+  }
+
+  // Cert #1 was attested by `accounts.auditor`, which is boundprotocol.dev's
+  // own account. Wherever that address appears as an auditor the page has to
+  // say whose it is — a demonstration is not a second opinion.
+  section("5. The demo-auditor disclosure");
+  try {
+    const response = await fetch(`${baseUrl}/app/cert/1`, {
+      cache: "no-store",
+    });
+    equals("GET /app/cert/1", response.status, 200);
+    const html = await response.text();
+    check(
+      "cert #1 names the demo auditor's address",
+      html.includes(accounts.auditor),
+      accounts.auditor,
+    );
+    check(
+      "cert #1 discloses that the auditor is boundprotocol.dev's own",
+      html.includes("operated by boundprotocol.dev"),
+      "DemoAuditorNote rendered",
+    );
+    check(
+      "…and that it is not an independent third party",
+      html.includes("not") && html.includes("independent third party"),
+      "disclosure text present",
+    );
+  } catch (error) {
+    crashed("demo-auditor disclosure", error);
   }
 
   note(`operator ${operator.publicKey()}`);

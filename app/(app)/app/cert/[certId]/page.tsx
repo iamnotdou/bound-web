@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Info, Snowflake, ShieldAlert } from "lucide-react";
 import { Address } from "@/components/app/address";
+import { AttestPanel } from "@/components/app/attest-panel";
 import { ChallengeCertificate } from "@/components/app/challenge-certificate";
+import { DemoAuditorNote } from "@/components/app/demo-auditor-note";
 import { ReservePanel } from "@/components/app/reserve-panel";
 import { StatusBadge } from "@/components/app/status-badge";
 import { formatExpiry, relativeFromNow } from "@/components/app/relative-time";
@@ -152,6 +154,8 @@ export default async function CertificatePage({
 
       <ReservePanel facts={facts} state={state} />
 
+      <AttestPanel facts={facts} state={state} />
+
       <h2 className="text-foreground mt-10 text-lg font-semibold">
         Certificate details
       </h2>
@@ -176,7 +180,10 @@ export default async function CertificatePage({
         </Row>
         <Row label="Auditor">
           {cert.auditor ? (
-            <Address value={cert.auditor} edge={10} />
+            <span className="inline-flex flex-wrap items-center justify-end gap-2">
+              <Address value={cert.auditor} edge={10} />
+              {state.demoAuditor ? <DemoAuditorNote compact /> : null}
+            </span>
           ) : (
             <span className="text-muted-foreground text-sm">
               No auditor has attested yet

@@ -2,10 +2,10 @@
 
 import { useId, useState, useTransition } from "react";
 import Link from "next/link";
-import { CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { revalidateMarketplace } from "@/app/(app)/app/actions";
+import { ActionButton, ActionFailure } from "@/components/app/action-button";
 import { isAccountId } from "@/components/app/stellar-address";
-import { Button } from "@/components/ui/button";
 import {
   asId,
   useWalletActions,
@@ -13,6 +13,8 @@ import {
   type ActionStage,
 } from "@/lib/wallet/use-wallet-actions";
 import { useWallet } from "@/lib/wallet/wallet-provider";
+import { useWalletFacts } from "@/lib/wallet/use-wallet-facts";
+import type { Gate } from "@/lib/preconditions";
 import { cn } from "@/lib/utils";
 
 interface Fields {
@@ -46,6 +48,13 @@ const STAGE_HINT: Record<ActionStage, string> = {
   sign: "Nothing was sent. You can submit again to get a fresh signing prompt.",
   submit:
     "The envelope was signed but did not make it on-chain. Submitting again builds a new transaction; check the marketplace first in case this one did land.",
+};
+
+/** The gate before the wallet endpoint has anything to say about it. */
+const NO_WALLET: Gate = {
+  ok: false,
+  code: "no-wallet",
+  reason: "Connect a wallet in the header to sign this transaction.",
 };
 
 function positiveNumber(raw: string): number | null {
@@ -98,6 +107,7 @@ export function PublishCertificateForm() {
   };
   const { address } = useWallet();
   const { run } = useWalletActions();
+  const { gates, loading: readingWallet } = useWalletFacts();
 
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -312,44 +322,32 @@ export function PublishCertificateForm() {
         </Field>
       </div>
 
-      {failure ? <FailureNotice failure={failure} /> : null}
+      {failure ? (
+        <ActionFailure
+          title={STAGE_TITLE[failure.stage]}
+          message={failure.message}
+          raw={failure.raw}
+          recognised={failure.code !== undefined}
+          action="publish"
+          hint={STAGE_HINT[failure.stage]}
+        />
+      ) : null}
 
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <Button type="submit" disabled={busy || !address}>
-          {busy ? <Loader2 aria-hidden className="animate-spin" /> : null}
-          {busy ? "Waiting for your wallet…" : "Publish certificate"}
-        </Button>
-        {!address ? (
-          <p className="text-muted-foreground text-sm">
-            Connect a wallet in the header to sign this transaction.
-          </p>
-        ) : (
-          <p className="text-muted-foreground text-sm">
-            Your connected wallet signs as the publishing operator.
-          </p>
-        )}
+      <div className="mt-6">
+        <ActionButton
+          type="submit"
+          gate={address ? (gates?.publish ?? null) : NO_WALLET}
+          checking={Boolean(address) && readingWallet}
+          pending={busy}
+        >
+          Publish certificate
+        </ActionButton>
+        <p className="text-muted-foreground mt-2 text-sm">
+          Your connected wallet signs as the publishing operator, and pays only
+          the network fee.
+        </p>
       </div>
     </form>
-  );
-}
-
-function FailureNotice({ failure }: { failure: WalletActionError }) {
-  return (
-    <div
-      role="alert"
-      className="ring-destructive/30 bg-destructive/5 mt-6 rounded-xl p-5 ring-1"
-    >
-      <h3 className="text-destructive flex items-center gap-2 text-sm font-semibold">
-        <TriangleAlert aria-hidden className="size-4" />
-        {STAGE_TITLE[failure.stage]}
-      </h3>
-      <p className="text-foreground mt-2 break-words text-sm">
-        {failure.message}
-      </p>
-      <p className="text-muted-foreground mt-2 text-sm">
-        {STAGE_HINT[failure.stage]}
-      </p>
-    </div>
   );
 }
 

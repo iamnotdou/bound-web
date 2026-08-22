@@ -18,6 +18,7 @@ import {
   type BuildParams,
   type Verdict,
 } from "@bound/sdk";
+import { Address, TransactionBuilder, rpc } from "@stellar/stellar-sdk";
 
 export type { WalletAction, BuildParams };
 
@@ -79,5 +80,78 @@ export async function readChallengeVerdict(
     return assembled.result.verdict.tag;
   } catch {
     return null;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Before the wallet is asked to sign
+ * ------------------------------------------------------------------ */
+
+/**
+ * Addresses this envelope needs an authorization signature from, other than
+ * the wallet that would submit it.
+ *
+ * `ReserveVault::deposit` authenticates against `Registry::get_cert_operator`,
+ * so a stranger's deposit assembles cleanly and comes back carrying an auth
+ * entry addressed to the operator. Handing that envelope to a browser wallet
+ * would produce a signature that cannot satisfy it — the user signs, pays a
+ * fee, and the transaction fails. Reading the entries costs nothing and says
+ * so first.
+ */
+export function requiredCosigners(signedOrUnsigned: string): string[] {
+  const tx = TransactionBuilder.fromXDR(signedOrUnsigned, network.passphrase);
+  if (!("operations" in tx)) return [];
+  const found: string[] = [];
+  for (const op of tx.operations) {
+    if (op.type !== "invokeHostFunction") continue;
+    for (const entry of op.auth ?? []) {
+      const credentials = entry.credentials();
+      if (credentials.switch().name !== "sorobanCredentialsAddress") continue;
+      found.push(
+        Address.fromScAddress(credentials.address().address()).toString(),
+      );
+    }
+  }
+  return found;
+}
+
+/**
+ * Refuse to hand back an envelope the connected wallet cannot make succeed.
+ *
+ * `@bound/sdk`'s `buildActionXdr` returns `AssembledTransaction.toXDR()`, and
+ * `toXDR()` serialises whatever was assembled — including an assembly whose
+ * simulation failed. Verified against the deployed contracts: attesting an
+ * unfunded certificate, attesting as an unregistered auditor and funding
+ * someone else's reserve all produced a perfectly well-formed envelope. The
+ * build route's own comment claimed the simulation caught those. It did not.
+ *
+ * So the envelope is simulated again here, as assembled. That re-simulation
+ * carries the auth entries, which means it also fails the cases the first one
+ * let through. One extra RPC round trip, in exchange for never asking somebody
+ * to sign a transaction that cannot land.
+ */
+export async function assertSignableXdr(
+  xdr: string,
+  address: string,
+): Promise<void> {
+  const strangers = requiredCosigners(xdr).filter((a) => a !== address);
+  if (strangers.length > 0) {
+    throw new Error(
+      `this transaction needs the signature of ${[...new Set(strangers)].join(", ")}, which the connected wallet does not hold`,
+    );
+  }
+
+  const tx = TransactionBuilder.fromXDR(xdr, network.passphrase);
+  if (!("operations" in tx)) return;
+  const soroban = tx.operations.some((op) => op.type === "invokeHostFunction");
+  // A classic `changeTrust` has nothing to simulate; Horizon validates it on
+  // submit and there is no contract state to be wrong about.
+  if (!soroban) return;
+
+  const simulation = await new rpc.Server(network.rpcUrl).simulateTransaction(
+    tx,
+  );
+  if (rpc.Api.isSimulationError(simulation)) {
+    throw new Error(simulation.error);
   }
 }

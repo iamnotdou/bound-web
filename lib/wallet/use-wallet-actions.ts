@@ -8,6 +8,7 @@
  * message here.
  */
 import { useCallback } from "react";
+import type { GateCode } from "@/lib/preconditions";
 import { useWallet } from "./wallet-provider";
 
 export type ActionStage = "connect" | "build" | "sign" | "submit";
@@ -17,11 +18,25 @@ export type ClientAction = "publish" | "challenge";
 
 export class WalletActionError extends Error {
   readonly stage: ActionStage;
+  /**
+   * The precondition this failure maps onto, when the server recognised it.
+   * Absent means unrecognised — and then `raw` is the only true thing there is
+   * to show, so the UI shows it labelled as raw rather than dressing it up.
+   */
+  readonly code?: GateCode;
+  /** The contract's or host's own unedited words. Always kept. */
+  readonly raw?: string;
 
-  constructor(stage: ActionStage, message: string) {
+  constructor(
+    stage: ActionStage,
+    message: string,
+    detail?: { code?: GateCode; raw?: string },
+  ) {
     super(message);
     this.name = "WalletActionError";
     this.stage = stage;
+    this.code = detail?.code;
+    this.raw = detail?.raw;
   }
 }
 
@@ -45,12 +60,13 @@ async function postJson<T>(
   }
 
   const data = (await response.json().catch(() => null)) as
-    (T & { error?: string }) | null;
+    (T & { error?: string; code?: GateCode; raw?: string }) | null;
 
   if (!response.ok) {
     throw new WalletActionError(
       stage,
       data?.error ?? `Request failed with status ${response.status}.`,
+      { code: data?.code, raw: data?.raw },
     );
   }
   if (!data) {

@@ -1,9 +1,11 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Gavel, Loader2, TriangleAlert } from "lucide-react";
+import { Gavel } from "lucide-react";
+import { ActionButton, ActionFailure } from "@/components/app/action-button";
 import { isAccountId } from "@/components/app/stellar-address";
-import { Button } from "@/components/ui/button";
+import type { Gate } from "@/lib/preconditions";
+import { useWalletFacts } from "@/lib/wallet/use-wallet-facts";
 import {
   asId,
   useWalletActions,
@@ -65,6 +67,13 @@ const PROOFS = [
 
 type ProofTag = (typeof PROOFS)[number]["tag"];
 
+/** Stated before the wallet endpoint has anything to say about it. */
+const NO_WALLET: Gate = {
+  ok: false,
+  code: "no-wallet",
+  reason: "Connect a wallet in the header to post a bond.",
+};
+
 /** How the contract's verdict reads to someone who did not write the contract. */
 const VERDICT_COPY: Record<string, string> = {
   Pending:
@@ -84,6 +93,7 @@ export function ChallengeCertificate({ certId }: { certId: number }) {
   const proofId = useId();
   const { address } = useWallet();
   const { run } = useWalletActions();
+  const { gates, loading: readingWallet } = useWalletFacts(certId);
 
   const [proofType, setProofType] = useState<ProofTag>("InsufficientReserve");
   const [bondUsd, setBondUsd] = useState("");
@@ -314,21 +324,15 @@ export function ChallengeCertificate({ certId }: { certId: number }) {
         </div>
 
         {failure ? (
-          <div
-            role="alert"
-            className="ring-destructive/30 bg-destructive/5 mt-5 rounded-lg p-4 ring-1"
-          >
-            <h3 className="text-destructive flex items-center gap-2 text-sm font-semibold">
-              <TriangleAlert aria-hidden className="size-4" />
-              {STAGE_TITLE[failure.stage]}
-            </h3>
-            <p className="text-foreground mt-2 break-words text-sm">
-              {failure.message}
-            </p>
-            <p className="text-muted-foreground mt-2 text-sm">
-              {STAGE_HINT[failure.stage]}
-            </p>
-          </div>
+          <ActionFailure
+            title={STAGE_TITLE[failure.stage]}
+            message={failure.message}
+            raw={failure.raw}
+            recognised={failure.code !== undefined}
+            action="challenge"
+            certId={certId}
+            hint={STAGE_HINT[failure.stage]}
+          />
         ) : null}
 
         {outcome ? (
@@ -366,17 +370,16 @@ export function ChallengeCertificate({ certId }: { certId: number }) {
           </div>
         ) : null}
 
-        <div className="mt-5 flex flex-wrap items-center gap-4">
-          <Button type="submit" variant="outline" disabled={busy || !address}>
-            {busy ? <Loader2 aria-hidden className="animate-spin" /> : null}
-            {busy ? "Waiting for your wallet…" : "Open challenge"}
-          </Button>
-          {!address ? (
-            <p className="text-muted-foreground text-sm">
-              Connect a wallet in the header to post a bond.
-            </p>
-          ) : null}
-        </div>
+        <ActionButton
+          type="submit"
+          variant="outline"
+          className="mt-5"
+          gate={address ? (gates?.challenge ?? null) : NO_WALLET}
+          checking={Boolean(address) && readingWallet}
+          pending={busy}
+        >
+          Open challenge
+        </ActionButton>
       </form>
     </section>
   );

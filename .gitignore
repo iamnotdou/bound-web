@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# …except the template, which holds placeholders and documents the two keys
+# the deployment needs. Anything with a real value stays ignored above.
+!.env.example
 
 # vercel
 .vercel

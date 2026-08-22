@@ -15,6 +15,8 @@ import {
   readSource,
   contracts,
   ChallengeManagerClient,
+  ReserveVaultClient,
+  usdc,
   type WalletAction,
   type BuildParams,
   type Verdict,
@@ -67,6 +69,7 @@ export type AppAction = WalletAction | "deposit" | "trustline";
 
 export const APP_ACTIONS = [
   ...WALLET_ACTIONS,
+  "deposit",
   "trustline",
 ] as const satisfies readonly AppAction[];
 
@@ -84,7 +87,29 @@ export interface AppBuildParams extends BuildParams {
 }
 
 /**
+ * Stroops if the caller gave stroops, dollars if it gave dollars.
+ *
+ * The reserve has to be matched to the last stroop — `attest` compares the
+ * vault balance against `reserve_amount` exactly — and a dollar figure that
+ * has been through a float cannot promise that. So the panel sends the claim's
+ * own integer and `amountUsd` stays as a convenience for callers that only
+ * have a round number.
+ */
+function depositAmount(params: AppBuildParams): bigint {
+  if (params.amountStroops != null) return BigInt(params.amountStroops);
+  if (params.amountUsd != null) return usdc(params.amountUsd);
+  throw new Error("amountStroops or amountUsd is required");
+}
+
+/**
  * Delegates to the SDK where it can; builds locally where it cannot.
+ *
+ * `deposit` is `ReserveVaultClient.deposit`, built here because the SDK's
+ * `buildActionXdr` has no reserve deposit at 0.5.0 — which is exactly why the
+ * flow used to die at leg two. The vault authenticates against
+ * `Registry::get_cert_operator`, so a stranger's envelope assembles fine and
+ * comes back carrying an auth entry addressed to the operator;
+ * `assertSignableXdr` is what refuses it before anyone signs.
  *
  * `trustline` is the SDK's own `buildTrustlineXdr` — a classic `changeTrust`,
  * not a Soroban invocation, which `submitSignedXdr` already routes to Horizon
@@ -98,10 +123,24 @@ export async function buildAppActionXdr(
   switch (action) {
     case "trustline":
       return buildTrustlineXdr(address);
-    case "deposit":
-      // Lands in M4, with the ReserveVault client. Until then the action is
-      // not in `APP_ACTIONS`, so the build endpoint rejects it before here.
-      throw new Error("deposit is not buildable yet");
+    case "deposit": {
+      if (params.certId == null) throw new Error("certId required");
+      const amount = depositAmount(params);
+      if (amount <= 0n) {
+        throw new Error("a deposit must be a positive amount");
+      }
+      const vault = new ReserveVaultClient({
+        contractId: contracts.reserveVault,
+        networkPassphrase: network.passphrase,
+        rpcUrl: network.rpcUrl,
+        publicKey: address,
+      });
+      const assembled = await vault.deposit({
+        cert_id: BigInt(params.certId),
+        amount,
+      });
+      return assembled.toXDR();
+    }
     default:
       return buildActionXdr(action, address, params);
   }

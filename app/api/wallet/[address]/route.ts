@@ -2,9 +2,14 @@
  * Everything the server can say about one connected wallet.
  *
  *   GET /api/wallet/:address?certId=N
- *     → 200 { facts, gates, certId }
+ *     → 200 { facts, gates, certId, cert }
  *     → 400 { error }  — not a G… account id
  *     → 502 { error }  — Horizon did not answer; no facts rather than wrong ones
+ *
+ * `cert` is a compact view of the certificate the gates were computed against
+ * — the same read, handed back rather than thrown away, so a client panel can
+ * render the live vault balance beside the claim without asking a second time.
+ * It is null when no `certId` was given or the certificate could not be read.
  *
  * `no-store`, always. The page shell around it is cached for everyone; this is
  * one visitor's balance, and serving a cached copy of it to the next visitor
@@ -56,6 +61,25 @@ export async function GET(
     {
       facts,
       certId,
+      cert:
+        cert === null || state === null
+          ? null
+          : {
+              certId: cert.cert.certId,
+              status: cert.cert.status,
+              auditor: cert.cert.auditor,
+              operator: cert.operator,
+              expiresAtUnix: cert.cert.expiresAtUnix,
+              claimedStroops: cert.reserve.claimedStroops,
+              vaultStroops: cert.reserve.vaultStroops,
+              allocationSnapshotStroops: cert.allocation.snapshotStroops,
+              allocationLiveStroops: cert.allocation.liveStroops,
+              lifecycle: state.lifecycle,
+              nextStep: state.nextStep,
+              reserveShortfallStroops: state.reserveShortfallStroops,
+              reserveFundedRatio: state.reserveFundedRatio,
+              demoAuditor: state.demoAuditor,
+            },
       gates: gates({
         address,
         wallet: facts,

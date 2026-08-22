@@ -335,13 +335,22 @@ export function gate(action: ActionKey, ctx: GateContext): Gate {
           `The vault holds ${usd(vault)} against a claimed reserve of ${usd(claimed)}. An auditor cannot attest a certificate whose reserve is not funded.`,
         );
       }
-      if (
-        facts.operator !== null &&
-        (facts.operator === ctx.address || facts.cert.agent === ctx.address)
-      ) {
+      // The agent clause must not hang off the operator being readable. The
+      // registry can decline to return an operator — `getCertificateFacts`
+      // models that as null and the page says so — and when it does, an
+      // unguarded agent could attest the very certificate that bonds it, which
+      // is the one thing this check exists to stop. Each address is compared on
+      // its own.
+      if (facts.operator !== null && facts.operator === ctx.address) {
         return no(
           "self-attest",
-          "This wallet published or is the agent on this certificate. An attestation by the same party it vouches for is not third-party capital.",
+          "This wallet published this certificate. An attestation by the same party it vouches for is not third-party capital.",
+        );
+      }
+      if (facts.cert.agent === ctx.address) {
+        return no(
+          "self-attest",
+          "This wallet is the agent this certificate bonds. An attestation by the same party it vouches for is not third-party capital.",
         );
       }
       const auditor = ctx.wallet?.auditor ?? null;
@@ -363,6 +372,18 @@ export function gate(action: ActionKey, ctx: GateContext): Gate {
         return no(
           "insufficient-free-stake",
           "Every stroop of this wallet's stake is already allocated to other certificates. Free stake is what an attestation bonds.",
+        );
+      }
+      // Zero is not a small allocation, it is the absence of one. `usdc()`
+      // rounds to cents, so any dollar figure under half a cent arrives here as
+      // 0n — and an attestation bonding 0n would leave the certificate reading
+      // Verified beneath a panel asserting that an auditor bonded slashable
+      // capital to it. Checked here rather than at either call site, because
+      // both the button and `/api/attest` answer to this table.
+      if (wanted !== null && wanted <= 0n) {
+        return no(
+          "insufficient-free-stake",
+          "An allocation has to be at least one cent. An attestation that bonds nothing is not third-party capital, however the certificate would read afterwards.",
         );
       }
       if (wanted !== null && wanted > free) {

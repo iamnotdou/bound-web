@@ -24,7 +24,7 @@
  */
 import { Keypair } from "@stellar/stellar-sdk";
 import { bound, usdc } from "@bound/sdk";
-import { getCertificateFacts } from "@/lib/bound";
+import { getCertificateFacts, isKnownCertId } from "@/lib/bound";
 import { deriveCertState } from "@/lib/cert-state";
 import { nowUnix } from "@/lib/clock";
 import { DEMO_AUDITOR } from "@/lib/deployment";
@@ -89,11 +89,21 @@ export async function POST(request: Request) {
   }
 
   const allocationUsd = Number(body.allocationUsd);
-  if (!Number.isFinite(allocationUsd) || allocationUsd <= 0) {
+  // `usdc()` rounds to cents, so a positive dollar figure below half a cent
+  // converts to *zero stroops*. Validating the float would let $0.001 through
+  // as a real attestation bonding nothing, and the certificate would then read
+  // Verified under a panel that says an auditor bonded slashable capital to it.
+  // The stroop amount is the claim being made, so the stroop amount is what has
+  // to be positive.
+  if (
+    !Number.isFinite(allocationUsd) ||
+    allocationUsd <= 0 ||
+    usdc(allocationUsd) <= 0n
+  ) {
     return Response.json(
       {
         error:
-          "an allocation is required. An auditor prices its own risk; there is no default worth defaulting to.",
+          "an allocation is required, and it has to be at least one cent. An auditor prices its own risk; there is no default worth defaulting to, and an attestation bonding nothing is not an attestation.",
         code: "insufficient-free-stake",
       },
       { status: 400, headers: NO_STORE },
@@ -112,8 +122,18 @@ export async function POST(request: Request) {
 
   const facts = await getCertificateFacts(certId);
   if (!facts) {
+    // "No such certificate" and "the ledger archived it" are different claims
+    // and only one of them is true. `getCertificateFacts` returns null for
+    // both, so ask the count — an id past it was never issued, and calling
+    // that archival would invent a certificate to explain its own absence.
+    const known = await isKnownCertId(certId);
     return Response.json(
-      { error: `no readable certificate #${certId}`, code: "archived" },
+      known
+        ? {
+            error: `Certificate #${certId} exists but could not be read. Its ledger entry may have been reclaimed by state archival.`,
+            code: "archived",
+          }
+        : { error: `No certificate #${certId} has been issued.` },
       { status: 400, headers: NO_STORE },
     );
   }

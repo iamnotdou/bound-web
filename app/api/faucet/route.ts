@@ -118,6 +118,21 @@ export async function POST(request: Request) {
     );
   }
 
+  // Paying the faucet from the faucet is a self-transfer: the balance is
+  // unchanged, a network fee is burned, and the caller is told it succeeded.
+  // Refused rather than dressed up, because "granted $10,000" would be false
+  // about the only account it can never grant to.
+  if (address === faucet.publicKey()) {
+    return Response.json(
+      {
+        error:
+          "That is the faucet's own address. It cannot grant to itself — the transfer would move nothing and still cost a fee.",
+        code: "no-wallet",
+      },
+      { status: 400, headers: NO_STORE },
+    );
+  }
+
   let recipient;
   try {
     recipient = await readAccount(address);

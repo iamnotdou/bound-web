@@ -29,7 +29,15 @@ export interface ActionButtonProps extends Omit<
   pending?: boolean;
   pendingLabel?: string;
   children: ReactNode;
-  /** Rendered instead of the gate's reason — for a reason the gate cannot know. */
+  /**
+   * A reason the gate cannot know, rendered in its place — an empty amount
+   * field, a figure above the wallet's balance, an unreadable vault.
+   *
+   * It **disables the button** as well as explaining it. Every one of these is
+   * a reason the action cannot succeed, so leaving the button live only buys a
+   * click that returns early and says nothing — which is the same dead end the
+   * gate's own reason exists to prevent.
+   */
   reasonOverride?: string | null;
 }
 
@@ -46,7 +54,8 @@ export function ActionButton({
 }: ActionButtonProps) {
   const blocked = gate !== null && !gate.ok;
   const reason = reasonOverride ?? (blocked ? gate.reason : null);
-  const disabled = pending || checking || gate === null || blocked;
+  const disabled =
+    pending || checking || gate === null || blocked || reasonOverride != null;
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>

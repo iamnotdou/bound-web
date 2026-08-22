@@ -33,7 +33,7 @@ import {
 import { accounts, bound, network } from "@bound/sdk";
 import { formatStroops, readAccount, friendbot } from "@/lib/faucet";
 import { USDC_ISSUER } from "@/lib/deployment";
-import { check, crashed, note, pass, section } from "./report";
+import { check, crashed, finish, note, pass, section } from "./report";
 
 /** What the faucet is topped up to when it falls below the floor. */
 const FAUCET_TARGET_STROOPS = 1_000_000n * 10_000_000n; // $1,000,000
@@ -235,7 +235,13 @@ async function freeStake(address: string): Promise<bigint> {
   return (await staking.get_free_stake({ auditor: address })).result;
 }
 
-main().catch((error) => {
-  crashed("setup-demo", error);
-  process.exit(1);
-});
+main()
+  // `finish()` is what prints the tally and sets the exit code. Without it a
+  // failed `check` printed a red ✗ and the script still exited 0, so anything
+  // reading the exit status — CI, a wrapper, a person chaining with `&&` —
+  // would take a half-configured demo for a working one.
+  .then(() => finish())
+  .catch((error) => {
+    crashed("setup-demo", error);
+    finish();
+  });

@@ -104,6 +104,19 @@ export function WalletSetup({
         return;
       }
       settled();
+    } catch (cause) {
+      // Same shape as the demo-auditor call: `fetch` can reject and
+      // `response.json()` can throw on a non-JSON error page. Silently
+      // resetting the button would leave someone waiting for USDC that is
+      // never coming, with nothing on screen to say so.
+      setFailure({
+        title: "The faucet could not be reached",
+        message:
+          cause instanceof Error
+            ? `${cause.message} — it may still have paid out. Check your balance before asking again.`
+            : "The request failed before an answer came back. Check your balance before asking again.",
+        recognised: false,
+      });
     } finally {
       setBusy(null);
     }

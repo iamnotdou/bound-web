@@ -146,6 +146,20 @@ export function AttestPanel({
       setHash(body.hash ?? null);
       setSignedByDemo(true);
       settled();
+    } catch (cause) {
+      // `fetch` rejects on a transport failure and `response.json()` throws on
+      // any non-JSON body — including the HTML 504 this route produces if it
+      // outlives `maxDuration`. Without this the rejection escapes the click
+      // handler, the spinner clears, and the user is told nothing at all about
+      // a request that may already have signed and broadcast an attestation.
+      setFailure({
+        title: "The demo auditor's attestation could not be confirmed",
+        message:
+          cause instanceof Error
+            ? `${cause.message} — the request may still have gone through. Reload the certificate before trying again.`
+            : "The request failed before an answer came back. Reload the certificate before trying again.",
+        recognised: false,
+      });
     } finally {
       setBusy(null);
     }

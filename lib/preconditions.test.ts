@@ -352,6 +352,40 @@ describe("attesting", () => {
     ).toBe("self-attest");
   });
 
+  // The agent clause used to hang off `facts.operator !== null`, so an
+  // unreadable operator switched off the agent check as well and let an agent
+  // attest the certificate that bonds it.
+  it("refuses the agent even when the operator could not be read", () => {
+    const noOperator = certFacts({
+      reserve: { claimedStroops: USD(1000), vaultStroops: USD(1000) },
+      operator: null,
+    });
+    expect(
+      codeOf(
+        "attest",
+        auditorCtx({
+          address: AGENT,
+          wallet: { ...registered, address: AGENT },
+          facts: noOperator,
+        }),
+      ),
+    ).toBe("self-attest");
+  });
+
+  // `usdc()` rounds to cents, so $0.001 arrives as 0n. Attesting with it would
+  // bond nothing while the certificate went on to read Verified.
+  it("refuses an allocation that rounds to zero stroops", () => {
+    expect(codeOf("attest", auditorCtx({ amountStroops: "0" }))).toBe(
+      "insufficient-free-stake",
+    );
+  });
+
+  it("still allows the smallest allocation that is not zero", () => {
+    expect(codeOf("attest", auditorCtx({ amountStroops: "100000" }))).toBe(
+      "ok",
+    );
+  });
+
   it("refuses a certificate that already has an auditor", () => {
     const attested = certFacts({
       cert: cert({ status: "Verified", auditor: DEMO_AUDITOR }),

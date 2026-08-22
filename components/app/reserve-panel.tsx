@@ -116,6 +116,16 @@ export function ReservePanel({
             checking={Boolean(address) && loading}
             pending={busy}
             onClick={fund}
+            // An unreadable vault derives to `pending-unfunded` so that it
+            // grants the least, which puts this button on screen with a
+            // shortfall of `null` behind it — `fund()` would return early and
+            // say nothing. The gate cannot see that; it only knows the vault
+            // did not contradict it. Same case `PublishedStep` already covers.
+            reasonOverride={
+              shortfall === null
+                ? "The vault balance could not be read, so there is no shortfall to fund. Reload and try again."
+                : null
+            }
           >
             {shortfall !== null && shortfall > 0n
               ? `Fund the reserve — ${formatUsdcExact(shortfall)}`

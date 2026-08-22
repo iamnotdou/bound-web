@@ -3,10 +3,13 @@
 import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-import type { CertListItem, CertStatusTag } from "@/lib/bound";
+import type { CertListItem, CertPage, CertStatusTag } from "@/lib/bound";
 import { Address } from "@/components/app/address";
+import { DemoAuditorNote } from "@/components/app/demo-auditor-note";
 import { StatusBadge } from "@/components/app/status-badge";
 import { formatExpiry, isExpired } from "@/components/app/relative-time";
+import { isDemoAuditor } from "@/lib/cert-state";
+import { useWallet } from "@/lib/wallet/wallet-provider";
 import { cn } from "@/lib/utils";
 
 type StatusFilter = "All" | CertStatusTag;
@@ -18,31 +21,37 @@ const STATUS_FILTERS: StatusFilter[] = [
   "Invalid",
 ];
 
-export function Marketplace({
-  certificates,
-}: {
-  certificates: CertListItem[];
-}) {
+export function Marketplace({ page }: { page: CertPage }) {
   const searchId = useId();
   const hideExpiredId = useId();
+  const onlyMineId = useId();
+  const { address } = useWallet();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("All");
   const [hideExpired, setHideExpired] = useState(false);
+  const [onlyMine, setOnlyMine] = useState(false);
+
+  const certificates = page.items;
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return certificates.filter((cert) => {
       if (status !== "All" && cert.status !== status) return false;
       if (hideExpired && isExpired(cert.expiresAtUnix)) return false;
+      if (onlyMine) {
+        if (!address) return false;
+        if (cert.agent !== address && cert.auditor !== address) return false;
+      }
       if (!needle) return true;
       return (
         cert.agent.toLowerCase().includes(needle) ||
         (cert.auditor?.toLowerCase().includes(needle) ?? false)
       );
     });
-  }, [certificates, query, status, hideExpired]);
+  }, [certificates, query, status, hideExpired, onlyMine, address]);
 
-  const filtersActive = query !== "" || status !== "All" || hideExpired;
+  const filtersActive =
+    query !== "" || status !== "All" || hideExpired || onlyMine;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
@@ -123,23 +132,54 @@ export function Marketplace({
             </div>
           </fieldset>
 
-          <div className="flex items-center gap-2 sm:pb-1.5">
-            <input
-              id={hideExpiredId}
-              type="checkbox"
-              checked={hideExpired}
-              onChange={(event) => setHideExpired(event.target.checked)}
-              className="accent-primary focus-visible:ring-ring size-4 rounded focus-visible:outline-none focus-visible:ring-2"
-            />
-            <label htmlFor={hideExpiredId} className="text-sm">
-              Hide expired
-            </label>
+          <div className="flex flex-col gap-2 sm:pb-1.5">
+            <div className="flex items-center gap-2">
+              <input
+                id={hideExpiredId}
+                type="checkbox"
+                checked={hideExpired}
+                onChange={(event) => setHideExpired(event.target.checked)}
+                className="accent-primary focus-visible:ring-ring size-4 rounded focus-visible:outline-none focus-visible:ring-2"
+              />
+              <label htmlFor={hideExpiredId} className="text-sm">
+                Hide expired
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                id={onlyMineId}
+                type="checkbox"
+                checked={onlyMine}
+                disabled={!address}
+                onChange={(event) => setOnlyMine(event.target.checked)}
+                className="accent-primary focus-visible:ring-ring size-4 rounded focus-visible:outline-none focus-visible:ring-2 disabled:opacity-40"
+              />
+              <label
+                htmlFor={onlyMineId}
+                className={cn("text-sm", !address && "text-muted-foreground")}
+                title={
+                  address
+                    ? "Certificates where the connected wallet is the agent or the auditor"
+                    : "Connect a wallet to filter to your own certificates"
+                }
+              >
+                Only mine
+              </label>
+            </div>
           </div>
         </div>
       </div>
 
       <p className="text-muted-foreground mt-4 text-sm" aria-live="polite">
-        Showing {rows.length} of {certificates.length} certificates
+        Showing {rows.length} of the {certificates.length} on this page
+        {page.total > certificates.length ? (
+          <>
+            {" "}
+            — page {page.page} of {page.pageCount}, {page.total} certificates in
+            the registry. The filters above search this page only.
+          </>
+        ) : null}
+        {onlyMine && !address ? " — connect a wallet to use “only mine”." : ""}
       </p>
 
       {rows.length === 0 ? (
@@ -157,7 +197,53 @@ export function Marketplace({
           <CertificateCards rows={rows} />
         </>
       )}
+
+      <Pagination page={page} />
     </div>
+  );
+}
+
+/**
+ * Server pagination, as links.
+ *
+ * `?page=N` rather than client state, so a page of the registry is a URL
+ * somebody can send to somebody else — and so the server never has to load a
+ * hundred certificates to render ten.
+ */
+function Pagination({ page }: { page: CertPage }) {
+  if (page.pageCount <= 1) return null;
+  const previous = page.page > 1 ? page.page - 1 : null;
+  const next = page.page < page.pageCount ? page.page + 1 : null;
+
+  return (
+    <nav
+      aria-label="Certificate pages"
+      className="mt-6 flex items-center justify-between gap-3"
+    >
+      {previous === null ? (
+        <span className="text-muted-foreground text-sm">Newer</span>
+      ) : (
+        <Link
+          href={`/app?page=${previous}`}
+          className="text-primary text-sm font-medium hover:underline"
+        >
+          ← Newer
+        </Link>
+      )}
+      <span className="text-muted-foreground text-sm tabular-nums">
+        Page {page.page} of {page.pageCount}
+      </span>
+      {next === null ? (
+        <span className="text-muted-foreground text-sm">Older</span>
+      ) : (
+        <Link
+          href={`/app?page=${next}`}
+          className="text-primary text-sm font-medium hover:underline"
+        >
+          Older →
+        </Link>
+      )}
+    </nav>
   );
 }
 
@@ -220,7 +306,12 @@ function CertificateTable({ rows }: { rows: CertListItem[] }) {
                   {cert.auditorStakeUsd}
                 </td>
                 <td className="px-4 py-3">
-                  <Address value={cert.auditor} edge={5} />
+                  <span className="inline-flex flex-wrap items-center gap-1.5">
+                    <Address value={cert.auditor} edge={5} />
+                    {isDemoAuditor(cert.auditor) ? (
+                      <DemoAuditorNote compact />
+                    ) : null}
+                  </span>
                 </td>
                 <td
                   className={cn(
@@ -278,8 +369,11 @@ function CertificateCards({ rows }: { rows: CertListItem[] }) {
                 </div>
               </dl>
               <div className="text-muted-foreground mt-4 flex items-center justify-between gap-3 text-xs">
-                <span className="truncate">
+                <span className="flex min-w-0 items-center gap-1.5 truncate">
                   Auditor <Address value={cert.auditor} edge={4} />
+                  {isDemoAuditor(cert.auditor) ? (
+                    <DemoAuditorNote compact />
+                  ) : null}
                 </span>
                 <span className={cn(expired && "text-destructive")}>
                   {formatExpiry(cert.expiresAtIso)}

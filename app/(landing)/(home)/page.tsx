@@ -18,6 +18,7 @@ import { EnterpriseFeatures } from "@/app/(landing)/(home)/sections/enterprise-f
 import { PixelBlastBackground } from "@/components/pixel-blast-background";
 import { buttonVariants } from "@/components/ui/button";
 import { Stellar } from "@/components/ui/svgs/stellar";
+import { faucetConfigured } from "@/lib/faucet";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -70,9 +71,10 @@ export default function Home() {
                     </p>
 
                     {/* Points at the first step of the flow rather than at the
-                        listing: /app/new hands a wallet test XLM and test USDC
-                        and then walks it through publish → fund. The listing is
-                        still one click away for someone who only wants to look. */}
+                        listing: /app/new walks a wallet through publish → fund,
+                        handing it test XLM and USDC first *if this deployment
+                        has a faucet key*. The listing is still one click away
+                        for someone who only wants to look. */}
                     <div className="flex flex-wrap items-center justify-center gap-3">
                       <Link
                         className={cn(
@@ -95,8 +97,9 @@ export default function Home() {
                     </div>
                     <span className="text-muted-foreground mt-3 flex items-center justify-center gap-1.5 text-center text-sm">
                       <Stellar className="size-3.5" />
-                      Live on Stellar testnet — the wallet you connect is given
-                      test XLM and test USDC to walk the whole flow.
+                      {faucetConfigured()
+                        ? "Live on Stellar testnet — the wallet you connect is given test XLM and test USDC to walk the whole flow."
+                        : "Live on Stellar testnet — bring a wallet holding test XLM and test USDC to walk the whole flow."}
                     </span>
                   </div>
                 </div>

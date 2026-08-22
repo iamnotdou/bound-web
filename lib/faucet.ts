@@ -46,6 +46,21 @@ export class FaucetNotConfigured extends Error {
   }
 }
 
+/**
+ * Whether this deployment can hand out test assets at all.
+ *
+ * Anything that *promises* a visitor test XLM or USDC has to ask this first. A
+ * deployment without the key still works — you bring your own funded wallet —
+ * but a page that says otherwise is making a promise the server cannot keep.
+ *
+ * Server-only, and read at render rather than kept: setting the variable takes
+ * effect on the next deploy, which fails toward the cautious sentence rather
+ * than the confident one.
+ */
+export function faucetConfigured(): boolean {
+  return Boolean(process.env.FAUCET_SECRET?.trim());
+}
+
 export function faucetKeypair(): Keypair {
   const secret = process.env.FAUCET_SECRET?.trim();
   if (!secret) throw new FaucetNotConfigured();

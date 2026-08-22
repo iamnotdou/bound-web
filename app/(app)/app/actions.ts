@@ -15,5 +15,9 @@ import { revalidatePath } from "next/cache";
  */
 export async function revalidateMarketplace(certId: number | null) {
   revalidatePath("/app");
+  // The auditor console's queue is built from live vault balances, so a
+  // certificate that has just been funded belongs on it immediately — and one
+  // that has just been attested belongs off it.
+  revalidatePath("/app/auditor");
   if (certId !== null) revalidatePath(`/app/cert/${certId}`);
 }

@@ -275,8 +275,12 @@ async function main() {
 
   // A second wallet must not be able to fund somebody else's certificate, and
   // must be told so without anything being signed.
+  //
+  // The stranger is a real, funded testnet account rather than a fresh
+  // keypair: an address with no account fails earlier, on "Account not found",
+  // and would prove nothing about the vault's operator check.
   try {
-    const stranger = Keypair.random().publicKey();
+    const stranger = accounts.challenger;
     const refused = await buildOnly(stranger, "deposit", {
       certId,
       amountStroops: USD(RESERVE_USD).toString(),

@@ -14,6 +14,11 @@ import {
 } from "@/lib/wallet/use-wallet-actions";
 import { useWallet } from "@/lib/wallet/wallet-provider";
 import { useWalletFacts } from "@/lib/wallet/use-wallet-facts";
+import {
+  depositFailureCopy,
+  useFundReserve,
+} from "@/lib/wallet/use-fund-reserve";
+import { formatUsdcExact } from "@/components/app/usdc";
 import type { Gate } from "@/lib/preconditions";
 import { cn } from "@/lib/utils";
 
@@ -165,65 +170,17 @@ export function PublishCertificateForm() {
 
   if (result) {
     return (
-      <section
-        aria-labelledby="published-heading"
-        className="ring-primary/30 bg-card mt-8 rounded-xl p-6 shadow ring-1"
-      >
-        <h2
-          id="published-heading"
-          className="text-foreground flex items-center gap-2 text-lg font-semibold"
-        >
-          <CheckCircle2 aria-hidden className="text-primary size-5" />
-          Certificate published
-        </h2>
-        <p className="text-muted-foreground mt-2 text-balance text-sm">
-          It is on-chain as <strong className="text-foreground">Pending</strong>
-          : unfunded and unattested. The reserve you entered is a claim recorded
-          against the certificate, not money that moved.
-        </p>
-        <dl className="divide-border divide-y">
-          <div className="flex flex-wrap items-center justify-between gap-2 py-3">
-            <dt className="text-muted-foreground text-sm">Transaction hash</dt>
-            <dd className="font-address min-w-0 break-all text-right text-sm">
-              {result.hash}
-            </dd>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 py-3">
-            <dt className="text-muted-foreground text-sm">Certificate ID</dt>
-            <dd className="font-address text-right text-sm">
-              {result.certId === null ? "not returned" : `#${result.certId}`}
-            </dd>
-          </div>
-        </dl>
-        <div className="mt-2 flex flex-wrap items-center gap-4">
-          {result.certId !== null ? (
-            <Link
-              href={`/app/cert/${result.certId}`}
-              className="text-primary text-sm font-medium hover:underline"
-            >
-              View certificate #{result.certId}
-            </Link>
-          ) : null}
-          <Link
-            href="/app"
-            className="text-muted-foreground text-sm font-medium hover:underline"
-          >
-            Back to the marketplace
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              setResult(null);
-              setFields(EMPTY);
-              setShowErrors(false);
-              setErrors({});
-            }}
-            className="text-muted-foreground text-sm font-medium hover:underline"
-          >
-            Publish another
-          </button>
-        </div>
-      </section>
+      <PublishedStep
+        hash={result.hash}
+        certId={result.certId}
+        claimedUsd={Number(fields.reserveUsd)}
+        onPublishAnother={() => {
+          setResult(null);
+          setFields(EMPTY);
+          setShowErrors(false);
+          setErrors({});
+        }}
+      />
     );
   }
 
@@ -398,5 +355,169 @@ function Field({
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Step two, in the same session.
+ *
+ * A certificate published here lands Pending with an empty vault, and until
+ * somebody funds it no auditor can attest it — so the success card is not the
+ * end of anything. It shows the gap between the claim and the vault, reads
+ * both live rather than assuming the vault is empty because the certificate is
+ * new, and offers the deposit as the next step. "Later" stays available: the
+ * same button is on the certificate's own page whenever the operator comes
+ * back.
+ */
+function PublishedStep({
+  hash,
+  certId,
+  claimedUsd,
+  onPublishAnother,
+}: {
+  hash: string;
+  certId: number | null;
+  claimedUsd: number;
+  onPublishAnother: () => void;
+}) {
+  const { address } = useWallet();
+  const { gates, cert, loading, refresh } = useWalletFacts(certId);
+  const { fund, busy, hash: fundHash, failure } = useFundReserve(refresh);
+
+  const shortfall = cert?.reserveShortfallStroops ?? null;
+  const funded = cert !== null && cert.nextStep !== "fund";
+
+  return (
+    <section
+      aria-labelledby="published-heading"
+      className="ring-primary/30 bg-card mt-8 rounded-xl p-6 shadow ring-1"
+    >
+      <h2
+        id="published-heading"
+        className="text-foreground flex items-center gap-2 text-lg font-semibold"
+      >
+        <CheckCircle2 aria-hidden className="text-primary size-5" />
+        Certificate published — now fund it
+      </h2>
+      <p className="text-muted-foreground mt-2 text-balance text-sm">
+        It is on-chain as <strong className="text-foreground">Pending</strong>:
+        the reserve you entered is a claim recorded against the certificate, not
+        money that moved. An auditor cannot attest a certificate whose reserve
+        is not funded, so this is the step that decides whether it ever becomes
+        anything.
+      </p>
+
+      <dl className="divide-border mt-4 divide-y">
+        <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+          <dt className="text-muted-foreground text-sm">Transaction hash</dt>
+          <dd className="font-address min-w-0 break-all text-right text-sm">
+            {hash}
+          </dd>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+          <dt className="text-muted-foreground text-sm">Certificate ID</dt>
+          <dd className="font-address text-right text-sm">
+            {certId === null ? "not returned" : `#${certId}`}
+          </dd>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+          <dt className="text-muted-foreground text-sm">
+            Reserve held / claimed
+          </dt>
+          <dd className="text-right text-sm tabular-nums">
+            {cert === null ? (
+              <span className="text-muted-foreground">
+                {loading ? "reading the vault…" : "not read yet"}
+              </span>
+            ) : (
+              <>
+                <strong className="text-foreground">
+                  {cert.vaultStroops === null
+                    ? "unreadable"
+                    : formatUsdcExact(cert.vaultStroops)}
+                </strong>{" "}
+                <span className="text-muted-foreground">
+                  / {formatUsdcExact(cert.claimedStroops)}
+                </span>
+              </>
+            )}
+          </dd>
+        </div>
+      </dl>
+
+      {certId !== null && !funded ? (
+        <div className="mt-4">
+          <ActionButton
+            gate={address ? (gates?.fund ?? null) : NO_WALLET}
+            checking={Boolean(address) && loading}
+            pending={busy}
+            onClick={() => {
+              if (shortfall === null) return;
+              void fund(certId, shortfall);
+            }}
+            reasonOverride={
+              shortfall === null && cert !== null
+                ? "The vault balance could not be read, so there is no shortfall to fund. Reload and try again."
+                : null
+            }
+          >
+            {shortfall !== null
+              ? `Fund the reserve — ${formatUsdcExact(shortfall)}`
+              : `Fund the reserve — $${claimedUsd.toLocaleString("en-US")}`}
+          </ActionButton>
+        </div>
+      ) : null}
+
+      {funded ? (
+        <p className="text-foreground mt-4 text-sm">
+          The vault now holds what this certificate claims. The next step is an
+          auditor&apos;s, not yours.
+        </p>
+      ) : null}
+
+      {fundHash ? (
+        <p role="status" className="text-foreground mt-4 text-sm">
+          Deposit submitted —{" "}
+          <span className="font-address break-all">{fundHash}</span>. The
+          figures above are re-read from the chain.
+        </p>
+      ) : null}
+
+      {failure ? (
+        <ActionFailure
+          title={depositFailureCopy(failure).title}
+          message={failure.message}
+          raw={failure.raw}
+          recognised={failure.code !== undefined}
+          action="deposit"
+          certId={certId}
+          hint={depositFailureCopy(failure).hint}
+        />
+      ) : null}
+
+      <div className="mt-5 flex flex-wrap items-center gap-4">
+        {certId !== null ? (
+          <Link
+            href={`/app/cert/${certId}`}
+            className="text-primary text-sm font-medium hover:underline"
+          >
+            View certificate #{certId}
+          </Link>
+        ) : null}
+        <Link
+          href="/app"
+          className="text-muted-foreground text-sm font-medium hover:underline"
+        >
+          Later — back to the marketplace
+        </Link>
+        <button
+          type="button"
+          onClick={onPublishAnother}
+          className="text-muted-foreground text-sm font-medium hover:underline"
+        >
+          Publish another
+        </button>
+      </div>
+    </section>
   );
 }

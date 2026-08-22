@@ -19,20 +19,49 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import type { ActionKey, Gate } from "@/lib/preconditions";
+import type { CertStatusTag } from "@/lib/bound";
+import type { Lifecycle } from "@/lib/cert-state";
 import type { WalletFacts } from "@/lib/wallet-facts";
 import { useWallet } from "./wallet-provider";
+
+/**
+ * The certificate the gates were computed against, as the wallet endpoint
+ * returns it. Not `CertFacts`: that type is shaped for the server render, and
+ * this is the flattened slice a client panel needs to show a live balance
+ * beside a claim.
+ */
+export interface CertSnapshot {
+  certId: number;
+  status: CertStatusTag;
+  auditor: string | null;
+  operator: string | null;
+  expiresAtUnix: number;
+  claimedStroops: string;
+  /** null means the vault did not answer. It never means zero. */
+  vaultStroops: string | null;
+  allocationSnapshotStroops: string;
+  allocationLiveStroops: string | null;
+  lifecycle: Lifecycle;
+  nextStep: "fund" | "attest" | "none";
+  reserveShortfallStroops: string | null;
+  reserveFundedRatio: number | null;
+  demoAuditor: boolean;
+}
 
 interface Snapshot {
   address: string;
   certId: number | null;
   facts: WalletFacts | null;
   gates: Record<ActionKey, Gate> | null;
+  cert: CertSnapshot | null;
   error: string | null;
 }
 
 export interface WalletSnapshot {
   facts: WalletFacts | null;
   gates: Record<ActionKey, Gate> | null;
+  /** The queried certificate, read live by the same request. */
+  cert: CertSnapshot | null;
   /** True while there is a connected wallet but no read for it yet. */
   loading: boolean;
   /** Horizon or the server did not answer. Not "the wallet holds nothing". */
@@ -61,6 +90,7 @@ export function useWalletFacts(certId?: number | null): WalletSnapshot {
         const body = (await response.json()) as {
           facts?: WalletFacts;
           gates?: Record<ActionKey, Gate>;
+          cert?: CertSnapshot | null;
           error?: string;
         };
         if (cancelled) return;
@@ -71,6 +101,7 @@ export function useWalletFacts(certId?: number | null): WalletSnapshot {
                 certId: key,
                 facts: body.facts,
                 gates: body.gates,
+                cert: body.cert ?? null,
                 error: null,
               }
             : {
@@ -78,6 +109,7 @@ export function useWalletFacts(certId?: number | null): WalletSnapshot {
                 certId: key,
                 facts: null,
                 gates: null,
+                cert: null,
                 error:
                   body.error ??
                   `this wallet could not be read (${response.status})`,
@@ -90,6 +122,7 @@ export function useWalletFacts(certId?: number | null): WalletSnapshot {
           certId: key,
           facts: null,
           gates: null,
+          cert: null,
           error:
             cause instanceof Error
               ? cause.message
@@ -111,6 +144,7 @@ export function useWalletFacts(certId?: number | null): WalletSnapshot {
   return {
     facts: fresh?.facts ?? null,
     gates: fresh?.gates ?? null,
+    cert: fresh?.cert ?? null,
     loading: Boolean(address) && fresh === null,
     error: fresh?.error ?? null,
     refresh,

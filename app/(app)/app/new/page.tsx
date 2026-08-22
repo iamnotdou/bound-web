@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
 import { PublishCertificateForm } from "@/components/app/publish-certificate-form";
+import { WalletSetup } from "@/components/app/wallet-setup";
 
 export const metadata: Metadata = {
   title: "Publish a certificate",
@@ -88,6 +89,8 @@ export default function PublishCertificatePage() {
           published here is a public, verifiable claim — nothing more.
         </p>
       </section>
+
+      <WalletSetup />
 
       <h2 className="text-foreground mt-10 text-lg font-semibold">
         Certificate terms

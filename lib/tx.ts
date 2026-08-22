@@ -9,6 +9,7 @@
  */
 import {
   buildActionXdr,
+  buildTrustlineXdr,
   submitSignedXdr,
   network,
   readSource,
@@ -50,7 +51,61 @@ export function networkPassphrase(): string {
   return network.passphrase;
 }
 
-export { buildActionXdr, submitSignedXdr };
+export { buildActionXdr, buildTrustlineXdr, submitSignedXdr };
+
+/* ------------------------------------------------------------------ *
+ * App actions
+ *
+ * `WALLET_ACTIONS` is typed against the SDK's own `WalletAction`, so the
+ * envelopes this app needs and the SDK does not build cannot simply be added
+ * to it. They get their own union instead, and one builder that delegates
+ * where it can and builds locally where it cannot.
+ * ------------------------------------------------------------------ */
+
+/** Actions the SDK builds, plus the ones this app builds itself. */
+export type AppAction = WalletAction | "deposit" | "trustline";
+
+export const APP_ACTIONS = [
+  ...WALLET_ACTIONS,
+  "trustline",
+] as const satisfies readonly AppAction[];
+
+export function isAppAction(value: unknown): value is AppAction {
+  return (
+    typeof value === "string" &&
+    (APP_ACTIONS as readonly string[]).includes(value)
+  );
+}
+
+/** `BuildParams`, plus what the locally-built actions need. */
+export interface AppBuildParams extends BuildParams {
+  /** For `deposit`: the amount to move into the reserve vault, in stroops. */
+  amountStroops?: string;
+}
+
+/**
+ * Delegates to the SDK where it can; builds locally where it cannot.
+ *
+ * `trustline` is the SDK's own `buildTrustlineXdr` — a classic `changeTrust`,
+ * not a Soroban invocation, which `submitSignedXdr` already routes to Horizon
+ * rather than to the RPC.
+ */
+export async function buildAppActionXdr(
+  action: AppAction,
+  address: string,
+  params: AppBuildParams,
+): Promise<string> {
+  switch (action) {
+    case "trustline":
+      return buildTrustlineXdr(address);
+    case "deposit":
+      // Lands in M4, with the ReserveVault client. Until then the action is
+      // not in `APP_ACTIONS`, so the build endpoint rejects it before here.
+      throw new Error("deposit is not buildable yet");
+    default:
+      return buildActionXdr(action, address, params);
+  }
+}
 
 /**
  * Read a challenge's verdict without signing anything.

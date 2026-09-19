@@ -87,6 +87,49 @@ The browser now computes the envelope's hash before submitting, writes it to
 `lib/tx-journal.ts`, and re-reads every pending hash through `/api/tx/[hash]` on
 mount. `NOT_FOUND` is a status, not a failure.
 
+## The fiat boundary
+
+`/app/fiat` is where value crosses between a bank account and Stellar, through a
+SEP-24 anchor. It matters more than it looks: a surety bond whose collateral
+cannot be funded from, or redeemed to, money people actually spend is not a
+bond. This is the edge the protocol is only useful across.
+
+| Step   | What happens                                                                                                                                                                                                               |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SEP-1  | Every endpoint is read from the anchor's `stellar.toml`. Nothing is hardcoded — `ANCHOR_HOME_DOMAIN` names the anchor and `ANCHOR_ASSET_CODE` the asset, so pointing at a lira anchor is configuration rather than a diff. |
+| SEP-10 | The connected wallet signs the anchor's challenge, through the same Wallets Kit path every other write uses.                                                                                                               |
+| SEP-24 | An interactive deposit **or withdrawal** opens in the anchor's own hosted window. Both directions, because a reserve funded from fiat is half a rail if a proven claim cannot be paid back out.                            |
+
+### The challenge is verified before your wallet sees it
+
+We ask you to sign a transaction fetched from a third party, so the server
+proves it is genuinely a SEP-10 challenge first: sequence zero, sourced by the
+`SIGNING_KEY` the anchor publishes, carrying the right home domain, already
+signed by the anchor, and minted for _your_ account rather than someone else's.
+Anything else is refused and never reaches a wallet — a signing prompt is the
+last place that question should be settled.
+
+One subtlety worth repeating, because it is silently wrong the other way:
+SEP-10's `web_auth_domain` is the host of `WEB_AUTH_ENDPOINT`, **not** the home
+domain. They coincide on the SDF reference anchor, so validating against the
+home domain looks correct until you point at an anchor that serves auth
+elsewhere, and then every challenge is rejected.
+
+### What it does not do yet
+
+The deployed contracts hold a self-issued test USDC and the anchor issues its
+own. They are different money, so a completed deposit funds your wallet and
+**cannot** fund a certificate's reserve. `GET /api/anchor` compares the two
+issuers and returns `fundsReserve`; the panel leads with that, above the
+controls, rather than letting a demo imply otherwise. Closing it is a second
+deployment of the contracts against the anchor's asset — `@bound/sdk` is already
+able to carry one.
+
+`pnpm check:anchor` prints the whole picture against the live anchor: the
+discovered endpoints, the limits, a fetched-and-validated challenge, a tampered
+one being refused, and the two issuers side by side. It signs nothing, moves
+nothing, and is free to run.
+
 ## Server-signed endpoints
 
 Two, and both hold keys that are worth only what they hold.

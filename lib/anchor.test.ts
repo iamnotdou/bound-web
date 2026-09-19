@@ -10,12 +10,8 @@
  * matches the code that wrote it; the live checks belong in `scripts/`.
  */
 import { describe, expect, it } from "vitest";
-import {
-  assetMatchesDeployment,
-  issuerOf,
-  parseStellarToml,
-  readLimits,
-} from "./anchor";
+import { assetMatchesDeployment, issuerOf, parseStellarToml } from "./anchor";
+import { amountRefusal, readLimits } from "./anchor-limits";
 
 const REFERENCE_TOML = `ACCOUNTS = ["GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"]
 VERSION = "0.1.0"
@@ -153,5 +149,47 @@ describe("assetMatchesDeployment()", () => {
 
   it("is false when the anchor declares no issuer for the asset", () => {
     expect(assetMatchesDeployment(null, SELF_ISSUED)).toBe(false);
+  });
+});
+
+describe("amountRefusal()", () => {
+  const open = { enabled: true, minAmount: 1, maxAmount: 10 };
+
+  it("permits an amount inside the stated range", () => {
+    expect(amountRefusal(open, 5, "USDC")).toBeNull();
+  });
+
+  it("treats both bounds as inclusive", () => {
+    expect(amountRefusal(open, 1, "USDC")).toBeNull();
+    expect(amountRefusal(open, 10, "USDC")).toBeNull();
+  });
+
+  it("refuses just outside either bound, naming the figure", () => {
+    expect(amountRefusal(open, 10.01, "USDC")).toContain(
+      "caps a single transfer at 10",
+    );
+    expect(amountRefusal(open, 0.99, "USDC")).toContain("minimum is 1");
+  });
+
+  it("is not constrained by a limit the anchor never stated", () => {
+    const unstated = { enabled: true, minAmount: null, maxAmount: null };
+    expect(amountRefusal(unstated, 1_000_000, "USDC")).toBeNull();
+    expect(amountRefusal(unstated, 0.0000001, "USDC")).toBeNull();
+  });
+
+  it("refuses a direction the anchor does not offer, before looking at the amount", () => {
+    // The bug this function exists to stop: the panel checked the withdraw
+    // button against the DEPOSIT limits. Identical on the reference anchor, and
+    // wrong the moment an anchor differs between directions.
+    const closed = { enabled: false, minAmount: 1, maxAmount: 10 };
+    expect(amountRefusal(closed, 5, "TRY")).toContain(
+      "does not offer this direction for TRY",
+    );
+  });
+
+  it("refuses a non-amount rather than comparing it", () => {
+    for (const bad of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(amountRefusal(open, bad, "USDC")).toBe("Enter an amount.");
+    }
   });
 });

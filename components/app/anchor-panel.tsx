@@ -12,6 +12,7 @@
  * issuers, and every heading below keys off it.
  */
 import { useEffect, useState } from "react";
+import { amountRefusal, type TransferLimits } from "@/lib/anchor-limits";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -29,18 +30,12 @@ import {
 import { useWallet } from "@/lib/wallet/wallet-provider";
 import { cn } from "@/lib/utils";
 
-interface Limits {
-  enabled: boolean;
-  minAmount: number | null;
-  maxAmount: number | null;
-}
-
 interface AnchorInfo {
   homeDomain: string;
   assetCode: string;
   issuer: string | null;
-  deposit: Limits;
-  withdraw: Limits;
+  deposit: TransferLimits;
+  withdraw: TransferLimits;
   deploymentIssuer: string;
   fundsReserve: boolean;
 }
@@ -61,7 +56,7 @@ const STATUS_COPY: Record<string, string> = {
   error: "The anchor reported an error on this transfer.",
 };
 
-function limitLabel(limits: Limits, code: string): string {
+function limitLabel(limits: TransferLimits, code: string): string {
   if (!limits.enabled) return "not offered by this anchor";
   // null is "the anchor did not say" — never rendered as a bound of zero.
   if (limits.minAmount === null && limits.maxAmount === null) {
@@ -107,25 +102,13 @@ export function AnchorPanel() {
   }, []);
 
   const numeric = Number(amount);
-  const amountValid = Number.isFinite(numeric) && numeric > 0;
-  const overCap =
-    info?.deposit.maxAmount != null &&
-    amountValid &&
-    numeric > info.deposit.maxAmount;
-  const underFloor =
-    info?.deposit.minAmount != null &&
-    amountValid &&
-    numeric < info.deposit.minAmount;
 
-  const reasonOverride = !address
-    ? "Connect a wallet to use the fiat rail."
-    : !amountValid
-      ? "Enter an amount."
-      : overCap
-        ? `This anchor caps a single transfer at ${info?.deposit.maxAmount} ${info?.assetCode}.`
-        : underFloor
-          ? `This anchor's minimum is ${info?.deposit.minAmount} ${info?.assetCode}.`
-          : null;
+  /** The wallet-level refusals; the amount ones come from `amountRefusal`. */
+  const refuse = (limits: TransferLimits | undefined): string | null => {
+    if (!address) return "Connect a wallet to use the fiat rail.";
+    if (!limits || !info) return null;
+    return amountRefusal(limits, numeric, info.assetCode);
+  };
 
   const run = (kind: TransferKind) => () => void start(kind, amount);
 
@@ -231,7 +214,7 @@ export function AnchorPanel() {
               gate={{ ok: true }}
               pending={busy}
               pendingLabel="Talking to the anchor…"
-              reasonOverride={reasonOverride}
+              reasonOverride={refuse(info.deposit)}
               onClick={run("deposit")}
             >
               <ArrowDownToLine aria-hidden className="size-4" />
@@ -242,11 +225,7 @@ export function AnchorPanel() {
               gate={{ ok: true }}
               pending={busy}
               pendingLabel="Talking to the anchor…"
-              reasonOverride={
-                info.withdraw.enabled
-                  ? reasonOverride
-                  : "This anchor does not offer withdrawals for this asset."
-              }
+              reasonOverride={refuse(info.withdraw)}
               variant="outline"
               onClick={run("withdraw")}
             >

@@ -14,6 +14,7 @@
  * config change rather than a diff.
  */
 import { WebAuth } from "@stellar/stellar-sdk";
+import { readLimits, type TransferLimits } from "./anchor-limits";
 
 /**
  * The anchor to talk to. Defaults to the SDF reference anchor, which is the one
@@ -129,13 +130,35 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 /**
- * The anchor's SEP-1 record.
+ * How long a fetched `stellar.toml` is reused.
  *
- * Fetched per call rather than cached. A cached toml is a cached signing key,
- * and this process is long-lived: an anchor that rotates its key would keep
- * being validated against the old one until a deploy. Once per flow is cheap.
+ * A cached toml is a cached SIGNING_KEY, and every SEP-10 challenge is
+ * validated against it — so an anchor that rotates its key must not keep being
+ * checked against the old one for the life of the process. Sixty seconds bounds
+ * that window to something shorter than any key rotation, while stopping the
+ * five call sites below from refetching on every poll: the transfer poller runs
+ * every five seconds, so uncached this hit a third party's well-known endpoint
+ * twelve times a minute per open page, which is both wasteful and rude.
+ */
+const TOML_TTL_MS = 60_000;
+
+let cachedToml: { at: number; domain: string; value: AnchorToml } | null = null;
+
+/**
+ * The anchor's SEP-1 record, cached for {@link TOML_TTL_MS}.
+ *
+ * Keyed by home domain as well as time, so changing `ANCHOR_HOME_DOMAIN` can
+ * never be served a previous anchor's endpoints and signing key.
  */
 export async function anchorToml(): Promise<AnchorToml> {
+  if (
+    cachedToml !== null &&
+    cachedToml.domain === ANCHOR_HOME_DOMAIN &&
+    Date.now() - cachedToml.at < TOML_TTL_MS
+  ) {
+    return cachedToml.value;
+  }
+
   const url = `https://${ANCHOR_HOME_DOMAIN}/.well-known/stellar.toml`;
   let response: Response;
   try {
@@ -148,15 +171,21 @@ export async function anchorToml(): Promise<AnchorToml> {
   if (!response.ok) {
     throw new AnchorUnreachable(`${url} returned ${response.status}`);
   }
-  return parseStellarToml(await response.text());
+
+  const value = parseStellarToml(await response.text());
+  // Cached only after parsing succeeds: a malformed toml must be re-fetched
+  // next time rather than remembered as the answer for a minute.
+  cachedToml = { at: Date.now(), domain: ANCHOR_HOME_DOMAIN, value };
+  return value;
 }
 
-export interface TransferLimits {
-  enabled: boolean;
-  /** In whole units of the asset, as the anchor states them. */
-  minAmount: number | null;
-  maxAmount: number | null;
+/** Drop the cached record. For tests, and for a deliberate re-read. */
+export function forgetAnchorToml(): void {
+  cachedToml = null;
 }
+
+export type { TransferLimits } from "./anchor-limits";
+export { readLimits, amountRefusal } from "./anchor-limits";
 
 export interface AnchorInfo {
   homeDomain: string;
@@ -166,6 +195,7 @@ export interface AnchorInfo {
   withdraw: TransferLimits;
 }
 
+/** The `/sep24/info` wire shape. Describes the protocol, not the arithmetic. */
 interface Sep24InfoResponse {
   deposit?: Record<
     string,
@@ -175,22 +205,6 @@ interface Sep24InfoResponse {
     string,
     { enabled?: boolean; min_amount?: number; max_amount?: number }
   >;
-}
-
-/** Normalise one side of `/sep24/info` for a single asset. */
-export function readLimits(
-  side: Sep24InfoResponse["deposit"],
-  code: string,
-): TransferLimits {
-  const entry = side?.[code];
-  return {
-    enabled: entry?.enabled === true,
-    // `null` is "the anchor did not say", which is not "no limit" and is
-    // certainly not zero. A UI that renders a missing cap as 0 refuses every
-    // amount for a reason nobody can see.
-    minAmount: typeof entry?.min_amount === "number" ? entry.min_amount : null,
-    maxAmount: typeof entry?.max_amount === "number" ? entry.max_amount : null,
-  };
 }
 
 /**

@@ -30,28 +30,31 @@ and is not otherwise enforced.
 that reaches Stellar is proved by `scripts/*.ts` against live testnet instead,
 because a mocked chain only asserts that the mock matches the code that wrote it.
 
-`scripts/e2e.ts` and the three `scripts/check-*.ts` need a running `pnpm dev` and
-live testnet; a full `e2e` run publishes a real certificate and spends faucet
-USDC. `pnpm setup:demo` is **local only** — it reads the operator/issuer key.
+`scripts/e2e.ts` and the `scripts/check-*.ts` runs need live testnet, and all but
+`check:anchor` also need a running `pnpm dev`; a full `e2e` run publishes a real
+certificate and spends faucet USDC. `pnpm check:anchor` is read-only and free —
+it signs nothing. `pnpm setup:demo` is **local only**: it reads the
+operator/issuer key.
 
 ## Map
 
-| Path                   | What it is                                                                                                       |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `lib/bound.ts`         | The only certificate reader. Server only                                                                         |
-| `lib/tx.ts`            | The only write-path door onto the SDK. Server only                                                               |
-| `lib/wallet-facts.ts`  | One connected wallet, read live off Horizon + staking. Server only                                               |
-| `lib/faucet.ts`        | The test-asset faucet's account. Server only                                                                     |
-| `lib/preconditions.ts` | The gate table — may this wallet do this, and why not                                                            |
-| `lib/cert-state.ts`    | `deriveCertState` — what a certificate _is_. Pure                                                                |
-| `lib/tx-journal.ts`    | What this browser has in flight, written before it is sent                                                       |
-| `lib/wallet/`          | Wallets Kit init, connection context, and the build→sign→submit hooks                                            |
-| `lib/deployment.ts`    | `@bound/sdk/deployments` — addresses only, safe on both sides                                                    |
-| `app/api/`             | 7 route handlers. `tx/build`, `tx/submit`, `tx/[hash]`, `wallet/[address]`, `challenge/[id]`, `faucet`, `attest` |
-| `components/app/`      | The `(app)` group's components. Everything else under `components/` is landing                                   |
-| `scripts/`             | Live-testnet acceptance runs over a shared reporter (`report.ts`)                                                |
+| Path                   | What it is                                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------------------- |
+| `lib/bound.ts`         | The only certificate reader. Server only                                                     |
+| `lib/tx.ts`            | The only write-path door onto the SDK. Server only                                           |
+| `lib/wallet-facts.ts`  | One connected wallet, read live off Horizon + staking. Server only                           |
+| `lib/faucet.ts`        | The test-asset faucet's account. Server only                                                 |
+| `lib/anchor.ts`        | The fiat boundary: SEP-1 discovery, SEP-10 auth, SEP-24 transfer. Server only                |
+| `lib/preconditions.ts` | The gate table — may this wallet do this, and why not                                        |
+| `lib/cert-state.ts`    | `deriveCertState` — what a certificate _is_. Pure                                            |
+| `lib/tx-journal.ts`    | What this browser has in flight, written before it is sent                                   |
+| `lib/wallet/`          | Wallets Kit init, connection context, and the build→sign→submit hooks                        |
+| `lib/deployment.ts`    | `@bound/sdk/deployments` — addresses only, safe on both sides                                |
+| `app/api/`             | Route handlers: `tx/*`, `wallet/[address]`, `challenge/[id]`, `faucet`, `attest`, `anchor/*` |
+| `components/app/`      | The `(app)` group's components. Everything else under `components/` is landing               |
+| `scripts/`             | Live-testnet acceptance runs over a shared reporter (`report.ts`)                            |
 
-## The seven rules this app is built on
+## The eight rules this app is built on
 
 **1. The server/client line is load-bearing.** `lib/bound.ts`, `lib/tx.ts`,
 `lib/faucet.ts` and `lib/wallet-facts.ts` construct SDK clients and read
@@ -102,6 +105,17 @@ whose simulation failed. The signed hash is written to the journal **before**
 submit, so `/api/tx/submit` giving up after 30 seconds is never reported as a
 rejection — `GET /api/tx/[hash]` asks the chain instead, and `NOT_FOUND` there is
 a status, not an error.
+
+**8. The anchor is configuration, and its challenge is verified.** No anchor
+endpoint is written into this app: `ANCHOR_HOME_DOMAIN` names one and every URL
+comes out of its `stellar.toml` over SEP-1, so pointing at a lira anchor is a
+config change rather than a diff. Before a SEP-10 challenge reaches a wallet the
+server proves it is genuinely the anchor's — `WebAuth.readChallengeTx` against
+the declared `SIGNING_KEY`, sequence zero, the right home domain. That is the
+anchor-side `assertSignableXdr`: a wallet approval dialog is the last place to
+discover that a third party sent a payment operation instead of a challenge. The
+token it earns is a credential — it lives in a ref for the length of the flow,
+keyed by the address it authenticates, and never in storage.
 
 ## Secrets
 

@@ -16,6 +16,7 @@
  * for layout convenience.
  */
 import { startTransfer, type TransferKind } from "@/lib/anchor";
+import { isTransferAmount } from "@/lib/anchor-limits";
 import { isWalletAddress } from "@/lib/wallet-facts";
 
 export const runtime = "nodejs";
@@ -69,10 +70,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const amount =
-    typeof body.amount === "string" && /^\d+(\.\d+)?$/.test(body.amount.trim())
-      ? body.amount.trim()
-      : undefined;
+  // A rejected amount is a 400, not a silent drop. Opening the anchor's form
+  // with nothing prefilled, while the UI shows the figure the user typed, is
+  // the failure this replaced.
+  let amount: string | undefined;
+  if (body.amount !== undefined && body.amount !== null && body.amount !== "") {
+    if (typeof body.amount !== "string" || !isTransferAmount(body.amount)) {
+      return Response.json(
+        {
+          error: `amount must be a plain decimal number, e.g. "5" or "5.50" — got ${JSON.stringify(body.amount)}`,
+        },
+        { status: 400, headers: NO_STORE },
+      );
+    }
+    amount = body.amount.trim();
+  }
 
   try {
     return Response.json(

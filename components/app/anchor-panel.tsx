@@ -12,7 +12,11 @@
  * issuers, and every heading below keys off it.
  */
 import { useEffect, useState } from "react";
-import { amountRefusal, type TransferLimits } from "@/lib/anchor-limits";
+import {
+  amountRefusal,
+  isTransferAmount,
+  type TransferLimits,
+} from "@/lib/anchor-limits";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -107,6 +111,11 @@ export function AnchorPanel() {
   const refuse = (limits: TransferLimits | undefined): string | null => {
     if (!address) return "Connect a wallet to use the fiat rail.";
     if (!limits || !info) return null;
+    // The same pattern the route enforces, so the button cannot promise an
+    // amount the server will refuse.
+    if (!isTransferAmount(amount)) {
+      return "Enter a plain decimal amount, like 5 or 5.50.";
+    }
     return amountRefusal(limits, numeric, info.assetCode);
   };
 

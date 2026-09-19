@@ -55,6 +55,9 @@ export interface AnchorTransferState {
   reset: () => void;
 }
 
+/** Raised when the anchor rejects the session token rather than the request. */
+class TokenRejected extends Error {}
+
 async function json<T>(
   url: string,
   init: RequestInit,
@@ -72,10 +75,20 @@ async function json<T>(
   const body = (await response.json().catch(() => null)) as
     (T & { error?: string }) | null;
   if (!response.ok || !body) {
-    throw new AnchorError(
-      stage,
-      body?.error ?? `The request failed with status ${response.status}.`,
-    );
+    const message =
+      body?.error ?? `The request failed with status ${response.status}.`;
+    // SEP-10 tokens expire. The anchor answers 401/403, and our route relays
+    // that inside a 502 with the status in the text — so both the direct code
+    // and the relayed one have to count, or an expired session wedges the flow
+    // until the page is reloaded.
+    if (
+      response.status === 401 ||
+      response.status === 403 ||
+      /\b(401|403)\b/.test(message)
+    ) {
+      throw new TokenRejected(message);
+    }
+    throw new AnchorError(stage, message);
   }
   return body;
 }
@@ -183,9 +196,12 @@ export function useAnchorTransfer(): AnchorTransferState {
           ? { ...current, transfer: next }
           : current,
       );
-    } catch {
-      // A failed poll is not a failed transfer. Leave the last known state
-      // standing rather than replacing a real status with an error.
+    } catch (error) {
+      // A failed poll is not a failed transfer, so the last known state stands
+      // rather than being replaced by an error. But a rejected token would
+      // otherwise make every future poll fail in silence, so it is dropped —
+      // the next action re-authenticates.
+      if (error instanceof TokenRejected) token.current = null;
     }
   }, []);
 
@@ -193,24 +209,50 @@ export function useAnchorTransfer(): AnchorTransferState {
     async (kind: TransferKind, amount?: string) => {
       setBusy(true);
       setFailure(null);
+
+      // Opened synchronously, inside the click, while the user activation is
+      // still live. By the time the anchor answers there have been two round
+      // trips and a wallet prompt, and Safari and Firefox block a popup opened
+      // that late — so the window is claimed now and pointed at the anchor once
+      // there is somewhere to point it. A blocked popup still degrades safely:
+      // `interactiveUrl` is rendered as a link either way.
+      const popup = window.open(
+        "about:blank",
+        "_blank",
+        "width=480,height=680",
+      );
+
       try {
         const bearer = await authenticate();
         if (!address) throw new AnchorError("connect", "No wallet connected.");
 
-        const opened = await json<{ id: string; url: string }>(
-          "/api/anchor/transfer",
-          {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              token: bearer,
-              kind,
-              account: address,
-              amount,
-            }),
-          },
-          "open",
-        );
+        const open = (bearerToken: string) =>
+          json<{ id: string; url: string }>(
+            "/api/anchor/transfer",
+            {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                token: bearerToken,
+                kind,
+                account: address,
+                amount,
+              }),
+            },
+            "open",
+          );
+
+        let opened: { id: string; url: string };
+        try {
+          opened = await open(bearer);
+        } catch (error) {
+          if (!(error instanceof TokenRejected)) throw error;
+          // Expired session: drop it, authenticate once more, try once more.
+          // Exactly once — a loop here would prompt the wallet forever against
+          // an anchor that rejects every token.
+          token.current = null;
+          opened = await open(await authenticate());
+        }
 
         setSession({
           address,
@@ -229,12 +271,13 @@ export function useAnchorTransfer(): AnchorTransferState {
         // The anchor's own hosted form. A popup, never an iframe: it is where a
         // real anchor collects identity documents, and framing somebody else's
         // KYC page inside our origin is not a layout decision.
-        window.open(
-          opened.url,
-          "_blank",
-          "noopener,noreferrer,width=480,height=680",
-        );
+        if (popup && !popup.closed) popup.location.replace(opened.url);
+        else window.open(opened.url, "_blank", "noopener,noreferrer");
       } catch (error) {
+        // Nothing to show it: close the window we claimed rather than leaving a
+        // blank tab behind.
+        if (popup && !popup.closed) popup.close();
+        if (error instanceof TokenRejected) token.current = null;
         setFailure(
           error instanceof AnchorError
             ? error

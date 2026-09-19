@@ -67,3 +67,18 @@ export function amountRefusal(
   }
   return null;
 }
+
+/**
+ * The amount format the SEP-24 call accepts on the wire.
+ *
+ * Exported so the browser and the route handler cannot disagree about it. They
+ * did: the panel accepted anything `Number()` parses, the route accepted only
+ * this pattern, and the gap was silent — `.5` and `1e1` passed the panel's gate,
+ * were dropped by the route, and the anchor's form opened with nothing
+ * prefilled while the UI showed the amount the user had typed.
+ */
+export const AMOUNT_PATTERN = /^\d+(\.\d+)?$/;
+
+export function isTransferAmount(value: string): boolean {
+  return AMOUNT_PATTERN.test(value.trim());
+}

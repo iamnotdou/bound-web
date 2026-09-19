@@ -69,7 +69,10 @@ export function parseStellarToml(text: string): AnchorToml {
   };
 
   const currencies = text
-    .split(/^\s*\[\[CURRENCIES\]\]\s*$/m)
+    // A trailing `# comment` after the header is legal TOML. Without allowing
+    // it the block is not split off, its fields are read from the previous
+    // block, and the asset silently vanishes from `currencies`.
+    .split(/^\s*\[\[CURRENCIES\]\]\s*(?:#.*)?$/m)
     .slice(1)
     .map((block): AnchorCurrency | null => {
       const code = block.match(/^\s*code\s*=\s*"([^"]*)"/m)?.[1];
@@ -234,6 +237,21 @@ export interface Challenge {
 }
 
 /**
+ * The value SEP-10 requires in the challenge's `web_auth_domain` operation: the
+ * **host of `WEB_AUTH_ENDPOINT`**, which is not necessarily the home domain.
+ *
+ * They coincide on the reference anchor (`testanchor.stellar.org` serves auth at
+ * `/auth` on itself), which is exactly how passing the home domain here looked
+ * correct. An anchor that splits them — `home_domain=anchor.example` with
+ * `WEB_AUTH_ENDPOINT=https://api.anchor.example/auth`, a common arrangement —
+ * would have had every challenge rejected, defeating the one property this
+ * module is built for: that swapping anchors is configuration.
+ */
+export function webAuthDomain(toml: AnchorToml): string {
+  return new URL(toml.webAuthEndpoint).host;
+}
+
+/**
  * Fetch a SEP-10 challenge and **prove it is safe to sign** before handing it
  * to a wallet.
  *
@@ -269,7 +287,7 @@ export async function sep10Challenge(address: string): Promise<Challenge> {
       toml.signingKey,
       passphrase,
       [ANCHOR_HOME_DOMAIN],
-      ANCHOR_HOME_DOMAIN,
+      webAuthDomain(toml),
     );
   } catch (cause) {
     throw new Error(

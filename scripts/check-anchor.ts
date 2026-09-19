@@ -26,6 +26,7 @@ import {
   assetMatchesDeployment,
   issuerOf,
   sep10Challenge,
+  webAuthDomain,
 } from "@/lib/anchor";
 import { USDC_ISSUER } from "@/lib/deployment";
 import { check, crashed, equals, finish, note, pass, section } from "./report";
@@ -129,7 +130,7 @@ async function main() {
       toml.signingKey,
       challenge.networkPassphrase,
       [ANCHOR_HOME_DOMAIN],
-      ANCHOR_HOME_DOMAIN,
+      webAuthDomain(toml),
     );
   } catch {
     refused = true;

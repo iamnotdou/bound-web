@@ -10,8 +10,13 @@
  * matches the code that wrote it; the live checks belong in `scripts/`.
  */
 import { describe, expect, it } from "vitest";
-import { assetMatchesDeployment, issuerOf, parseStellarToml } from "./anchor";
-import { amountRefusal, readLimits } from "./anchor-limits";
+import {
+  assetMatchesDeployment,
+  issuerOf,
+  parseStellarToml,
+  webAuthDomain,
+} from "./anchor";
+import { amountRefusal, isTransferAmount, readLimits } from "./anchor-limits";
 
 const REFERENCE_TOML = `ACCOUNTS = ["GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"]
 VERSION = "0.1.0"
@@ -190,6 +195,75 @@ describe("amountRefusal()", () => {
   it("refuses a non-amount rather than comparing it", () => {
     for (const bad of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(amountRefusal(open, bad, "USDC")).toBe("Enter an amount.");
+    }
+  });
+});
+
+describe("webAuthDomain()", () => {
+  it("is the host of WEB_AUTH_ENDPOINT, which may not be the home domain", () => {
+    // SEP-10 compares the challenge's `web_auth_domain` operation against this.
+    // Passing the home domain instead looked correct only because the reference
+    // anchor serves auth on itself; an anchor that splits them would have had
+    // every challenge rejected.
+    const split = parseStellarToml(
+      REFERENCE_TOML.replace(
+        'WEB_AUTH_ENDPOINT = "https://testanchor.stellar.org/auth"',
+        'WEB_AUTH_ENDPOINT = "https://api.anchor.example/auth"',
+      ),
+    );
+    expect(webAuthDomain(split)).toBe("api.anchor.example");
+  });
+
+  it("drops the scheme, the path and the trailing slash", () => {
+    const toml = parseStellarToml(REFERENCE_TOML);
+    expect(webAuthDomain(toml)).toBe("testanchor.stellar.org");
+  });
+
+  it("keeps a non-default port, which is part of the host", () => {
+    const ported = parseStellarToml(
+      REFERENCE_TOML.replace(
+        "https://testanchor.stellar.org/auth",
+        "https://localhost:8080/auth",
+      ),
+    );
+    expect(webAuthDomain(ported)).toBe("localhost:8080");
+  });
+});
+
+describe("parseStellarToml() — [[CURRENCIES]] headers", () => {
+  it("splits a header that carries a trailing comment", () => {
+    // Legal TOML. Unsplit, the block is appended to the previous currency, its
+    // fields are read from that earlier block, and the asset vanishes — so the
+    // app would report "different assets" for an anchor that issues the right
+    // one.
+    const commented = REFERENCE_TOML.replace(
+      '[[CURRENCIES]]\ncode = "USDC"',
+      '[[CURRENCIES]] # the one we move\ncode = "USDC"',
+    );
+    const toml = parseStellarToml(commented);
+    expect(toml.currencies.map((c) => c.code)).toEqual([
+      "SRT",
+      "USDC",
+      "native",
+    ]);
+    expect(issuerOf(toml, "USDC")).toBe(
+      "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+    );
+  });
+});
+
+describe("isTransferAmount()", () => {
+  it("accepts what the SEP-24 call accepts", () => {
+    for (const good of ["5", "5.5", "0.0000001", "1000", " 5 "]) {
+      expect(isTransferAmount(good), good).toBe(true);
+    }
+  });
+
+  it("rejects the forms the panel used to let through", () => {
+    // Each of these parses as a positive number, so the old client-side check
+    // passed them and the server then dropped the amount in silence.
+    for (const bad of [".5", "1e1", "+5", "5.", "-5", "", "abc", "Infinity"]) {
+      expect(isTransferAmount(bad), bad).toBe(false);
     }
   });
 });

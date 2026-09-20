@@ -115,15 +115,33 @@ domain. They coincide on the SDF reference anchor, so validating against the
 home domain looks correct until you point at an anchor that serves auth
 elsewhere, and then every challenge is rejected.
 
-### What it does not do yet
+### Which money the reserve holds — two instances
 
-The deployed contracts hold a self-issued test USDC and the anchor issues its
-own. They are different money, so a completed deposit funds your wallet and
-**cannot** fund a certificate's reserve. `GET /api/anchor` compares the two
+The default deployment holds a self-issued test USDC while the anchor issues its
+own, and they are different money: there, a completed deposit funds your wallet
+and **cannot** fund a certificate's reserve. `GET /api/anchor` compares the two
 issuers and returns `fundsReserve`; the panel leads with that, above the
-controls, rather than letting a demo imply otherwise. Closing it is a second
-deployment of the contracts against the anchor's asset — `@bound/sdk` is already
-able to carry one.
+controls, rather than letting a demo imply otherwise.
+
+The second deployment closes that gap by being denominated in the anchor's own
+USDC, so a reserve there holds money that crossed a fiat rail to get in.
+
+| `NEXT_PUBLIC_STELLAR_NETWORK` | Reserves hold              | `fundsReserve` | Test money comes from |
+| ----------------------------- | -------------------------- | -------------- | --------------------- |
+| `testnet` (default)           | USDC the operator issues   | `false`        | `/api/faucet`         |
+| `testnet-anchor`              | USDC **the anchor issues** | `true`         | a SEP-24 deposit      |
+
+Both are live on testnet and neither replaces the other. The default is what
+boundprotocol.dev serves: it carries the seeded certificates and a faucet that
+can hand a visitor test money. On the anchor instance there is no faucet worth
+the name — the anchor is where money comes from, which is the point of it, and
+the amount in existence is whatever has been deposited.
+
+Selecting one is two environment variables that must agree: `STELLAR_NETWORK`
+for the server and `NEXT_PUBLIC_STELLAR_NETWORK` for the browser bundle.
+`lib/bound.ts` compares the registry address the two halves resolved and throws
+at build time if they differ, because a page that renders one deployment's
+addresses beside another's figures is wrong in a way nobody would notice.
 
 `pnpm check:anchor` prints the whole picture against the live anchor: the
 discovered endpoints, the limits, a fetched-and-validated challenge, a tampered

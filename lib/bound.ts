@@ -28,6 +28,27 @@ import {
   readSource,
   type Certificate,
 } from "@bound/sdk";
+import { deployment } from "@/lib/deployment";
+
+/**
+ * The two halves of this app choose their deployment separately: the server
+ * through `STELLAR_NETWORK`, the browser through `NEXT_PUBLIC_STELLAR_NETWORK`
+ * baked in at build time. A mismatch is the worst kind of wrong, because it is
+ * invisible — every page renders, and every address on it belongs to a
+ * different deployment than the figures beside it were read from.
+ *
+ * Comparing one address at module scope costs nothing and makes that
+ * impossible. It throws on the server at startup rather than shipping a page
+ * that quietly lies.
+ */
+if (contracts.registry !== deployment.contracts.registry) {
+  throw new Error(
+    `deployment mismatch: the server reads registry ${contracts.registry} ` +
+      `(STELLAR_NETWORK) but the browser was built against ${deployment.contracts.registry} ` +
+      `(NEXT_PUBLIC_STELLAR_NETWORK=${process.env.NEXT_PUBLIC_STELLAR_NETWORK ?? "unset"}). ` +
+      `Both must name the same deployment.`,
+  );
+}
 import { AssembledTransaction } from "@stellar/stellar-sdk/contract";
 
 /**

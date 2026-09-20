@@ -131,7 +131,17 @@ USDC, so a reserve there holds money that crossed a fiat rail to get in.
 | `testnet` (default)           | USDC the operator issues   | `false`        | `/api/faucet`         |
 | `testnet-anchor`              | USDC **the anchor issues** | `true`         | a SEP-24 deposit      |
 
-Both are live on testnet and neither replaces the other. The default is what
+Both are live, and you can open either:
+
+| Instance                                       | URL                                                            |
+| ---------------------------------------------- | -------------------------------------------------------------- |
+| Default — seeded certificates, faucet          | [www.boundprotocol.dev/app](https://www.boundprotocol.dev/app) |
+| Anchor-denominated — a deposit funds a reserve | [bound-anchor.vercel.app](https://bound-anchor.vercel.app)     |
+
+The second one is pointed at a Turkish lira ramp (`ANCHOR_HOME_DOMAIN=tr-mock-anchor.fly.dev`),
+so `GET /api/anchor` there reports `"protocol":"sep6"` and `"fundsReserve":true`.
+
+Neither replaces the other. The default is what
 boundprotocol.dev serves: it carries the seeded certificates and a faucet that
 can hand a visitor test money. On the anchor instance there is no faucet worth
 the name — the anchor is where money comes from, which is the point of it, and

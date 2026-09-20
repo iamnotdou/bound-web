@@ -1,5 +1,6 @@
 /**
- * The fiat boundary: SEP-1 discovery, SEP-10 authentication, SEP-24 transfer.
+ * The fiat boundary: SEP-1 discovery, SEP-10 authentication, and a transfer
+ * over whichever of SEP-24 or SEP-6 the anchor actually offers.
  *
  * SERVER ONLY. It reaches a third-party anchor over HTTP. It holds no key — the
  * connected wallet signs the SEP-10 challenge, exactly the way it signs a
@@ -44,7 +45,20 @@ export interface AnchorCurrency {
 
 export interface AnchorToml {
   webAuthEndpoint: string;
-  sep24Endpoint: string;
+  /**
+   * `TRANSFER_SERVER_SEP0024` — the interactive rail, where the anchor hosts
+   * the form. Null when this anchor does not offer one.
+   */
+  sep24Endpoint: string | null;
+  /**
+   * `TRANSFER_SERVER` — the programmatic SEP-6 rail, where the anchor answers
+   * with bank instructions instead of a page. Null when it offers none.
+   *
+   * A Turkish anchor is the reason this is here rather than hypothetical: the
+   * TRY ramps that exist speak SEP-6, so an app that can only do SEP-24 cannot
+   * reach the one asset this protocol most needs at the boundary.
+   */
+  sep6Endpoint: string | null;
   /** The account whose signature makes a SEP-10 challenge authentic. */
   signingKey: string;
   networkPassphrase: string;
@@ -83,12 +97,12 @@ export function parseStellarToml(text: string): AnchorToml {
 
   const webAuthEndpoint = scalar("WEB_AUTH_ENDPOINT");
   const sep24Endpoint = scalar("TRANSFER_SERVER_SEP0024");
+  const sep6Endpoint = scalar("TRANSFER_SERVER");
   const signingKey = scalar("SIGNING_KEY");
   const networkPassphrase = scalar("NETWORK_PASSPHRASE");
 
   const missing = Object.entries({
     WEB_AUTH_ENDPOINT: webAuthEndpoint,
-    TRANSFER_SERVER_SEP0024: sep24Endpoint,
     SIGNING_KEY: signingKey,
     NETWORK_PASSPHRASE: networkPassphrase,
   })
@@ -97,17 +111,54 @@ export function parseStellarToml(text: string): AnchorToml {
 
   if (missing.length > 0) {
     throw new AnchorUnreachable(
-      `its stellar.toml is missing ${missing.join(", ")}. An anchor without these cannot do SEP-10 or SEP-24.`,
+      `its stellar.toml is missing ${missing.join(", ")}. An anchor without these cannot do SEP-10.`,
+    );
+  }
+
+  // Either rail will do, and neither is required by name — which is the point.
+  // Demanding SEP-24 specifically would make "the anchor is configuration" true
+  // only of anchors that happen to host a form.
+  if (!sep24Endpoint && !sep6Endpoint) {
+    throw new AnchorUnreachable(
+      "its stellar.toml declares neither TRANSFER_SERVER_SEP0024 (SEP-24) nor TRANSFER_SERVER (SEP-6), so it offers no way to move money at all.",
     );
   }
 
   return {
     webAuthEndpoint: webAuthEndpoint!,
-    sep24Endpoint: sep24Endpoint!,
+    sep24Endpoint,
+    sep6Endpoint,
     signingKey: signingKey!,
     networkPassphrase: networkPassphrase!,
     currencies,
   };
+}
+
+/** Which of the two transfer protocols an anchor is talked to over. */
+export type TransferProtocol = "sep24" | "sep6";
+
+/**
+ * Pick the rail.
+ *
+ * SEP-24 wins when an anchor offers both, because the anchor's own hosted form
+ * is the safer place for it to collect identity documents than any field list
+ * we would render for it. SEP-6 is what an anchor gets when it has no form —
+ * the TRY ramps do not — and it is not a downgrade: the flow is the same money
+ * over a programmatic API instead of a popup.
+ */
+export function transferProtocol(toml: AnchorToml): TransferProtocol {
+  return toml.sep24Endpoint !== null ? "sep24" : "sep6";
+}
+
+/** The base URL of whichever rail {@link transferProtocol} chose. */
+export function transferEndpoint(toml: AnchorToml): string {
+  const endpoint = toml.sep24Endpoint ?? toml.sep6Endpoint;
+  if (endpoint === null) {
+    // Unreachable through `parseStellarToml`, which refuses a toml with
+    // neither. Stated anyway, because the invariant lives in another function.
+    throw new AnchorUnreachable("this anchor declares no transfer server");
+  }
+  return endpoint;
 }
 
 /** The issuer of `code`, as the anchor's own toml declares it. */
@@ -192,14 +243,21 @@ export { readLimits, amountRefusal } from "./anchor-limits";
 
 export interface AnchorInfo {
   homeDomain: string;
+  /** Which rail this anchor is talked to over. The UI says so out loud. */
+  protocol: TransferProtocol;
   assetCode: string;
   issuer: string | null;
   deposit: TransferLimits;
   withdraw: TransferLimits;
 }
 
-/** The `/sep24/info` wire shape. Describes the protocol, not the arithmetic. */
-interface Sep24InfoResponse {
+/**
+ * The `/info` wire shape, which SEP-24 and SEP-6 share where it matters: both
+ * key `deposit` and `withdraw` by asset code and state `enabled` inside. SEP-6
+ * adds fields this app does not need and may state no limits at all, which
+ * `readLimits` already renders as "not stated" rather than as zero.
+ */
+interface TransferInfoResponse {
   deposit?: Record<
     string,
     { enabled?: boolean; min_amount?: number; max_amount?: number }
@@ -221,9 +279,12 @@ interface Sep24InfoResponse {
  */
 export async function anchorInfo(): Promise<AnchorInfo> {
   const toml = await anchorToml();
-  const info = await getJson<Sep24InfoResponse>(`${toml.sep24Endpoint}/info`);
+  const info = await getJson<TransferInfoResponse>(
+    `${transferEndpoint(toml)}/info`,
+  );
   return {
     homeDomain: ANCHOR_HOME_DOMAIN,
+    protocol: transferProtocol(toml),
     assetCode: ANCHOR_ASSET_CODE,
     issuer: issuerOf(toml, ANCHOR_ASSET_CODE),
     deposit: readLimits(info.deposit, ANCHOR_ASSET_CODE),
@@ -328,45 +389,143 @@ export async function sep10Token(signedXdr: string): Promise<string> {
   return token;
 }
 
-export interface InteractiveTransfer {
+/**
+ * What starting a transfer gives you, on either rail.
+ *
+ * One shape with nullable halves rather than a union, because every caller —
+ * route, hook, panel — has to handle both anyway, and a union would push a
+ * discriminant check into three files to save a null check in one. `protocol`
+ * still says which rail answered, so nothing has to infer it from which fields
+ * came back non-null.
+ */
+export interface StartedTransfer {
+  protocol: TransferProtocol;
   id: string;
-  /** The anchor's own hosted form. Opened in a popup, never inlined. */
-  url: string;
+  /** SEP-24: the anchor's own hosted form. Opened in a popup, never inlined. */
+  url: string | null;
+  /**
+   * SEP-6: what the person must now do, in the anchor's own words — for a TRY
+   * ramp, an IBAN and the reference to write in the transfer description.
+   * Relayed verbatim and never paraphrased: this app does not know what a given
+   * bank needs, and a helpfully reworded payment instruction is a lost payment.
+   */
+  instructions: string | null;
+  /**
+   * SEP-6 withdraw: where to send the asset, and the memo that tells the anchor
+   * whose withdrawal it is. A withdrawal sent without the memo arrives as an
+   * unattributable payment.
+   */
+  payTo: {
+    account: string;
+    memo: string | null;
+    memoType: string | null;
+  } | null;
+  /** The anchor's own page for this transfer, when it offers one. */
+  moreInfoUrl: string | null;
 }
 
 export type TransferKind = "deposit" | "withdraw";
 
+/** SEP-6 states instructions as a field map; older anchors send a `how` string. */
+function readInstructions(body: Record<string, unknown>): string | null {
+  if (typeof body.how === "string" && body.how.trim() !== "") return body.how;
+  const instructions = body.instructions;
+  if (instructions !== null && typeof instructions === "object") {
+    const lines = Object.entries(instructions as Record<string, unknown>)
+      .map(([key, field]) => {
+        const f = (field ?? {}) as { value?: unknown; description?: unknown };
+        const label =
+          typeof f.description === "string" && f.description !== ""
+            ? f.description
+            : key;
+        return typeof f.value === "string" ? `${label}: ${f.value}` : null;
+      })
+      .filter((line): line is string => line !== null);
+    if (lines.length > 0) return lines.join("\n");
+  }
+  return null;
+}
+
 /**
- * Open a SEP-24 interactive transfer and return the anchor's hosted URL.
+ * Start a transfer in either direction, over whichever rail the anchor speaks.
  *
- * Both directions go through here because they are the same call with a
+ * Both directions share one function because they are the same call with a
  * different noun, and the product needs both: a reserve funded from fiat is
- * only half a rail if a proven claim cannot be paid back out to fiat.
+ * half a rail if a proven claim cannot be paid back out to fiat.
+ *
+ * The two rails differ in who does the next step. SEP-24 hands back a URL and
+ * the person finishes inside the anchor's window. SEP-6 hands back instructions
+ * and the person goes to their bank — no page, no popup, and nothing for this
+ * app to host on the anchor's behalf.
  */
 export async function startTransfer(
   kind: TransferKind,
   token: string,
   params: { account: string; amount?: string },
-): Promise<InteractiveTransfer> {
+): Promise<StartedTransfer> {
   const toml = await anchorToml();
-  const body: Record<string, string> = {
-    asset_code: ANCHOR_ASSET_CODE,
-    account: params.account,
-  };
-  if (params.amount) body.amount = params.amount;
+  const protocol = transferProtocol(toml);
+  const authorization = `Bearer ${token}`;
 
-  const result = await getJson<{ id: string; url: string }>(
-    `${toml.sep24Endpoint}/transactions/${kind}/interactive`,
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
+  if (protocol === "sep24") {
+    const body: Record<string, string> = {
+      asset_code: ANCHOR_ASSET_CODE,
+      account: params.account,
+    };
+    if (params.amount) body.amount = params.amount;
+
+    const result = await getJson<{ id: string; url: string }>(
+      `${toml.sep24Endpoint}/transactions/${kind}/interactive`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    },
+    );
+    return {
+      protocol,
+      id: result.id,
+      url: result.url,
+      instructions: null,
+      payTo: null,
+      moreInfoUrl: null,
+    };
+  }
+
+  // SEP-6 is a GET with query parameters, and `type` says how the money
+  // travels off-chain. `bank_account` is the only funding method a Turkish
+  // ramp offers, and asking for one the anchor does not list is an error
+  // rather than a fallback.
+  const query = new URLSearchParams({
+    asset_code: ANCHOR_ASSET_CODE,
+    type: "bank_account",
+  });
+  if (kind === "deposit") query.set("account", params.account);
+  if (params.amount) query.set("amount", params.amount);
+
+  const result = await getJson<Record<string, unknown>>(
+    `${toml.sep6Endpoint}/${kind}?${query.toString()}`,
+    { headers: { authorization } },
   );
-  return { id: result.id, url: result.url };
+
+  const account = result.account_id;
+  return {
+    protocol,
+    id: String(result.id ?? ""),
+    url: null,
+    instructions: readInstructions(result),
+    payTo:
+      typeof account === "string"
+        ? {
+            account,
+            memo: typeof result.memo === "string" ? result.memo : null,
+            memoType:
+              typeof result.memo_type === "string" ? result.memo_type : null,
+          }
+        : null,
+    moreInfoUrl:
+      typeof result.more_info_url === "string" ? result.more_info_url : null,
+  };
 }
 
 export interface AnchorTransaction {
@@ -388,7 +547,7 @@ export async function readTransfer(
   const toml = await anchorToml();
   const { transaction } = await getJson<{
     transaction: Record<string, string | null>;
-  }>(`${toml.sep24Endpoint}/transaction?id=${encodeURIComponent(id)}`, {
+  }>(`${transferEndpoint(toml)}/transaction?id=${encodeURIComponent(id)}`, {
     headers: { authorization: `Bearer ${token}` },
   });
 

@@ -38,6 +38,27 @@ export interface AnchorTransaction {
 }
 
 export type TransferKind = "deposit" | "withdraw";
+export type TransferProtocol = "sep24" | "sep6";
+
+/**
+ * What the anchor gave back when the transfer was opened.
+ *
+ * Declared here as well as in `lib/anchor.ts` because that module is server
+ * only — it reads the environment and pulls in the chain SDK — so the browser
+ * gets its own copy of the wire shape, the same way `AnchorTransaction` does.
+ */
+export interface StartedTransfer {
+  protocol: TransferProtocol;
+  id: string;
+  url: string | null;
+  instructions: string | null;
+  payTo: {
+    account: string;
+    memo: string | null;
+    memoType: string | null;
+  } | null;
+  moreInfoUrl: string | null;
+}
 
 /**
  * SEP-24 statuses that mean the anchor is finished with this transfer, either
@@ -48,10 +69,14 @@ const TERMINAL = new Set(["completed", "refunded", "expired", "error"]);
 export interface AnchorTransferState {
   busy: boolean;
   transfer: AnchorTransaction | null;
-  /** The anchor's hosted form, while it is the thing to go and do. */
-  interactiveUrl: string | null;
+  /** What the anchor answered with: a form to open, or instructions to follow. */
+  started: StartedTransfer | null;
   failure: AnchorError | null;
-  start: (kind: TransferKind, amount?: string) => Promise<void>;
+  start: (
+    kind: TransferKind,
+    amount: string | undefined,
+    protocol: TransferProtocol,
+  ) => Promise<void>;
   reset: () => void;
 }
 
@@ -106,7 +131,7 @@ async function json<T>(
 interface Session {
   address: string;
   transfer: AnchorTransaction | null;
-  interactiveUrl: string | null;
+  started: StartedTransfer | null;
 }
 
 export function useAnchorTransfer(): AnchorTransferState {
@@ -128,7 +153,7 @@ export function useAnchorTransfer(): AnchorTransferState {
   const fresh =
     session !== null && session.address === address ? session : null;
   const transfer = fresh?.transfer ?? null;
-  const interactiveUrl = fresh?.interactiveUrl ?? null;
+  const started = fresh?.started ?? null;
   const reset = useCallback(() => {
     setSession(null);
     setFailure(null);
@@ -206,7 +231,11 @@ export function useAnchorTransfer(): AnchorTransferState {
   }, []);
 
   const start = useCallback(
-    async (kind: TransferKind, amount?: string) => {
+    async (
+      kind: TransferKind,
+      amount: string | undefined,
+      protocol: TransferProtocol,
+    ) => {
       setBusy(true);
       setFailure(null);
 
@@ -215,19 +244,23 @@ export function useAnchorTransfer(): AnchorTransferState {
       // trips and a wallet prompt, and Safari and Firefox block a popup opened
       // that late — so the window is claimed now and pointed at the anchor once
       // there is somewhere to point it. A blocked popup still degrades safely:
-      // `interactiveUrl` is rendered as a link either way.
-      const popup = window.open(
-        "about:blank",
-        "_blank",
-        "width=480,height=680",
-      );
+      // the URL is rendered as a link either way.
+      //
+      // Only for SEP-24. A SEP-6 anchor answers with bank instructions and has
+      // no page to show, so claiming a window would flash a blank tab and close
+      // it — which is why the caller passes the protocol rather than letting
+      // this find out two round trips too late.
+      const popup =
+        protocol === "sep24"
+          ? window.open("about:blank", "_blank", "width=480,height=680")
+          : null;
 
       try {
         const bearer = await authenticate();
         if (!address) throw new AnchorError("connect", "No wallet connected.");
 
         const open = (bearerToken: string) =>
-          json<{ id: string; url: string }>(
+          json<StartedTransfer>(
             "/api/anchor/transfer",
             {
               method: "POST",
@@ -242,7 +275,7 @@ export function useAnchorTransfer(): AnchorTransferState {
             "open",
           );
 
-        let opened: { id: string; url: string };
+        let opened: StartedTransfer;
         try {
           opened = await open(bearer);
         } catch (error) {
@@ -256,7 +289,7 @@ export function useAnchorTransfer(): AnchorTransferState {
 
         setSession({
           address,
-          interactiveUrl: opened.url,
+          started: opened,
           transfer: {
             id: opened.id,
             kind,
@@ -271,8 +304,15 @@ export function useAnchorTransfer(): AnchorTransferState {
         // The anchor's own hosted form. A popup, never an iframe: it is where a
         // real anchor collects identity documents, and framing somebody else's
         // KYC page inside our origin is not a layout decision.
-        if (popup && !popup.closed) popup.location.replace(opened.url);
-        else window.open(opened.url, "_blank", "noopener,noreferrer");
+        //
+        // On SEP-6 there is nothing to open — the next step happens at a bank,
+        // and the panel renders the instructions the anchor sent.
+        if (opened.url !== null) {
+          if (popup && !popup.closed) popup.location.replace(opened.url);
+          else window.open(opened.url, "_blank", "noopener,noreferrer");
+        } else if (popup && !popup.closed) {
+          popup.close();
+        }
       } catch (error) {
         // Nothing to show it: close the window we claimed rather than leaving a
         // blank tab behind.
@@ -306,7 +346,7 @@ export function useAnchorTransfer(): AnchorTransferState {
   return {
     busy,
     transfer,
-    interactiveUrl,
+    started,
     failure,
     start,
     reset,

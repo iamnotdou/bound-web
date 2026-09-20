@@ -20,6 +20,7 @@
     "*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
   },
   "dependencies": {
+    "@blobatar/react": "^2.7.0",
     "@bound/sdk": "^0.5.0",
     "@creit.tech/stellar-wallets-kit": "^2.5.0",
     "@hugeicons/core-free-icons": "^4.2.3",
@@ -27,6 +28,7 @@
     "@radix-ui/react-navigation-menu": "^1.2.22",
     "@radix-ui/react-slot": "^1.3.3",
     "@stellar/stellar-sdk": "^16.2.0",
+    "blobatar": "^2.7.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dither-plugin": "^1.1.1",

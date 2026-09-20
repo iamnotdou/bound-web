@@ -314,3 +314,34 @@
     counter-set: line var(--counter-start);
   }
 }
+
+/* blobatar's motion layer wakes on `:hover` of the face itself, and a card is
+   one hover target: without this, pointing at a certificate leaves the avatar
+   on it asleep unless the pointer happens to land on the 44px square.
+
+   Unlayered on purpose. `blobatar/motion.css` is a stylesheet from a package
+   and carries no @layer of its own, so its `.mo-root { --mo-amp: 0 }` outranks
+   every layered rule in this file however specific — an unlayered declaration
+   beats a layered one before specificity is even consulted. Inside `@layer
+   base` these three rules parse, ship, and do nothing.
+
+   The two media queries mirror the escapes motion.css makes for its own
+   `:hover` rule, which a different selector does not inherit: coarse pointers,
+   where :hover sticks until something else is tapped, and reduced motion. */
+.blobatar-host:hover .mo-root {
+  --mo-amp: 1;
+  transform: translateY(-1.5px) scale(1.04);
+}
+
+@media not ((hover: hover) and (pointer: fine)) {
+  .blobatar-host:hover .mo-root {
+    --mo-amp: 0;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blobatar-host:hover .mo-root {
+    transform: none;
+  }
+}

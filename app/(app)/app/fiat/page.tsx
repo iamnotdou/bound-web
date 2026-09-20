@@ -7,7 +7,7 @@ import { WalletSetup } from "@/components/app/wallet-setup";
 export const metadata: Metadata = {
   title: "Fiat rail",
   description:
-    "Move value across the boundary between a bank account and Stellar, through a SEP-24 anchor, with the wallet authenticating over SEP-10.",
+    "Move value across the boundary between a bank account and Stellar, through a SEP-24 or SEP-6 anchor, with the wallet authenticating over SEP-10.",
 };
 
 export default function FiatPage() {
@@ -51,7 +51,10 @@ export default function FiatPage() {
             endpoint is written into this app. The anchor is one environment
             variable and every URL comes out of its{" "}
             <code className="font-address">stellar.toml</code>, so pointing at a
-            lira anchor is a config change rather than a diff.
+            lira anchor is a config change rather than a diff. The toml also
+            decides <em>how</em> we talk to it: an anchor that hosts its own
+            form is driven over SEP-24, and one that does not — which is what
+            the Turkish lira ramps are — over SEP-6.
           </li>
           <li>
             <strong className="text-foreground">SEP-10 authentication.</strong>{" "}
@@ -64,18 +67,22 @@ export default function FiatPage() {
           </li>
           <li>
             <strong className="text-foreground">
-              SEP-24 deposit and withdraw.
+              Deposit and withdraw, on whichever rail the anchor speaks.
             </strong>{" "}
             Both directions, because a reserve funded from fiat is half a rail
-            if a proven claim cannot be paid back out to fiat.
+            if a proven claim cannot be paid back out to fiat. Over SEP-24 the
+            anchor opens its own window; over SEP-6 it answers with an IBAN and
+            a reference to write in the transfer description, and the panel
+            relays those words exactly as the anchor sent them.
           </li>
           <li>
             <strong className="text-foreground">
-              The last hop is not wired.
+              Whether the last hop lands depends on the asset.
             </strong>{" "}
-            The deployed contracts hold a different USDC than this anchor
-            issues, so a completed deposit lands in your wallet and stops there.
-            The panel above says so rather than implying otherwise.
+            A deposit can only fund a reserve when the anchor issues the same
+            USDC the deployed contracts hold. When it does not, the money stops
+            in your wallet. The panel above compares the two issuers and says
+            which case you are in, rather than implying the better one.
           </li>
         </ul>
       </section>

@@ -14,6 +14,8 @@ import {
   assetMatchesDeployment,
   issuerOf,
   parseStellarToml,
+  transferEndpoint,
+  transferProtocol,
   webAuthDomain,
 } from "./anchor";
 import { amountRefusal, isTransferAmount, readLimits } from "./anchor-limits";
@@ -40,6 +42,25 @@ status = "test"
 
 [[CURRENCIES]]
 code = "native"
+status = "test"
+`;
+
+/**
+ * The TR mock anchor's real toml, trimmed. It matters because it is SEP-6 only:
+ * a Turkish TRY ramp offers no hosted form, so an app that requires
+ * `TRANSFER_SERVER_SEP0024` cannot reach the one asset this protocol most wants
+ * at the boundary.
+ */
+const SEP6_ONLY_TOML = `VERSION = "2.7.0"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+SIGNING_KEY = "GDXYO6FJCNXZEWGXD54GT76FGFYLOLSOGSOJLNQ6WGHCGEQPO7NTE73M"
+WEB_AUTH_ENDPOINT = "https://tr-mock-anchor.fly.dev/auth"
+TRANSFER_SERVER = "https://tr-mock-anchor.fly.dev/sep6"
+KYC_SERVER = "https://tr-mock-anchor.fly.dev/sep12"
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 status = "test"
 `;
 
@@ -86,7 +107,38 @@ describe("parseStellarToml()", () => {
 
   it("names every missing key at once rather than one per attempt", () => {
     expect(() => parseStellarToml('VERSION = "0.1.0"\n')).toThrow(
-      /WEB_AUTH_ENDPOINT, TRANSFER_SERVER_SEP0024, SIGNING_KEY, NETWORK_PASSPHRASE/,
+      /WEB_AUTH_ENDPOINT, SIGNING_KEY, NETWORK_PASSPHRASE/,
+    );
+  });
+
+  it("accepts an anchor that offers SEP-6 and no hosted form", () => {
+    const sep6 = parseStellarToml(SEP6_ONLY_TOML);
+    expect(sep6.sep6Endpoint).toBe("https://tr-mock-anchor.fly.dev/sep6");
+    expect(sep6.sep24Endpoint).toBeNull();
+  });
+
+  it("refuses an anchor that offers neither transfer server", () => {
+    const neither = SEP6_ONLY_TOML.replace(/^TRANSFER_SERVER.*$/m, "");
+    expect(() => parseStellarToml(neither)).toThrow(
+      /TRANSFER_SERVER_SEP0024.*TRANSFER_SERVER/s,
+    );
+  });
+});
+
+describe("transferProtocol()", () => {
+  it("prefers the anchor's own hosted form when it has one", () => {
+    // Both rails are declared by the reference anchor, and the one where the
+    // anchor collects its own identity documents is the one to use.
+    expect(transferProtocol(parseStellarToml(REFERENCE_TOML))).toBe("sep24");
+    expect(transferEndpoint(parseStellarToml(REFERENCE_TOML))).toBe(
+      "https://testanchor.stellar.org/sep24",
+    );
+  });
+
+  it("falls to SEP-6 when there is no form to open", () => {
+    expect(transferProtocol(parseStellarToml(SEP6_ONLY_TOML))).toBe("sep6");
+    expect(transferEndpoint(parseStellarToml(SEP6_ONLY_TOML))).toBe(
+      "https://tr-mock-anchor.fly.dev/sep6",
     );
   });
 });

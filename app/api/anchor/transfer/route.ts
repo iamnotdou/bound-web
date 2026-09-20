@@ -1,19 +1,20 @@
 /**
- * Open a SEP-24 interactive transfer, in either direction.
+ * Open a transfer, in either direction, on whichever rail the anchor offers.
  *
  *   POST /api/anchor/transfer { token, kind, account, amount? }
- *     → 200 { id, url }
+ *     → 200 { protocol, id, url, instructions, payTo, moreInfoUrl }
  *     → 400 { error }  — unknown direction, missing token, not a G… account
  *     → 502 { error }  — the anchor refused or did not answer
  *
- * Both directions share a route because they are the same SEP-24 call with a
- * different noun, and the product needs both: a reserve funded from fiat is
- * half a rail if a proven claim cannot be paid back out to fiat.
+ * Both directions share a route because they are the same call with a different
+ * noun, and the product needs both: a reserve funded from fiat is half a rail
+ * if a proven claim cannot be paid back out to fiat.
  *
- * `url` is the anchor's own hosted form. It is opened in a popup and never
- * inlined in an iframe — it is where a real anchor collects identity documents,
- * and framing somebody else's KYC page inside our origin is not a thing to do
- * for layout convenience.
+ * `url` is set on SEP-24 only: the anchor's own hosted form, opened in a popup
+ * and never inlined in an iframe — it is where a real anchor collects identity
+ * documents, and framing somebody else's KYC page inside our origin is not a
+ * thing to do for layout convenience. On SEP-6 there is no page at all, and
+ * `instructions` carries what the anchor wants done at a bank instead.
  */
 import { startTransfer, type TransferKind } from "@/lib/anchor";
 import { isTransferAmount } from "@/lib/anchor-limits";

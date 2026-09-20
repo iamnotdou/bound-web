@@ -2,7 +2,7 @@
  * What the fiat boundary can actually do, read live from the anchor.
  *
  *   GET /api/anchor
- *     → 200 { homeDomain, assetCode, issuer, deposit, withdraw, fundsReserve }
+ *     → 200 { homeDomain, protocol, assetCode, issuer, deposit, withdraw, fundsReserve }
  *     → 502 { error }  — the anchor did not answer
  *
  * `fundsReserve` is the field that keeps this honest. The deployed contracts

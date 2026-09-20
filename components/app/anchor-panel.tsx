@@ -30,12 +30,14 @@ import {
   anchorFailureHint,
   useAnchorTransfer,
   type TransferKind,
+  type TransferProtocol,
 } from "@/lib/wallet/use-anchor-transfer";
 import { useWallet } from "@/lib/wallet/wallet-provider";
 import { cn } from "@/lib/utils";
 
 interface AnchorInfo {
   homeDomain: string;
+  protocol: TransferProtocol;
   assetCode: string;
   issuer: string | null;
   deposit: TransferLimits;
@@ -44,11 +46,13 @@ interface AnchorInfo {
   fundsReserve: boolean;
 }
 
-/** SEP-24 statuses, in the words a person can act on. */
+/** SEP-24 and SEP-6 statuses, in the words a person can act on. */
 const STATUS_COPY: Record<string, string> = {
   incomplete: "Waiting for you to finish the anchor's form.",
   pending_user_transfer_start:
-    "The anchor is waiting for your money. Follow the instructions in its window.",
+    "The anchor is waiting for your money. Follow the instructions it gave you.",
+  pending_trust:
+    "The anchor is holding the asset until your wallet trusts it. Open a trustline and it will complete.",
   pending_user_transfer_complete:
     "The anchor says you have sent it. It is confirming.",
   pending_anchor: "The anchor is processing this.",
@@ -77,7 +81,7 @@ export function AnchorPanel() {
   const [infoError, setInfoError] = useState<string | null>(null);
   const [amount, setAmount] = useState("5");
 
-  const { busy, transfer, interactiveUrl, failure, start, reset } =
+  const { busy, transfer, started, failure, start, reset } =
     useAnchorTransfer();
 
   useEffect(() => {
@@ -119,7 +123,9 @@ export function AnchorPanel() {
     return amountRefusal(limits, numeric, info.assetCode);
   };
 
-  const run = (kind: TransferKind) => () => void start(kind, amount);
+  const run = (kind: TransferKind) => () => {
+    if (info !== null) void start(kind, amount, info.protocol);
+  };
 
   return (
     <section
@@ -158,10 +164,10 @@ export function AnchorPanel() {
             >
               {info.homeDomain}
             </a>{" "}
-            over SEP-10 and SEP-24. Your wallet authenticates by signing the
-            anchor&apos;s challenge — this app verifies that the challenge is
-            genuinely the anchor&apos;s before showing it to you, and holds no
-            key of its own.
+            over SEP-10 and {info.protocol === "sep24" ? "SEP-24" : "SEP-6"}.
+            Your wallet authenticates by signing the anchor&apos;s challenge —
+            this app verifies that the challenge is genuinely the anchor&apos;s
+            before showing it to you, and holds no key of its own.
           </p>
 
           {/* The disclosure. Above the controls, not below them. */}
@@ -314,15 +320,71 @@ export function AnchorPanel() {
                 )}
               </p>
 
-              {interactiveUrl !== null && (
+              {started?.url != null && (
                 <p className="mt-3 text-sm">
                   <a
-                    href={interactiveUrl}
+                    href={started.url}
                     target="_blank"
                     rel="noreferrer"
                     className="text-foreground inline-flex items-center gap-1.5 underline underline-offset-4"
                   >
                     Reopen the anchor&apos;s window
+                    <ExternalLink aria-hidden className="size-3.5" />
+                  </a>
+                </p>
+              )}
+
+              {/*
+                SEP-6 has no window to reopen: the next move happens at a bank.
+                The anchor's words are relayed verbatim — this app does not know
+                what a given bank needs, and a helpfully reworded payment
+                instruction is a lost payment.
+              */}
+              {started?.instructions != null && (
+                <div className="border-border bg-muted/40 mt-4 rounded-md border p-3">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                    What the anchor asks you to do
+                  </p>
+                  <p className="text-foreground font-address mt-2 whitespace-pre-wrap text-sm">
+                    {started.instructions}
+                  </p>
+                </div>
+              )}
+
+              {started?.payTo != null && (
+                <div className="border-border bg-muted/40 mt-4 rounded-md border p-3">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                    Send the asset here
+                  </p>
+                  <p className="mt-2 text-sm">
+                    <Address value={started.payTo.account} />
+                  </p>
+                  {started.payTo.memo !== null && (
+                    <p className="text-foreground mt-2 text-sm">
+                      Memo{" "}
+                      <span className="font-address">{started.payTo.memo}</span>
+                      {started.payTo.memoType !== null && (
+                        <span className="text-muted-foreground">
+                          {" "}
+                          ({started.payTo.memoType})
+                        </span>
+                      )}
+                      . A withdrawal sent without it arrives as a payment the
+                      anchor cannot attribute to you.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {started?.moreInfoUrl != null && (
+                <p className="mt-3 text-sm">
+                  <a
+                    href={started.moreInfoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-foreground inline-flex items-center gap-1.5 underline underline-offset-4"
+                  >
+                    This transfer at the anchor
                     <ExternalLink aria-hidden className="size-3.5" />
                   </a>
                 </p>

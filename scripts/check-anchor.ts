@@ -26,6 +26,8 @@ import {
   assetMatchesDeployment,
   issuerOf,
   sep10Challenge,
+  transferEndpoint,
+  transferProtocol,
   webAuthDomain,
 } from "@/lib/anchor";
 import { USDC_ISSUER } from "@/lib/deployment";
@@ -38,7 +40,11 @@ async function main() {
   const toml = await anchorToml();
   pass("stellar.toml is reachable and carries every key the flow needs");
   note(`web auth:  ${toml.webAuthEndpoint}`);
-  note(`sep24:     ${toml.sep24Endpoint}`);
+  // Which rail, and where. Printing `sep24: null` for a SEP-6 anchor read like
+  // a failed check when it is simply an anchor that hosts no form.
+  note(
+    `transfer:  ${transferEndpoint(toml)} (${transferProtocol(toml) === "sep24" ? "SEP-24, the anchor hosts the form" : "SEP-6, the anchor answers with bank instructions"})`,
+  );
   note(`signing:   ${toml.signingKey}`);
   check(
     "the anchor declares the asset we intend to move",

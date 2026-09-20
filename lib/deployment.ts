@@ -9,9 +9,24 @@
  *
  * Every address the app displays comes from here. None is written by hand.
  */
-import { getDeployment } from "@bound/sdk/deployments";
+import { getDeployment, parseNetwork } from "@bound/sdk/deployments";
 
-export const deployment = getDeployment("testnet");
+/**
+ * Which deployment this build renders.
+ *
+ * `NEXT_PUBLIC_` because the browser needs it too, and Next bakes it in at
+ * build time — so the answer is fixed per deployment rather than per request,
+ * which is what a set of addresses has to be. Unset means `testnet`, the
+ * self-issued demo token this app has always pointed at; `testnet-anchor` is
+ * the same protocol denominated in the SEP-24 anchor's USDC, where a reserve
+ * holds money that crossed a fiat rail to get there.
+ *
+ * The server half selects separately, through `STELLAR_NETWORK`. `lib/bound.ts`
+ * refuses to start if the two disagree.
+ */
+export const deployment = getDeployment(
+  parseNetwork(process.env.NEXT_PUBLIC_STELLAR_NETWORK),
+);
 
 /**
  * boundprotocol.dev's own auditor account.
@@ -22,7 +37,15 @@ export const deployment = getDeployment("testnet");
  */
 export const DEMO_AUDITOR = deployment.accounts.auditor;
 
-/** The USDC issuer for the testnet asset a wallet opens a trustline to. */
-export const USDC_ISSUER = deployment.accounts.operator;
+/**
+ * Who issues the USDC this deployment is denominated in — the asset a wallet
+ * opens a trustline to.
+ *
+ * Read from the record rather than assumed to be the operator. The operator
+ * issues the mock token and nothing else: on the anchor deployment this is the
+ * anchor, and deriving it from `accounts.operator` would look up every balance
+ * under an issuer no trustline names, reading zero for a funded wallet.
+ */
+export const USDC_ISSUER = deployment.usdcIssuer;
 
 export const HORIZON_URL = deployment.horizonUrl;

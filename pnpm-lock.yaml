@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@bound/sdk':
-        specifier: ^0.5.0
-        version: 0.5.0
+        specifier: ^0.6.0
+        version: 0.6.0
       '@creit.tech/stellar-wallets-kit':
         specifier: ^2.5.0
         version: 2.5.0(@trezor/connect@9.7.3(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@6.0.6)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)))(@types/react@19.2.18)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react@19.2.8)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76)
@@ -269,8 +269,8 @@ packages:
   '@base-org/account@2.4.0':
     resolution: {integrity: sha512-A4Umpi8B9/pqR78D1Yoze4xHyQaujioVRqqO3d6xuDFw9VRtjg6tK3bPlwE0aW+nVH/ntllCpPa2PbI8Rnjcug==}
 
-  '@bound/sdk@0.5.0':
-    resolution: {integrity: sha512-xxFy2hkMCms/9q6QT2UUA7CUQ8cgdvUKRUQ+jPZDvYrVCPKhI2QW0ix76QZKduPKea9U0GbqascHoMUhgZ41Tw==}
+  '@bound/sdk@0.6.0':
+    resolution: {integrity: sha512-j8phk21Gin7dtU8Ga3BULy3qf15oAwHKLXxLmfbQnjx4cMz5hHhlRgVIbt7aPofdN36iTwIfzMycGT0sYsYtgQ==}
     engines: {node: '>=20'}
 
   '@bufbuild/protobuf@2.14.0':
@@ -7196,7 +7196,7 @@ snapshots:
       - zod
     optional: true
 
-  '@bound/sdk@0.5.0':
+  '@bound/sdk@0.6.0':
     dependencies:
       '@stellar/stellar-sdk': 16.2.0
       buffer: 6.0.3

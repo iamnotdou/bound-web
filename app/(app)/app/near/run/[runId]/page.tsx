@@ -9,21 +9,15 @@ import {
   XCircle,
 } from "lucide-react";
 import { Panel, TxLink } from "@/components/app/near/ui";
-import {
-  ACT_TITLES,
-  DEMO_RUNS,
-  findRun,
-  type DemoStep,
-} from "@/lib/near/deployment";
+import { ACT_TITLES, findRun, type DemoStep } from "@/lib/near/deployment";
 import { txStatus, type TxStatus } from "@/lib/near/rpc";
 import { cn } from "@/lib/utils";
 
-// Old transactions do not change; an archival re-check per hour is plenty.
-export const revalidate = 3600;
-
-export function generateStaticParams() {
-  return DEMO_RUNS.map((r) => ({ runId: r.runId }));
-}
+// Rendered per request, never at build time: a build that hit a busy RPC
+// node would otherwise serve "could not be fetched" for an hour. Final
+// statuses are memoized in lib/near/rpc.ts, so a reload costs only the
+// lookups that got no answer before.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

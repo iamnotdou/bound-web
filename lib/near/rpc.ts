@@ -28,47 +28,79 @@ export class RpcError extends Error {
   }
 }
 
+/** A node-level answer that is really "busy, ask again later". */
+function isRateLimit(err: { code?: number; message?: string; name?: string }) {
+  const text = `${err.name ?? ""} ${err.message ?? ""}`.toLowerCase();
+  return (
+    err.code === -429 ||
+    text.includes("rate limit") ||
+    text.includes("too many")
+  );
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * One JSON-RPC call. Each pass asks every node in order; an outage, a timeout
+ * or a rate limit moves on to the next node, and after a full pass with no
+ * answer it waits (0.5 s, then 1.5 s) and tries again. A real node answer
+ * (unknown tx, unknown account) is returned at once as an RpcError.
+ */
 async function rpc<T>(
   method: string,
   params: unknown,
   urls: string[] = RPC,
-  revalidate = 15,
+  cache: { revalidate: number } | "no-store" = { revalidate: 15 },
 ): Promise<T> {
   let last: unknown;
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: "bound-web",
-          method,
-          params,
-        }),
-        next: { revalidate },
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!res.ok) throw new RpcError(`${url} answered HTTP ${res.status}`);
-      const body = (await res.json()) as {
-        result?: T & { error?: string };
-        error?: { message?: string; data?: unknown; cause?: { name?: string } };
-      };
-      if (body.error) {
-        // A node-level error (unknown tx, unknown account) is an answer, not
-        // an outage: do not ask the next node the same question.
-        throw new RpcError(
-          `${body.error.cause?.name ?? body.error.message ?? "RPC error"}`,
-          body.error,
-        );
+  for (const [pass, wait] of [0, 500, 1500].entries()) {
+    if (pass > 0) await sleep(wait);
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: "bound-web",
+            method,
+            params,
+          }),
+          ...(cache === "no-store"
+            ? { cache: "no-store" as const }
+            : { next: { revalidate: cache.revalidate } }),
+          signal: AbortSignal.timeout(10_000),
+        });
+        if (!res.ok) throw new RpcError(`${url} answered HTTP ${res.status}`);
+        const body = (await res.json()) as {
+          result?: T & { error?: string };
+          error?: {
+            code?: number;
+            name?: string;
+            message?: string;
+            data?: unknown;
+            cause?: { name?: string };
+          };
+        };
+        if (body.error) {
+          if (isRateLimit(body.error)) {
+            throw new RpcError(`${url} rate limited`);
+          }
+          // A node-level error (unknown tx, unknown account) is an answer,
+          // not an outage: do not ask the next node the same question.
+          throw new RpcError(
+            `${body.error.cause?.name ?? body.error.message ?? "RPC error"}`,
+            body.error,
+          );
+        }
+        if (body.result && typeof body.result.error === "string") {
+          throw new RpcError(body.result.error);
+        }
+        return body.result as T;
+      } catch (e) {
+        last = e;
+        if (e instanceof RpcError && e.cause) throw e;
       }
-      if (body.result && typeof body.result.error === "string") {
-        throw new RpcError(body.result.error);
-      }
-      return body.result as T;
-    } catch (e) {
-      last = e;
-      if (e instanceof RpcError && e.cause) throw e;
     }
   }
   throw last instanceof Error ? last : new RpcError(String(last));
@@ -121,11 +153,20 @@ export interface TxStatus {
   error: string | null;
 }
 
+/**
+ * Final statuses already seen by this server process. A final transaction
+ * never changes, so only answers are kept; a lookup that got no answer is
+ * asked again on the next page load instead of being cached.
+ */
+const finalTx = new Map<string, TxStatus>();
+
 /** One transaction's final status; archival first. Never throws. */
 export async function txStatus(
   hash: string,
   sender: string,
 ): Promise<TxStatus> {
+  const seen = finalTx.get(hash);
+  if (seen) return seen;
   try {
     const r = await rpc<{
       status: Record<string, unknown>;
@@ -134,15 +175,17 @@ export async function txStatus(
       "tx",
       { tx_hash: hash, sender_account_id: sender, wait_until: "NONE" },
       ARCHIVAL,
-      3600,
+      "no-store",
     );
-    return {
+    const status: TxStatus = {
       hash,
       found: true,
       succeeded: "SuccessValue" in r.status,
       blockHash: r.transaction_outcome?.block_hash ?? null,
       error: null,
     };
+    finalTx.set(hash, status);
+    return status;
   } catch (e) {
     return {
       hash,

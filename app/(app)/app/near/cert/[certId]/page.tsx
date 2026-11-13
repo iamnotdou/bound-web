@@ -469,7 +469,11 @@ function SettlementCard({ s, view }: { s: Settlement; view: CertView }) {
         ]
       : []),
     ["To treasury", s.to_treasury, "leftover slash and undistributed draw"],
-    ["Returned to auditor", s.auditor_returned, "allocation minus slash"],
+    [
+      "Unslashed allocation (released at deadline)",
+      s.auditor_returned,
+      "allocation minus slash",
+    ],
     ["Hygiene bounty", s.hygiene_bounty_paid, "trustless hygiene claims only"],
   ];
   return (

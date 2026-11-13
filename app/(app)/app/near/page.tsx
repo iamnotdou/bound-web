@@ -20,6 +20,7 @@ import {
 } from "@/components/app/near/ui";
 import {
   BOUND_CONTRACT,
+  CURRENT_RUNS,
   DEMO_RUNS,
   NEAR_DEPLOYMENT,
   SAMPLE_AGENTS,
@@ -477,9 +478,38 @@ function CertTable({ certs }: { certs: CertView[] }) {
       </table>
       <p className="text-muted-foreground mt-3 px-5 text-xs sm:px-0">
         Amounts in mock USDC. Spent is gross flow through the meter, not loss.
-        Certificates 0 to 2 are left over from discarded early runs and are
-        harmless.
+        {certOrigins(certs).map((line) => (
+          <span key={line}> {line}</span>
+        ))}
       </p>
     </div>
   );
+}
+
+/** Where each listed certificate came from, from the committed run records. */
+function certOrigins(certs: CertView[]): string[] {
+  const lines: string[] = [];
+  const known = new Set<number>();
+  for (const r of CURRENT_RUNS) {
+    const here = certs.map((c) => c.cert_id);
+    if (here.includes(r.certId) && here.includes(r.cert2Id)) {
+      lines.push(
+        `Certificates ${r.certId} and ${r.cert2Id} come from demo run ${r.runId}: #${r.certId} is the settled demo certificate, #${r.cert2Id} is left Verified for judging.`,
+      );
+    } else if (here.includes(r.certId) || here.includes(r.cert2Id)) {
+      const id = here.includes(r.certId) ? r.certId : r.cert2Id;
+      lines.push(`Certificate ${id} comes from demo run ${r.runId}.`);
+    }
+    known.add(r.certId);
+    known.add(r.cert2Id);
+  }
+  const other = certs
+    .map((c) => c.cert_id)
+    .filter((id) => !known.has(id))
+    .sort((a, b) => a - b);
+  if (other.length > 0)
+    lines.push(
+      `${other.length === 1 ? "Certificate" : "Certificates"} ${other.join(", ")} ${other.length === 1 ? "is" : "are"} not from a recorded demo run.`,
+    );
+  return lines;
 }

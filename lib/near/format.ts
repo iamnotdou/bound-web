@@ -218,14 +218,31 @@ export interface AccessKey {
 /** `code_hash` of an account with no contract deployed. */
 export const NO_CODE_HASH = "11111111111111111111111111111111";
 
+/**
+ * The `view_account` fields confinement needs. An account that uses a NEAR
+ * global contract reports `code_hash` of all ones, like an account with no
+ * code, and names the global contract in one of the two `global_contract_*`
+ * fields instead; that code runs as the account just like local code.
+ */
+export interface AccountCode {
+  code_hash: string;
+  global_contract_hash?: string | null;
+  global_contract_account_id?: string | null;
+}
+
 export interface Confinement {
   /** True when every key is a FunctionCall key to `contractId` limited to
-   *  `pay` AND the account has no contract code. */
+   *  `pay` AND the account has no contract code AND uses no global
+   *  contract. */
   confined: boolean;
   /** The keys alone are pay-only. */
   keysConfined: boolean;
   /** `view_account.code_hash`; null when it could not be read. */
   codeHash: string | null;
+  /** The global contract the account uses (its hash or the account id that
+   *  publishes it); null when it uses none or the account could not be
+   *  read. */
+  globalContract: string | null;
   fullAccess: number;
   functionCall: Array<{
     publicKey: string;
@@ -249,16 +266,22 @@ export function formatNear(yocto: string | bigint): string {
 /**
  * Proof of confinement from two RPC views anyone can call: the access key
  * list (every key a FunctionCall key for the Bound contract's `pay`) AND
- * `view_account.code_hash` (no contract code: code on the account would run
+ * `view_account` (no contract code and no global contract: either would run
  * as the agent with no key and could call `pay`, `ft_transfer` or add a
- * full-access key). Then NEAR itself refuses any transfer, token call or
+ * full-access key; a global contract shows `code_hash` of all ones, so the
+ * `global_contract_*` fields must be empty too). Then NEAR itself refuses any transfer, token call or
  * deposit the agent attempts. The Bound contract cannot check this itself.
  */
 export function confinement(
   keys: AccessKey[],
   contractId: string,
-  codeHash: string | null,
+  account: AccountCode | null,
 ): Confinement {
+  const codeHash = account?.code_hash ?? null;
+  const globalContract =
+    account?.global_contract_hash ||
+    account?.global_contract_account_id ||
+    null;
   let fullAccess = 0;
   const functionCall: Confinement["functionCall"] = [];
   for (const k of keys) {
@@ -282,7 +305,7 @@ export function confinement(
       k.methods.every((m) => m === "pay"),
   );
   const keysConfined = keys.length > 0 && fullAccess === 0 && scoped;
-  const noCode = codeHash === NO_CODE_HASH;
+  const noCode = codeHash === NO_CODE_HASH && globalContract === null;
   const confined = keysConfined && noCode;
   let summary: string;
   if (keys.length === 0)
@@ -294,14 +317,17 @@ export function confinement(
   else if (codeHash === null)
     summary =
       "Keys are pay-only, but the account's code hash could not be read, so confinement is unproven";
-  else if (!noCode)
+  else if (globalContract !== null)
+    summary = `Not confined: the agent account uses a global contract (${globalContract}) that runs as the agent without any key`;
+  else if (codeHash !== NO_CODE_HASH)
     summary = `Not confined: contract code (${codeHash}) is deployed on the agent account and runs as the agent without any key`;
   else
-    summary = `Confined: ${functionCall.length === 1 ? "its only key is" : "every key is"} a function-call key for ${contractId}, method pay, and the account has no contract code`;
+    summary = `Confined: ${functionCall.length === 1 ? "its only key is" : "every key is"} a function-call key for ${contractId}, method pay, no full-access key, no contract code and no global contract`;
   return {
     confined,
     keysConfined,
     codeHash,
+    globalContract,
     fullAccess,
     functionCall,
     summary,

@@ -125,6 +125,10 @@ export interface AccountView {
   amount: string;
   code_hash: string;
   storage_usage: number;
+  /** Set when the account uses a global contract by hash. */
+  global_contract_hash?: string | null;
+  /** Set when the account uses a global contract by publisher account. */
+  global_contract_account_id?: string | null;
 }
 
 export function viewAccount(accountId: string): Promise<AccountView> {

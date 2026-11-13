@@ -181,6 +181,23 @@ export default async function NearCertPage({
                       : ""}
                 </span>
               </li>
+              <li className="bg-muted/40 rounded-md p-3 text-xs">
+                <span className="text-muted-foreground">
+                  Global contract (view_account.global_contract_hash /
+                  global_contract_account_id):{" "}
+                </span>
+                <span className="font-address text-foreground break-all">
+                  {keys.codeHash === null
+                    ? "could not be read"
+                    : (keys.globalContract ?? "none")}
+                </span>
+                {keys.globalContract ? (
+                  <span className="text-muted-foreground">
+                    {" "}
+                    (its code runs as the agent without a key)
+                  </span>
+                ) : null}
+              </li>
             </ul>
             <p className="text-muted-foreground mt-3 text-xs text-balance">
               A function-call key cannot attach a deposit and cannot reach any
@@ -190,10 +207,13 @@ export default async function NearCertPage({
               <code className="font-address bg-muted/60 mt-1 block rounded px-2 py-1 break-all">
                 near account list-keys {view.agent} network-config testnet now
               </code>
-              Keys are only half of it: code deployed on the agent account would
-              run as the agent with no key, so the account must also have no
-              contract code (code_hash of all ones). The Bound contract cannot
-              see either, which is why this page reads both.
+              Keys are only half of it: code deployed on the agent account, or a
+              global contract it uses, would run as the agent with no key, so
+              the account must also have no contract code (code_hash of all
+              ones) and no global contract (a global-contract account also shows
+              code_hash of all ones, so both global_contract fields must be
+              empty). The Bound contract cannot see any of this, which is why
+              this page reads it.
             </p>
           </>
         )}

@@ -154,13 +154,19 @@ describe("confinement", () => {
     access_key: { nonce: 1, permission: "FullAccess" },
   };
 
+  const none = { code_hash: NO_CODE_HASH };
+
   it("accepts exactly one pay key on the Bound contract", () => {
-    const c = confinement([fc(C, ["pay"])], C, NO_CODE_HASH);
+    const c = confinement([fc(C, ["pay"])], C, {
+      code_hash: NO_CODE_HASH,
+      global_contract_hash: null,
+      global_contract_account_id: null,
+    });
     expect(c.confined).toBe(true);
     expect(c.functionCall[0].allowanceNear).toBe("0.249");
   });
   it("refuses a full-access key, another receiver, other methods, or no keys", () => {
-    const n = NO_CODE_HASH;
+    const n = none;
     expect(confinement([fc(C, ["pay"]), full], C, n).confined).toBe(false);
     expect(confinement([fc("usdc.x.testnet", ["pay"])], C, n).confined).toBe(
       false,
@@ -172,15 +178,41 @@ describe("confinement", () => {
     expect(confinement([], C, n).confined).toBe(false);
   });
   it("refuses pay-only keys when the account has contract code", () => {
-    const c = confinement(
-      [fc(C, ["pay"])],
-      C,
-      "AZU11gUWgawHb91Zr6maxPqoYAdS89ftNjfT5e3De1b",
-    );
+    const c = confinement([fc(C, ["pay"])], C, {
+      code_hash: "AZU11gUWgawHb91Zr6maxPqoYAdS89ftNjfT5e3De1b",
+    });
     expect(c.keysConfined).toBe(true);
     expect(c.confined).toBe(false);
     expect(c.summary).toMatch(/contract code/);
     expect(confinement([fc(C, ["pay"])], C, null).confined).toBe(false);
+  });
+  it("refuses pay-only keys when the account uses a global contract", () => {
+    // A global-contract account reports code_hash of all ones.
+    const byHash = confinement([fc(C, ["pay"])], C, {
+      code_hash: NO_CODE_HASH,
+      global_contract_hash: "3jNQ7nUb9vCtBKmqXFLDG3jEjrcKQbVgTtsrW7kNo1v9",
+      global_contract_account_id: null,
+    });
+    expect(byHash.keysConfined).toBe(true);
+    expect(byHash.confined).toBe(false);
+    expect(byHash.globalContract).toBe(
+      "3jNQ7nUb9vCtBKmqXFLDG3jEjrcKQbVgTtsrW7kNo1v9",
+    );
+    expect(byHash.summary).toMatch(/global contract/);
+    const byAccount = confinement([fc(C, ["pay"])], C, {
+      code_hash: NO_CODE_HASH,
+      global_contract_hash: null,
+      global_contract_account_id: "wallet.publisher.testnet",
+    });
+    expect(byAccount.confined).toBe(false);
+    expect(byAccount.globalContract).toBe("wallet.publisher.testnet");
+    expect(byAccount.summary).toMatch(/wallet\.publisher\.testnet/);
+  });
+  it("names every condition in the confined summary", () => {
+    const c = confinement([fc(C, ["pay"])], C, none);
+    expect(c.globalContract).toBeNull();
+    expect(c.summary).toMatch(/no full-access key/);
+    expect(c.summary).toMatch(/no global contract/);
   });
 });
 

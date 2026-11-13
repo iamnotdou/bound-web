@@ -175,9 +175,7 @@ export async function getConfinement(
     attempt(() => viewAccessKeys(agent)),
     attempt(() => viewAccount(agent)),
   ]);
-  return keys
-    ? confinement(keys, BOUND_CONTRACT, acc?.code_hash ?? null)
-    : null;
+  return keys ? confinement(keys, BOUND_CONTRACT, acc) : null;
 }
 
 /** Internal Bound balance and wallet token balance of one account. */

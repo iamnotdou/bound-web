@@ -12,16 +12,36 @@ can challenge one.
 
 ## Bound on NEAR testnet (NEAR HACKATHON)
 
-Built at NEAR HACKATHON. Branch `near-hackathon` adds read-only pages for the
-NEAR port of Bound (contract `bound-v2.boundproto-nh26.testnet`, source and
-the main submission README on the `bound` repo's `near-hackathon` branch:
-`near/README.md`). Only these NEAR pages are part of the submission; the rest
-of this app is prior Stellar work. Code written in the window:
-[`pre-hackathon...hackathon-submission`](https://github.com/iamnotdou/bound-web/compare/pre-hackathon...hackathon-submission).
-There is no hosted copy of the NEAR pages yet; run them locally as below. The
-landing page links `/app/near`. They need no wallet and no key: every figure is a
-view call or access-key query the server makes to NEAR testnet over
-FastNEAR's JSON-RPC.
+Built at NEAR HACKATHON. Branch `near-hackathon` adds read-only pages for
+**Bound on NEAR**: a counterparty checks, before dealing with an AI agent's
+NEAR account, what stands behind it (a locked USDC reserve, an auditor's
+slashable stake, a spend meter) and whether the agent's keys are confined to
+the contract's `pay`. The contract, its tests, the demo and the main
+submission README live in the `bound` repo, branch `near-hackathon`
+([README](https://github.com/iamnotdou/bound/blob/near-hackathon/README.md),
+[`near/README.md`](https://github.com/iamnotdou/bound/blob/near-hackathon/near/README.md)).
+Only these NEAR pages are part of the submission from this repo; the rest of
+the app is prior Stellar work.
+
+- Tracks: `security` (primary), `agents`, `open`.
+- Why NEAR: the agent's function-call access key (receiver `bound-v2`, method
+  `pay`, no deposit) is enforced by the protocol itself, and these pages prove
+  it from `view_access_key_list` plus `view_account.code_hash`. Accounts are
+  named, so you verify `bound-agent2-mwfiv11v.testnet`, not a hex address.
+- Contract: [`bound-v2.boundproto-nh26.testnet`](https://testnet.nearblocks.io/address/bound-v2.boundproto-nh26.testnet)
+  (code hash `AZU11gUWgawHb91Zr6maxPqoYAdS89ftNjfT5e3De1b`), token
+  [`usdc.boundproto-nh26.testnet`](https://testnet.nearblocks.io/address/usdc.boundproto-nh26.testnet)
+  (mock USDC, play money). Recorded transactions: see the on-chain proof table
+  in the `bound` README.
+- Live demo: no hosted copy yet; run it locally as below. The demo video is
+  linked from the X post.
+- Code written in the window:
+  [`pre-hackathon...near-hackathon`](https://github.com/iamnotdou/bound-web/compare/pre-hackathon...near-hackathon)
+  (also frozen as tag `hackathon-submission`). Contract side:
+  [`bound` pre-hackathon...near-hackathon](https://github.com/iamnotdou/bound/compare/pre-hackathon...near-hackathon).
+
+The pages need no wallet and no key: every figure is a view call or
+access-key query the server makes to NEAR testnet over FastNEAR's JSON-RPC.
 
 | Route                          | What it shows                                                                                                                                                                                        |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -30,24 +50,56 @@ FastNEAR's JSON-RPC.
 | `/app/near/run/<runId>`        | a committed `pnpm near:demo` run, each recorded transaction re-checked against an archival node                                                                                                      |
 | `GET /api/near/verify/<agent>` | the same verdict as JSON for agents and services                                                                                                                                                     |
 
-```bash
-pnpm install --frozen-lockfile
-pnpm typecheck && pnpm lint && pnpm test && pnpm build
-pnpm start                         # or pnpm dev
-pnpm check:near http://localhost:3000   # 12 live checks against testnet, read-only
+### Quickstart
+
+From a clean clone (node 22, pnpm 10):
+
+1. `git clone -b near-hackathon https://github.com/iamnotdou/bound-web && cd bound-web`
+2. `pnpm install --frozen-lockfile`: exit 0.
+3. `pnpm typecheck && pnpm lint && pnpm test && pnpm build`: exit 0, 143
+   tests in 6 files; the build lists `/app/near`, `/app/near/cert/[certId]`,
+   `/app/near/run/[runId]` and `/api/near/verify/[agent]` as dynamic.
+4. `pnpm start`: ready on port 3000.
+5. In a second terminal, `pnpm check:near http://localhost:3000`:
+   `12/12 checks passed` (read-only, live testnet).
+6. Open `http://localhost:3000/app/near`, verify
+   `bound-agent2-mwfiv11v.testnet` (deal, coverage 130, confined), then
+   `/app/near/cert/0` (settled: victim paid 120 = 100 reserve + 20 slash) and
+   `/app/near/run/mwfiv11v` (`37 of 37` transactions match the chain).
+
+### How it fits
+
+```mermaid
+flowchart LR
+  browser([Browser or agent]) --> pages["/app/near pages<br/>/api/near/verify"]
+  pages --> rpc["lib/near/rpc.ts<br/>server-only, retries,<br/>archival fallback"]
+  rpc --> chain[("NEAR testnet<br/>bound-v2, usdc")]
+  pages --> record["lib/near/testnet.json + evidence<br/>copied from bound"]
 ```
+
+### What was built during the hackathon
 
 Code: `lib/near/` (deployment record and demo evidence copied from `bound`,
 pure helpers with vitest coverage, server-only RPC reader),
 `components/app/near/`, `app/(app)/app/near/`, `app/api/near/`,
-`scripts/check-near.ts`, `scripts/sync-near.ts`. No new dependencies
-(libraries used: Next.js, React, vitest, already in the app). Outside those
-paths the diff touches `components/app/app-header.tsx` (nav link), the
-landing page (one link), `package.json` (scripts) and this section. The
-Stellar pages are otherwise unchanged. Demo runs `mwfgi0ij` and `mwfgqr0u`
-ran on the superseded `bound-v1` contract and are labeled as such.
-These NEAR pages were written by Claude Code (Anthropic) under the author's
-direction.
+`scripts/check-near.ts`, `scripts/sync-near.ts`. Outside those paths the
+diff touches `components/app/app-header.tsx` (nav link), the landing page
+(one link), `package.json` (scripts) and this section. The Stellar pages are
+otherwise unchanged.
+
+Libraries used: none added. The pages use Next.js, React and vitest, which
+the app already had.
+
+AI tools used: these NEAR pages were written by Claude Code (Anthropic) under
+the author's direction.
+
+Limitations: read-only (no wallet, no writes); testnet only with mock USDC;
+no hosted copy yet; demo runs `mwfgi0ij` and `mwfgqr0u` ran on the
+superseded `bound-v1` contract and are labeled as such; transactions older
+than a few days are read from an archival node, and a rate-limited IP can see
+"could not be fetched just now", which is labeled as no answer, not as a
+mismatch. The trust model of the contract (author-held arbiter, treasury and
+contract key) is described in the `bound` README.
 
 ## Development
 

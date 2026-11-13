@@ -31,8 +31,14 @@ import {
   isNearAccountId,
   isoUtc,
   type CertView,
+  type Confinement,
 } from "@/lib/near/format";
-import { getDeploymentFacts, listCerts, verifyAgent } from "@/lib/near/bound";
+import {
+  getConfinement,
+  getDeploymentFacts,
+  listCerts,
+  verifyAgent,
+} from "@/lib/near/bound";
 
 // Chain facts that are the same for every visitor. A verify query makes the
 // page dynamic anyway; the cached shell is the list and the deployment.
@@ -50,12 +56,12 @@ export default async function NearPage({
   const { agent: raw } = await searchParams;
   const agent = (Array.isArray(raw) ? raw[0] : raw)?.trim().toLowerCase() ?? "";
 
-  const [facts, certs, lookup] = await Promise.all([
+  const valid = agent !== "" && isNearAccountId(agent);
+  const [facts, certs, lookup, keys] = await Promise.all([
     getDeploymentFacts(),
     listCerts(),
-    agent && isNearAccountId(agent)
-      ? verifyAgent(agent)
-      : Promise.resolve(null),
+    valid ? verifyAgent(agent) : Promise.resolve(null),
+    valid ? getConfinement(agent) : Promise.resolve(null),
   ]);
 
   return (
@@ -79,7 +85,9 @@ export default async function NearPage({
       </header>
 
       <VerifyBox agent={agent} />
-      {agent ? <VerifyResult agent={agent} lookup={lookup} /> : null}
+      {agent ? (
+        <VerifyResult agent={agent} lookup={lookup} keys={keys} />
+      ) : null}
 
       <Panel
         id="certs-heading"
@@ -279,9 +287,11 @@ function VerifyBox({ agent }: { agent: string }) {
 function VerifyResult({
   agent,
   lookup,
+  keys,
 }: {
   agent: string;
   lookup: Awaited<ReturnType<typeof verifyAgent>> | null;
+  keys: Confinement | null;
 }) {
   if (lookup === null) {
     return (
@@ -307,6 +317,7 @@ function VerifyResult({
         title={`Refuse: ${agent} has no Bound certificate`}
       >
         Nothing stands behind this agent. Ask for prepayment or decline.
+        <ConfinementLine keys={keys} />
       </Decision>
     );
   }
@@ -325,6 +336,15 @@ function VerifyResult({
         <Amount value={formatMusdc(view.allocation)} />) · expires{" "}
         {isoUtc(view.expires_at)}
       </span>
+      <span className="mt-1 block">
+        Coverage{" "}
+        <span className="text-foreground font-medium">
+          <Amount value={formatMusdc(cov.victimCover)} />
+        </span>{" "}
+        is what arbitrated victims of this certificate can recover in total;
+        bound is a spend meter, not a guarantee.
+      </span>
+      <ConfinementLine keys={keys} />
       <Link
         href={`/app/near/cert/${view.cert_id}`}
         className="text-primary mt-2 inline-flex items-center gap-1 text-sm font-medium underline"
@@ -333,6 +353,35 @@ function VerifyResult({
         <ArrowRight aria-hidden className="size-4" />
       </Link>
     </Decision>
+  );
+}
+
+/** Key confinement, read from the agent's access keys and view_account. */
+function ConfinementLine({ keys }: { keys: Confinement | null }) {
+  return (
+    <span className="mt-2 block">
+      <span className="text-foreground font-medium">Key confinement: </span>
+      {keys === null ? (
+        <span>
+          could not be read (the access key list did not answer), so it is
+          unproven
+        </span>
+      ) : (
+        <>
+          <span
+            className={
+              keys.confined
+                ? "text-primary font-semibold"
+                : "text-destructive font-semibold"
+            }
+          >
+            {keys.confined ? "yes" : "no"}
+          </span>
+          {" · "}
+          {keys.summary}.
+        </>
+      )}
+    </span>
   );
 }
 

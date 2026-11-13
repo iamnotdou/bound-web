@@ -24,6 +24,7 @@ import {
   DEMO_RUNS,
   NEAR_DEPLOYMENT,
   SAMPLE_AGENTS,
+  supersededLabel,
 } from "@/lib/near/deployment";
 import {
   assess,
@@ -123,7 +124,7 @@ export default async function NearPage({
                 <span>
                   <span className="text-foreground block font-medium">
                     Run {r.runId}
-                    {r.superseded ? " (superseded bound-v1)" : ""}
+                    {r.superseded ? ` (superseded ${supersededLabel(r)})` : ""}
                   </span>
                   <span className="text-muted-foreground block text-xs">
                     {r.steps.length} steps,{" "}

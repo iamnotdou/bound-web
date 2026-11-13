@@ -17,7 +17,8 @@ import {
 } from "./format";
 import { DEMO_RUNS, NEAR_DEPLOYMENT, findRun } from "./deployment";
 
-const C = "bound-v2.boundproto-nh26.testnet";
+// The current contract, from the synced deployment record.
+const C = NEAR_DEPLOYMENT.contracts.bound.accountId;
 
 // Captured from testnet: get_cert {"cert_id":3} on 2026-11-13.
 const SETTLED: CertView = {
@@ -238,7 +239,10 @@ describe("misc", () => {
 
 describe("committed records", () => {
   it("point at the deployed contract and passed", () => {
-    expect(NEAR_DEPLOYMENT.contracts.bound.accountId).toBe(C);
+    expect(DEMO_RUNS.length).toBeGreaterThan(0);
+    // Every run the record lists for the current contract is committed.
+    for (const d of NEAR_DEPLOYMENT.demoRuns)
+      expect(findRun(d.runId)?.superseded).toBe(false);
     for (const r of DEMO_RUNS.filter((x) => !x.superseded)) {
       expect(r.contract).toBe(C);
       expect(r.pass).toBe(true);

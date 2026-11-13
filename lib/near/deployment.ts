@@ -11,9 +11,7 @@
  * re-check the claim against the chain.
  */
 import record from "./testnet.json";
-import runA from "./evidence/near-demo-mwfgi0ij.json";
-import runB from "./evidence/near-demo-mwfgqr0u.json";
-import runC from "./evidence/near-demo-mwfiv11v.json";
+import { EVIDENCE } from "./evidence";
 
 export interface DemoStep {
   act: number;
@@ -51,7 +49,7 @@ export interface DemoRun {
   steps: DemoStep[];
   asserts: DemoAssert[];
   pass: boolean;
-  /** Ran against an earlier, superseded Bound contract (bound-v1): its
+  /** Ran against an earlier, superseded Bound contract: its
    *  hashes still check out, but its certificate ids are not on the current
    *  contract. */
   superseded?: boolean;
@@ -66,10 +64,22 @@ const mark = (r: DemoRun): DemoRun => ({
   superseded: r.contract !== BOUND_CONTRACT,
 });
 
-/** Newest first: the current contract's runs, then bound-v1's. */
+/** Newest first: the current contract's runs, then superseded ones. */
 export const DEMO_RUNS: readonly DemoRun[] = Object.freeze(
-  [runC as DemoRun, runB as DemoRun, runA as DemoRun].map(mark),
+  (EVIDENCE as DemoRun[])
+    .map(mark)
+    .sort(
+      (a, b) =>
+        Number(a.superseded) - Number(b.superseded) ||
+        b.startedAt.localeCompare(a.startedAt),
+    ),
 );
+
+/** The contract a superseded run ran against, by its account id. */
+export function supersededLabel(r: DemoRun): string {
+  const prev = record.previous.find((p) => p.accountId === r.contract);
+  return prev ? prev.accountId.split(".")[0] : r.contract;
+}
 
 /** Runs on the current contract (their certificate ids are live). */
 export const CURRENT_RUNS = DEMO_RUNS.filter((r) => !r.superseded);

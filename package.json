@@ -11,10 +11,12 @@
     "prepare": "husky",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "setup:demo": "tsx scripts/setup-demo.ts",
     "e2e": "tsx scripts/e2e.ts",
-    "check:anchor": "tsx scripts/check-anchor.ts"
+    "check:anchor": "tsx scripts/check-anchor.ts",
+    "sync:near": "tsx scripts/sync-near.ts",
+    "check:near": "tsx scripts/check-near.ts"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"

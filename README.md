@@ -10,6 +10,36 @@ can challenge one.
 - `app/(app)` — the application, at `/app`
 - Docs live in a separate deploy; `/docs` redirects there via `next.config.ts`
 
+## Bound on NEAR testnet (NEAR HACKATHON)
+
+Branch `near-hackathon` adds read-only pages for the NEAR port of Bound
+(contract `bound-v1.boundproto-nh26.testnet`, source on the `bound` repo's
+`near-hackathon` branch). They need no wallet and no key: every figure is a
+view call or access-key query the server makes to NEAR testnet over
+FastNEAR's JSON-RPC.
+
+| Route                          | What it shows                                                                                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/app/near`                    | verify an agent (deal or refuse, and why), every certificate on the contract, deployment check (on-chain `code_hash` equals the recorded build)                     |
+| `/app/near/cert/<id>`          | reserve, auditor stake, spend meter, the agent's access keys as the confinement proof, claims, claim window countdown, settlement waterfall, participants' balances |
+| `/app/near/run/<runId>`        | a committed `pnpm near:demo` run, each recorded transaction re-checked against an archival node                                                                     |
+| `GET /api/near/verify/<agent>` | the same verdict as JSON for agents and services                                                                                                                    |
+
+```bash
+pnpm install --frozen-lockfile
+pnpm typecheck && pnpm lint && pnpm test && pnpm build
+pnpm start                         # or pnpm dev
+pnpm check:near http://localhost:3000   # 12 live checks against testnet, read-only
+```
+
+Code: `lib/near/` (deployment record and demo evidence copied from `bound`,
+pure helpers with vitest coverage, server-only RPC reader),
+`components/app/near/`, `app/(app)/app/near/`, `app/api/near/`,
+`scripts/check-near.ts`, `scripts/sync-near.ts`. No new dependencies. The
+Stellar pages are unchanged. Diff: `pre-hackathon...near-hackathon`.
+These NEAR pages were written by Claude Code (Anthropic) under the author's
+direction.
+
 ## Development
 
 This repo uses **pnpm**. There is one lockfile and it is `pnpm-lock.yaml`;

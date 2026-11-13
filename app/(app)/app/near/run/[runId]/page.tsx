@@ -89,15 +89,31 @@ export default async function NearRunPage({
             ? ` ${unreachable} hash(es) could not be fetched just now; that is no answer, not a mismatch.`
             : ""}{" "}
           Recorded assertions: {run.asserts.filter((a) => a.pass).length}/
-          {run.asserts.length} passed. Certificates{" "}
-          <Link className="underline" href={`/app/near/cert/${run.certId}`}>
-            #{run.certId}
-          </Link>{" "}
-          (settled) and{" "}
-          <Link className="underline" href={`/app/near/cert/${run.cert2Id}`}>
-            #{run.cert2Id}
-          </Link>{" "}
-          (left Verified).
+          {run.asserts.length} passed.{" "}
+          {run.superseded ? (
+            <>
+              This run used the superseded contract{" "}
+              <span className="font-address">{run.contract}</span> (a
+              certificate-id aliasing bug, fixed in the current contract), so
+              its certificates #{run.certId} and #{run.cert2Id} are not on the
+              contract this page reads. Its transactions still check out.
+            </>
+          ) : (
+            <>
+              Certificates{" "}
+              <Link className="underline" href={`/app/near/cert/${run.certId}`}>
+                #{run.certId}
+              </Link>{" "}
+              (settled) and{" "}
+              <Link
+                className="underline"
+                href={`/app/near/cert/${run.cert2Id}`}
+              >
+                #{run.cert2Id}
+              </Link>{" "}
+              (left Verified).
+            </>
+          )}
         </p>
       </header>
 

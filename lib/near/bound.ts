@@ -171,8 +171,13 @@ export async function getChallengesForCert(
 export async function getConfinement(
   agent: string,
 ): Promise<Confinement | null> {
-  const keys = await attempt(() => viewAccessKeys(agent));
-  return keys ? confinement(keys, BOUND_CONTRACT) : null;
+  const [keys, acc] = await Promise.all([
+    attempt(() => viewAccessKeys(agent)),
+    attempt(() => viewAccount(agent)),
+  ]);
+  return keys
+    ? confinement(keys, BOUND_CONTRACT, acc?.code_hash ?? null)
+    : null;
 }
 
 /** Internal Bound balance and wallet token balance of one account. */

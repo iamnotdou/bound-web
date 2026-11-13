@@ -114,6 +114,7 @@ export default async function NearPage({
                 <span>
                   <span className="text-foreground block font-medium">
                     Run {r.runId}
+                    {r.superseded ? " (superseded bound-v1)" : ""}
                   </span>
                   <span className="text-muted-foreground block text-xs">
                     {r.steps.length} steps,{" "}
@@ -318,9 +319,10 @@ function VerifyResult({
       <span className="block">
         Certificate #{view.cert_id}{" "}
         <NearStatusBadge status={view.status} halted={view.halted} /> · bound{" "}
-        <Amount value={formatMusdc(view.bound)} /> · reserve locked{" "}
-        <Amount value={formatMusdc(cov.victimCover)} /> · auditor stake behind
-        it <Amount value={formatMusdc(view.allocation)} /> · expires{" "}
+        <Amount value={formatMusdc(view.bound)} /> · coverage{" "}
+        <Amount value={formatMusdc(cov.victimCover)} /> (reserve{" "}
+        <Amount value={formatMusdc(view.reserve_locked)} /> + auditor stake{" "}
+        <Amount value={formatMusdc(view.allocation)} />) · expires{" "}
         {isoUtc(view.expires_at)}
       </span>
       <Link

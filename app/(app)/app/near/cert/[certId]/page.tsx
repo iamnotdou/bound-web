@@ -25,10 +25,11 @@ import {
   getChallengesForCert,
   getConfinement,
 } from "@/lib/near/bound";
-import { BOUND_CONTRACT, DEMO_RUNS } from "@/lib/near/deployment";
+import { BOUND_CONTRACT, CURRENT_RUNS } from "@/lib/near/deployment";
 import {
   assess,
   coverage,
+  NO_CODE_HASH,
   formatDuration,
   formatMusdc,
   isoUtc,
@@ -78,7 +79,7 @@ export default async function NearCertPage({
     getChallengesForCert(id),
   ]);
   const a = assess(view);
-  const run = DEMO_RUNS.find((r) => r.certId === id || r.cert2Id === id);
+  const run = CURRENT_RUNS.find((r) => r.certId === id || r.cert2Id === id);
 
   return (
     <Shell>
@@ -165,6 +166,21 @@ export default async function NearCertPage({
                   {keys.fullAccess === 1 ? "" : "s"}
                 </li>
               ) : null}
+              <li className="bg-muted/40 rounded-md p-3 text-xs">
+                <span className="text-muted-foreground">
+                  Contract code on the account (view_account.code_hash):{" "}
+                </span>
+                <span className="font-address text-foreground break-all">
+                  {keys.codeHash ?? "could not be read"}
+                </span>
+                <span className="text-muted-foreground">
+                  {keys.codeHash === NO_CODE_HASH
+                    ? " (none)"
+                    : keys.codeHash
+                      ? " (code deployed: it runs as the agent without a key)"
+                      : ""}
+                </span>
+              </li>
             </ul>
             <p className="text-muted-foreground mt-3 text-xs text-balance">
               A function-call key cannot attach a deposit and cannot reach any
@@ -174,6 +190,10 @@ export default async function NearCertPage({
               <code className="font-address bg-muted/60 mt-1 block rounded px-2 py-1 break-all">
                 near account list-keys {view.agent} network-config testnet now
               </code>
+              Keys are only half of it: code deployed on the agent account would
+              run as the agent with no key, so the account must also have no
+              contract code (code_hash of all ones). The Bound contract cannot
+              see either, which is why this page reads both.
             </p>
           </>
         )}
@@ -212,7 +232,10 @@ function CoverageCard({ view }: { view: CertView }) {
       icon={<ShieldCheck aria-hidden className="text-primary size-5" />}
     >
       <dl className="mt-4 space-y-3">
-        <Row label="Bound (stated worst case)">
+        <Row label="Coverage (reserve + auditor stake)">
+          <Amount value={formatMusdc(c.victimCover)} />
+        </Row>
+        <Row label="Bound (spend meter, not a guarantee)">
           <Amount value={formatMusdc(view.bound)} />
         </Row>
         <Row label="Reserve locked / promised">
@@ -240,9 +263,11 @@ function CoverageCard({ view }: { view: CertView }) {
         </Row>
       </dl>
       <p className="text-muted-foreground mt-4 text-xs text-balance">
-        Victims are paid from the reserve only. The auditor&apos;s stake is
-        slashed for harm beyond the reserve, to the treasury, never to a
-        claimant, so an auditor cannot pay itself through a fake victim.
+        Coverage is the most that arbiter-upheld victims of this certificate
+        recover together: first from the operator&apos;s reserve, then from the
+        auditor&apos;s slashed stake for what the reserve could not cover. Every
+        service extending credit to this agent shares it. The arbiter is the
+        Bound team&apos;s own account on testnet.
       </p>
     </Panel>
   );
@@ -403,14 +428,27 @@ function SettlementCard({ s, view }: { s: Settlement; view: CertView }) {
   const rows: Array<[string, string, string]> = [
     ["Payable", s.payable, "min(total harm, reserve + allocation)"],
     ["Drawn from reserve", s.reserve_draw, "min(payable, reserve)"],
-    ["Paid to victims", s.victim_paid, "from the reserve draw, pro rata"],
+    [
+      "Paid to victims",
+      s.victim_paid,
+      "reserve draw plus slash top-up, pro rata",
+    ],
     [
       "Challenger fees",
       s.fee_paid,
       "10% of harm from what is left of the reserve",
     ],
     ["Auditor slashed", s.slash, "only the part the reserve could not cover"],
-    ["To treasury", s.to_treasury, "slash plus any undistributed draw"],
+    ...(s.slash_to_victims !== undefined
+      ? [
+          [
+            "Slash paid to victims",
+            s.slash_to_victims,
+            "unpaid arbitrated harm first",
+          ] as [string, string, string],
+        ]
+      : []),
+    ["To treasury", s.to_treasury, "leftover slash and undistributed draw"],
     ["Returned to auditor", s.auditor_returned, "allocation minus slash"],
     ["Hygiene bounty", s.hygiene_bounty_paid, "trustless hygiene claims only"],
   ];

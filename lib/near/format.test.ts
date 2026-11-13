@@ -4,6 +4,7 @@ import {
   confinement,
   coverage,
   decodeCallResult,
+  NO_CODE_HASH,
   formatDuration,
   formatMusdc,
   formatNear,
@@ -16,7 +17,7 @@ import {
 } from "./format";
 import { DEMO_RUNS, NEAR_DEPLOYMENT, findRun } from "./deployment";
 
-const C = "bound-v1.boundproto-nh26.testnet";
+const C = "bound-v2.boundproto-nh26.testnet";
 
 // Captured from testnet: get_cert {"cert_id":3} on 2026-11-13.
 const SETTLED: CertView = {
@@ -112,9 +113,10 @@ describe("assess", () => {
 });
 
 describe("coverage", () => {
-  it("keeps victim cover (reserve) apart from capital at risk", () => {
+  it("victim cover is reserve + allocation (the slash tops victims up)", () => {
     const c = coverage(VERIFIED);
-    expect(c.victimCover).toBe(30_000_000n);
+    expect(c.victimCover).toBe(130_000_000n);
+    expect(coverage({ ...VERIFIED, coverage: "77" }).victimCover).toBe(77n);
     expect(c.capitalAtRisk).toBe(130_000_000n);
     expect(c.reserveFull).toBe(true);
     expect(coverage(SETTLED).reserveFull).toBe(false);
@@ -153,18 +155,32 @@ describe("confinement", () => {
   };
 
   it("accepts exactly one pay key on the Bound contract", () => {
-    const c = confinement([fc(C, ["pay"])], C);
+    const c = confinement([fc(C, ["pay"])], C, NO_CODE_HASH);
     expect(c.confined).toBe(true);
     expect(c.functionCall[0].allowanceNear).toBe("0.249");
   });
   it("refuses a full-access key, another receiver, other methods, or no keys", () => {
-    expect(confinement([fc(C, ["pay"]), full], C).confined).toBe(false);
-    expect(confinement([fc("usdc.x.testnet", ["pay"])], C).confined).toBe(
+    const n = NO_CODE_HASH;
+    expect(confinement([fc(C, ["pay"]), full], C, n).confined).toBe(false);
+    expect(confinement([fc("usdc.x.testnet", ["pay"])], C, n).confined).toBe(
       false,
     );
-    expect(confinement([fc(C, ["pay", "withdraw"])], C).confined).toBe(false);
-    expect(confinement([fc(C, [])], C).confined).toBe(false);
-    expect(confinement([], C).confined).toBe(false);
+    expect(confinement([fc(C, ["pay", "withdraw"])], C, n).confined).toBe(
+      false,
+    );
+    expect(confinement([fc(C, [])], C, n).confined).toBe(false);
+    expect(confinement([], C, n).confined).toBe(false);
+  });
+  it("refuses pay-only keys when the account has contract code", () => {
+    const c = confinement(
+      [fc(C, ["pay"])],
+      C,
+      "AZU11gUWgawHb91Zr6maxPqoYAdS89ftNjfT5e3De1b",
+    );
+    expect(c.keysConfined).toBe(true);
+    expect(c.confined).toBe(false);
+    expect(c.summary).toMatch(/contract code/);
+    expect(confinement([fc(C, ["pay"])], C, null).confined).toBe(false);
   });
 });
 
@@ -191,7 +207,7 @@ describe("misc", () => {
 describe("committed records", () => {
   it("point at the deployed contract and passed", () => {
     expect(NEAR_DEPLOYMENT.contracts.bound.accountId).toBe(C);
-    for (const r of DEMO_RUNS) {
+    for (const r of DEMO_RUNS.filter((x) => !x.superseded)) {
       expect(r.contract).toBe(C);
       expect(r.pass).toBe(true);
       expect(r.asserts.every((a) => a.pass)).toBe(true);

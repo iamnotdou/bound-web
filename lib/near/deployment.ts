@@ -13,6 +13,7 @@
 import record from "./testnet.json";
 import runA from "./evidence/near-demo-mwfgi0ij.json";
 import runB from "./evidence/near-demo-mwfgqr0u.json";
+import runC from "./evidence/near-demo-mwfiv11v.json";
 
 export interface DemoStep {
   act: number;
@@ -50,23 +51,35 @@ export interface DemoRun {
   steps: DemoStep[];
   asserts: DemoAssert[];
   pass: boolean;
+  /** Ran against an earlier, superseded Bound contract (bound-v1): its
+   *  hashes still check out, but its certificate ids are not on the current
+   *  contract. */
+  superseded?: boolean;
 }
 
 export const NEAR_DEPLOYMENT = Object.freeze(record);
 export const BOUND_CONTRACT = record.contracts.bound.accountId;
 export const TOKEN_CONTRACT = record.contracts.token.accountId;
 
-export const DEMO_RUNS: readonly DemoRun[] = Object.freeze([
-  runB as DemoRun,
-  runA as DemoRun,
-]);
+const mark = (r: DemoRun): DemoRun => ({
+  ...r,
+  superseded: r.contract !== BOUND_CONTRACT,
+});
+
+/** Newest first: the current contract's runs, then bound-v1's. */
+export const DEMO_RUNS: readonly DemoRun[] = Object.freeze(
+  [runC as DemoRun, runB as DemoRun, runA as DemoRun].map(mark),
+);
+
+/** Runs on the current contract (their certificate ids are live). */
+export const CURRENT_RUNS = DEMO_RUNS.filter((r) => !r.superseded);
 
 export function findRun(runId: string): DemoRun | null {
   return DEMO_RUNS.find((r) => r.runId === runId) ?? null;
 }
 
 /** Agents left Verified for judging (cert 2 of every committed run). */
-export const SAMPLE_AGENTS = DEMO_RUNS.map((r) => ({
+export const SAMPLE_AGENTS = CURRENT_RUNS.map((r) => ({
   verified: r.actors.agent2,
   settled: r.actors.agent,
   runId: r.runId,
@@ -76,8 +89,8 @@ export const ACT_TITLES: Record<number, string> = {
   1: "Actors and play money",
   2: "Certificate published, funded and attested",
   3: "Agent confined to a function-call key; pays through the meter",
-  4: "Attacks: refused by the contract or by NEAR itself",
-  5: "False claim rejected in the same transaction",
+  4: "Scripted attack: what a hijacked agent's key can try, refused by the contract or by NEAR itself",
+  5: "False trustless claim rejected in the same transaction",
   6: "Harm claim, arbiter verdict, claim window",
   7: "Settlement waterfall and victim withdrawal",
   8: "Second certificate left Verified for judging",

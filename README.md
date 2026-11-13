@@ -12,18 +12,23 @@ can challenge one.
 
 ## Bound on NEAR testnet (NEAR HACKATHON)
 
-Branch `near-hackathon` adds read-only pages for the NEAR port of Bound
-(contract `bound-v1.boundproto-nh26.testnet`, source on the `bound` repo's
-`near-hackathon` branch). They need no wallet and no key: every figure is a
+Built at NEAR HACKATHON. Branch `near-hackathon` adds read-only pages for the
+NEAR port of Bound (contract `bound-v2.boundproto-nh26.testnet`, source and
+the main submission README on the `bound` repo's `near-hackathon` branch:
+`near/README.md`). Only these NEAR pages are part of the submission; the rest
+of this app is prior Stellar work. Code written in the window:
+[`pre-hackathon...hackathon-submission`](https://github.com/iamnotdou/bound-web/compare/pre-hackathon...hackathon-submission).
+There is no hosted copy of the NEAR pages yet; run them locally as below. The
+landing page links `/app/near`. They need no wallet and no key: every figure is a
 view call or access-key query the server makes to NEAR testnet over
 FastNEAR's JSON-RPC.
 
-| Route                          | What it shows                                                                                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/app/near`                    | verify an agent (deal or refuse, and why), every certificate on the contract, deployment check (on-chain `code_hash` equals the recorded build)                     |
-| `/app/near/cert/<id>`          | reserve, auditor stake, spend meter, the agent's access keys as the confinement proof, claims, claim window countdown, settlement waterfall, participants' balances |
-| `/app/near/run/<runId>`        | a committed `pnpm near:demo` run, each recorded transaction re-checked against an archival node                                                                     |
-| `GET /api/near/verify/<agent>` | the same verdict as JSON for agents and services                                                                                                                    |
+| Route                          | What it shows                                                                                                                                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/app/near`                    | verify an agent (deal or refuse, and why), every certificate on the contract, deployment check (on-chain `code_hash` equals the recorded build)                                                      |
+| `/app/near/cert/<id>`          | coverage (reserve + auditor stake), spend meter, confinement proof (the agent's access keys AND its account code hash), claims, claim window countdown, settlement waterfall, participants' balances |
+| `/app/near/run/<runId>`        | a committed `pnpm near:demo` run, each recorded transaction re-checked against an archival node                                                                                                      |
+| `GET /api/near/verify/<agent>` | the same verdict as JSON for agents and services                                                                                                                                                     |
 
 ```bash
 pnpm install --frozen-lockfile
@@ -35,8 +40,12 @@ pnpm check:near http://localhost:3000   # 12 live checks against testnet, read-o
 Code: `lib/near/` (deployment record and demo evidence copied from `bound`,
 pure helpers with vitest coverage, server-only RPC reader),
 `components/app/near/`, `app/(app)/app/near/`, `app/api/near/`,
-`scripts/check-near.ts`, `scripts/sync-near.ts`. No new dependencies. The
-Stellar pages are unchanged. Diff: `pre-hackathon...near-hackathon`.
+`scripts/check-near.ts`, `scripts/sync-near.ts`. No new dependencies
+(libraries used: Next.js, React, vitest, already in the app). Outside those
+paths the diff touches `components/app/app-header.tsx` (nav link), the
+landing page (one link), `package.json` (scripts) and this section. The
+Stellar pages are otherwise unchanged. Demo runs `mwfgi0ij` and `mwfgqr0u`
+ran on the superseded `bound-v1` contract and are labeled as such.
 These NEAR pages were written by Claude Code (Anthropic) under the author's
 direction.
 

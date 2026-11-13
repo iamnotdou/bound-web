@@ -94,6 +94,15 @@ export default function Home() {
                       >
                         Browse bonded agents
                       </Link>
+                      <Link
+                        className={cn(
+                          buttonVariants({ size: "lg", variant: "ghost" }),
+                          "text-sm",
+                        )}
+                        href="/app/near"
+                      >
+                        Bound on NEAR testnet
+                      </Link>
                     </div>
                     <span className="text-muted-foreground mt-3 flex items-center justify-center gap-1.5 text-center text-sm">
                       <Stellar className="size-3.5" />

@@ -60,6 +60,8 @@ export interface Settlement {
   victim_paid: string;
   fee_paid: string;
   slash: string;
+  /** Part of the slash paid to victims (bound-v2 onwards). */
+  slash_to_victims?: string;
   to_treasury: string;
   auditor_returned: string;
   hygiene_bounty_paid: string;
@@ -76,6 +78,8 @@ export interface CertView {
   reserve_promised: string;
   reserve_locked: string;
   allocation: string;
+  /** reserve_locked + allocation (bound-v2 onwards). */
+  coverage?: string;
   premium: string;
   float: string;
   float_cap: string;
@@ -160,19 +164,22 @@ export function assess(view: CertView | null): {
 }
 
 /**
- * Worst case a counterparty can recover, as the waterfall computes it:
- * payable = min(harm, reserve + allocation), victims are paid from the
- * reserve only; the allocation is slashed to the treasury. So the honest
- * "victim cover" is the reserve, and "capital at risk behind the agent" is
- * reserve + allocation. Both are shown, never merged.
+ * What a counterparty can recover, as the bound-v2 waterfall computes it:
+ * payable = min(harm, reserve + allocation); victims are paid from the
+ * reserve first, then the auditor's slash tops up their unpaid arbitrated
+ * harm. So victim cover = coverage = reserve + allocation, shared by every
+ * arbitrated victim (and every service extending credit) of the certificate.
+ * `bound` is a spend meter, not a guarantee.
  */
 export function coverage(view: CertView) {
   const reserve = BigInt(view.reserve_locked);
   const allocation = BigInt(view.allocation);
   const bound = BigInt(view.bound);
+  const total =
+    view.coverage !== undefined ? BigInt(view.coverage) : reserve + allocation;
   return {
-    victimCover: reserve,
-    capitalAtRisk: reserve + allocation,
+    victimCover: total,
+    capitalAtRisk: total,
     bound,
     reserveFull: reserve >= BigInt(view.reserve_promised),
     spentPercentOfBound: percentOf(view.spent, view.bound),
@@ -208,9 +215,17 @@ export interface AccessKey {
   };
 }
 
+/** `code_hash` of an account with no contract deployed. */
+export const NO_CODE_HASH = "11111111111111111111111111111111";
+
 export interface Confinement {
-  /** True when every key is a FunctionCall key to `contractId` limited to `pay`. */
+  /** True when every key is a FunctionCall key to `contractId` limited to
+   *  `pay` AND the account has no contract code. */
   confined: boolean;
+  /** The keys alone are pay-only. */
+  keysConfined: boolean;
+  /** `view_account.code_hash`; null when it could not be read. */
+  codeHash: string | null;
   fullAccess: number;
   functionCall: Array<{
     publicKey: string;
@@ -232,14 +247,17 @@ export function formatNear(yocto: string | bigint): string {
 }
 
 /**
- * Reads an account's access key list as the proof of confinement: if the
- * agent's only key is a FunctionCall key for the Bound contract's `pay`, NEAR
- * itself refuses any transfer, token call or deposit the agent attempts, and
- * anyone can check that with one RPC call.
+ * Proof of confinement from two RPC views anyone can call: the access key
+ * list (every key a FunctionCall key for the Bound contract's `pay`) AND
+ * `view_account.code_hash` (no contract code: code on the account would run
+ * as the agent with no key and could call `pay`, `ft_transfer` or add a
+ * full-access key). Then NEAR itself refuses any transfer, token call or
+ * deposit the agent attempts. The Bound contract cannot check this itself.
  */
 export function confinement(
   keys: AccessKey[],
   contractId: string,
+  codeHash: string | null,
 ): Confinement {
   let fullAccess = 0;
   const functionCall: Confinement["functionCall"] = [];
@@ -263,16 +281,31 @@ export function confinement(
       k.methods.length > 0 &&
       k.methods.every((m) => m === "pay"),
   );
-  const confined = keys.length > 0 && fullAccess === 0 && scoped;
+  const keysConfined = keys.length > 0 && fullAccess === 0 && scoped;
+  const noCode = codeHash === NO_CODE_HASH;
+  const confined = keysConfined && noCode;
   let summary: string;
   if (keys.length === 0)
     summary = "No access keys: this account cannot sign at all";
-  else if (confined)
-    summary = `Confined: ${functionCall.length === 1 ? "its only key is" : "every key is"} a function-call key for ${contractId}, method pay`;
   else if (fullAccess > 0)
     summary = `Not confined: ${fullAccess} full-access key${fullAccess === 1 ? "" : "s"} can move funds without the meter`;
-  else summary = "Not confined: a function-call key reaches beyond Bound's pay";
-  return { confined, fullAccess, functionCall, summary };
+  else if (!keysConfined)
+    summary = "Not confined: a function-call key reaches beyond Bound's pay";
+  else if (codeHash === null)
+    summary =
+      "Keys are pay-only, but the account's code hash could not be read, so confinement is unproven";
+  else if (!noCode)
+    summary = `Not confined: contract code (${codeHash}) is deployed on the agent account and runs as the agent without any key`;
+  else
+    summary = `Confined: ${functionCall.length === 1 ? "its only key is" : "every key is"} a function-call key for ${contractId}, method pay, and the account has no contract code`;
+  return {
+    confined,
+    keysConfined,
+    codeHash,
+    fullAccess,
+    functionCall,
+    summary,
+  };
 }
 
 /** RPC `call_function` returns the result as a byte array of UTF-8 JSON. */

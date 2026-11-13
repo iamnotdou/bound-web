@@ -13,10 +13,10 @@ const RPC = [
   "https://test.rpc.fastnear.com",
   "https://rpc.testnet.fastnear.com",
 ];
-const ARCHIVAL = [
-  "https://archival-rpc.testnet.fastnear.com",
-  "https://archival-rpc.testnet.near.org",
-];
+// archival-rpc.testnet.near.org answers -429 "deprecated" like its regular
+// sibling. When the FastNEAR archival node rate-limits this server, the
+// regular nodes still answer for transactions younger than about 2.5 days.
+const ARCHIVAL = ["https://archival-rpc.testnet.fastnear.com", ...RPC];
 
 export class RpcError extends Error {
   constructor(

@@ -1,23 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowRight,
-  CheckCircle2,
-  FileCheck2,
-  ListChecks,
-  Search,
-  ServerCog,
-  XCircle,
-} from "lucide-react";
+import { clsx } from "clsx";
+// Fundations
+import { ArrowLink } from "@/components/navy/arrow-link";
+import { Button } from "@/components/navy/button";
+import { CtaPanel } from "@/components/navy/cta-panel";
+import { GradientHero } from "@/components/navy/gradient-hero";
+import { grid, mainCol, mainStart } from "@/components/navy/grid";
+import { Input } from "@/components/navy/input";
+import { Section } from "@/components/navy/section";
+import { Text } from "@/components/navy/text";
+import { Wrapper } from "@/components/navy/wrapper";
+// Components
 import {
   AccountLink,
   Amount,
-  NearStatusBadge,
-  Panel,
-  Row,
+  Code,
+  Fact,
+  FactList,
+  SectionHead,
+  StatusLabel,
   TxLink,
   Unreadable,
-} from "@/components/app/near/ui";
+} from "@/components/near/app/ui";
+// Content
 import {
   BOUND_CONTRACT,
   CURRENT_RUNS,
@@ -52,6 +58,9 @@ export const metadata: Metadata = {
     "Verify a NEAR agent's Bound certificate before dealing with it: reserve, auditor stake, spend meter and settlement, read live from testnet with no wallet.",
 };
 
+const inlineLink =
+  "rounded-sm underline decoration-1 underline-offset-4 transition-colors focus-visible:ring-3 focus-visible:ring-primary/30 focus-visible:outline-none";
+
 export default async function NearPage({
   searchParams,
 }: PageProps<"/app/near">) {
@@ -67,222 +76,267 @@ export default async function NearPage({
   ]);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
-      <header>
-        <p className="text-muted-foreground font-mono text-xs uppercase tracking-widest">
-          NEAR testnet · read-only · no wallet needed
-        </p>
-        <h1 className="text-foreground mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-          Know an agent&apos;s worst case before you deal with it
-        </h1>
-        <p className="text-muted-foreground mt-3 max-w-3xl text-balance">
-          A Bound certificate puts a pre-funded reserve and an auditor&apos;s
-          slashable stake behind a NEAR agent account, and the agent&apos;s only
-          key can call nothing but the contract&apos;s metered{" "}
-          <code className="font-address">pay</code>. Every figure below is a
-          view call to{" "}
-          <AccountLink id={BOUND_CONTRACT} className="text-foreground" /> made
-          by this server when the page rendered.
-        </p>
-      </header>
+    <>
+      <Hero agent={agent} />
 
-      <VerifyBox agent={agent} />
       {agent ? (
-        <VerifyResult agent={agent} lookup={lookup} keys={keys} />
+        <section aria-label="Verdict">
+          <Wrapper>
+            <VerifyResult agent={agent} lookup={lookup} keys={keys} />
+          </Wrapper>
+        </section>
       ) : null}
 
-      <Panel
-        id="certs-heading"
-        title="Certificates on the contract"
-        icon={<FileCheck2 aria-hidden className="text-primary size-5" />}
-      >
+      <Section label="Certificates" aria-labelledby="certs-heading">
+        <SectionHead
+          id="certs-heading"
+          title={
+            <>
+              Certificates on the <em>contract</em>
+            </>
+          }
+        />
         {certs === null ? (
-          <Unreadable what="The certificate list" />
+          <Unreadable what="The certificate list" className="mt-6" />
         ) : (
           <CertTable certs={certs} />
         )}
-      </Panel>
+      </Section>
 
-      <Panel
-        id="runs-heading"
-        title="Recorded demo runs, re-checkable against the chain"
-        icon={<ListChecks aria-hidden className="text-primary size-5" />}
+      <Section
+        label="Runs"
+        aria-labelledby="runs-heading"
+        wrapperClassName="pb-24"
       >
-        <p className="text-muted-foreground mt-2 text-sm text-balance">
-          Each run is the committed output of{" "}
-          <code className="font-address">pnpm near:demo</code>. Its page asks an
-          archival node for the status of every transaction hash it claims, so
-          the record is checked, not trusted.
-        </p>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+        <SectionHead
+          id="runs-heading"
+          title={
+            <>
+              Recorded demo runs, <em>re-checkable</em> against the chain
+            </>
+          }
+          intro={
+            <>
+              Each run is the committed output of <Code>pnpm near:demo</Code>.
+              Its page asks an archival node for the status of every transaction
+              hash it claims, so the record is checked, not trusted.
+            </>
+          }
+        />
+        <ul className="border-border mt-12 flex flex-col border-b">
           {DEMO_RUNS.map((r) => (
-            <li key={r.runId}>
+            <li key={r.runId} className="border-border border-t">
               <Link
                 href={`/app/near/run/${r.runId}`}
-                className="ring-foreground/10 hover:ring-primary/40 focus-visible:ring-ring flex items-center justify-between gap-3 rounded-lg p-4 ring-1 transition focus-visible:outline-none focus-visible:ring-2"
+                className="group focus-visible:ring-primary/30 flex flex-col gap-4 py-5 focus-visible:ring-3 focus-visible:outline-none sm:flex-row sm:items-center sm:justify-between"
               >
-                <span>
-                  <span className="text-foreground block font-medium">
+                <span className="min-w-0">
+                  <Text
+                    tag="span"
+                    variant="textBase"
+                    className="text-foreground block font-medium"
+                  >
                     Run {r.runId}
                     {r.superseded ? ` (superseded ${supersededLabel(r)})` : ""}
-                  </span>
-                  <span className="text-muted-foreground block text-xs">
+                  </Text>
+                  <Text
+                    tag="span"
+                    variant="textSM"
+                    className="text-muted-foreground mt-1 block"
+                  >
                     {r.steps.length} steps,{" "}
                     {r.steps.filter((s) => s.hash).length} transactions,{" "}
                     {r.asserts.length} assertions ·{" "}
                     {r.startedAt.slice(0, 16).replace("T", " ")} UTC
-                  </span>
+                  </Text>
                 </span>
-                <ArrowRight
-                  aria-hidden
-                  className="text-muted-foreground size-4"
-                />
+                <ArrowLink tag="span" className="shrink-0">
+                  Open the run
+                </ArrowLink>
               </Link>
             </li>
           ))}
         </ul>
-      </Panel>
+      </Section>
 
-      <Panel
-        id="deploy-heading"
-        title="Deployment"
-        icon={<ServerCog aria-hidden className="text-primary size-5" />}
+      <Section
+        label="Deployment"
+        aria-labelledby="deploy-heading"
+        wrapperClassName="pb-32"
       >
-        <dl className="mt-4 space-y-3">
+        <SectionHead id="deploy-heading" title="Deployment" />
+        <FactList className="mt-12">
           {facts.contracts.map((c) => (
-            <Row key={c.accountId} label={<AccountLink id={c.accountId} />}>
+            <Fact key={c.accountId} label={<AccountLink id={c.accountId} />}>
               {c.matches === null ? (
                 <span className="text-muted-foreground">
                   code hash unreadable
                 </span>
               ) : (
                 <span
-                  className={c.matches ? "text-primary" : "text-destructive"}
+                  className={c.matches ? "text-primary" : "text-foreground"}
                 >
                   on-chain code_hash{" "}
-                  <span className="font-address">{c.onChainCodeHash}</span>{" "}
-                  {c.matches ? "matches" : "DOES NOT match"} the recorded build
+                  <span className="break-all">{c.onChainCodeHash}</span>{" "}
+                  <span className={c.matches ? undefined : "font-semibold"}>
+                    {c.matches ? "matches" : "DOES NOT match"}
+                  </span>{" "}
+                  the recorded build
                 </span>
               )}
-            </Row>
+            </Fact>
           ))}
-          <Row label="Certificates / challenges">
-            {facts.certCount ?? "?"} / {facts.challengeCount ?? "?"}
-          </Row>
-          <Row label="Treasury balance (forfeited bonds, slashes, protocol fee)">
+          <Fact label="Certificates / challenges">
+            <span className="tabular-nums">
+              {facts.certCount ?? "?"} / {facts.challengeCount ?? "?"}
+            </span>
+          </Fact>
+          <Fact label="Treasury balance (forfeited bonds, slashes, protocol fee)">
             {facts.treasuryBalance === null ? (
               "unreadable"
             ) : (
               <Amount value={formatMusdc(facts.treasuryBalance)} />
             )}
-          </Row>
-          <Row label="Arbiter (single account, disclosed)">
+          </Fact>
+          <Fact label="Arbiter (single account, disclosed)">
             <AccountLink
               id={facts.accounts?.arbiter ?? NEAR_DEPLOYMENT.accounts.arbiter}
             />
-          </Row>
-          <Row label="Token">
-            <span>
-              <AccountLink id={NEAR_DEPLOYMENT.contracts.token.accountId} />{" "}
-              <span className="text-muted-foreground block text-xs">
-                {NEAR_DEPLOYMENT.contracts.token.note}
-              </span>
-            </span>
-          </Row>
+          </Fact>
+          <Fact label="Token" note={NEAR_DEPLOYMENT.contracts.token.note}>
+            <AccountLink id={NEAR_DEPLOYMENT.contracts.token.accountId} />
+          </Fact>
           {facts.config ? (
-            <Row label="Config (immutable, demo timers)">
-              <span className="font-address text-xs">
-                claim window {facts.config.claim_window_secs}s · post-expiry{" "}
-                {facts.config.post_expiry_secs}s · challenger fee{" "}
-                {facts.config.challenger_fee_bps / 100}% · min bond{" "}
-                {formatMusdc(facts.config.min_challenge_bond)}
-              </span>
-            </Row>
+            <Fact label="Config (immutable, demo timers)">
+              claim window {facts.config.claim_window_secs}s · post-expiry{" "}
+              {facts.config.post_expiry_secs}s · challenger fee{" "}
+              {facts.config.challenger_fee_bps / 100}% · min bond{" "}
+              {formatMusdc(facts.config.min_challenge_bond)}
+            </Fact>
           ) : (
-            <Row label="Config">unreadable</Row>
+            <Fact label="Config">unreadable</Fact>
           )}
           {NEAR_DEPLOYMENT.txs.map((t) => (
-            <Row key={t.hash} label={t.step}>
-              <TxLink hash={t.hash} />
-            </Row>
+            <Fact key={t.hash} label={t.step}>
+              <TxLink hash={t.hash} size="sm" />
+            </Fact>
           ))}
-        </dl>
-        <p className="text-muted-foreground mt-4 text-xs text-balance">
+        </FactList>
+        <Text
+          tag="p"
+          variant="textSM"
+          className="text-muted-foreground mt-6 max-w-2xl text-pretty"
+        >
           The contract account still holds its deployer&apos;s full-access key,
           so its code could be replaced. The code_hash comparison above is how
           you check it has not been: it is the sha256 of the wasm built from the
           tagged commit (
           {NEAR_DEPLOYMENT.contracts.bound.wasmSha256.slice(0, 12)}
           ...).
-        </p>
-      </Panel>
-    </div>
+        </Text>
+      </Section>
+    </>
   );
 }
 
-function VerifyBox({ agent }: { agent: string }) {
+function Hero({ agent }: { agent: string }) {
+  const sample = SAMPLE_AGENTS[0];
   return (
-    <section
-      aria-labelledby="verify-heading"
-      className="ring-primary/20 bg-card mt-8 rounded-xl p-5 shadow ring-1 sm:p-6"
-    >
-      <h2
-        id="verify-heading"
-        className="text-foreground flex items-center gap-2 text-lg font-semibold"
-      >
-        <Search aria-hidden className="text-primary size-5" />
-        Verify an agent
-      </h2>
-      <form
-        action="/app/near"
-        method="get"
-        className="mt-4 flex flex-col gap-3 sm:flex-row"
-      >
-        <label htmlFor="agent" className="sr-only">
-          NEAR account id of the agent
-        </label>
-        <input
-          id="agent"
-          name="agent"
-          defaultValue={agent}
-          placeholder="agent.testnet"
-          autoComplete="off"
-          spellCheck={false}
-          className="border-input bg-background focus-visible:ring-ring font-address h-10 w-full rounded-md border px-3 text-sm focus-visible:outline-none focus-visible:ring-2"
-        />
-        <button
-          type="submit"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring h-10 shrink-0 rounded-md px-5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2"
+    <>
+      <GradientHero labelledBy="near-heading">
+        <Text
+          tag="p"
+          variant="textXS"
+          className="text-inverse-foreground/70 uppercase"
         >
-          Verify
-        </button>
-      </form>
-      <p className="text-muted-foreground mt-3 text-xs">
-        Try{" "}
-        {SAMPLE_AGENTS.slice(0, 1).map((s) => (
-          <span key={s.runId}>
-            <Link
-              className="font-address underline"
-              href={`/app/near?agent=${s.verified}`}
+          NEAR testnet · read-only · no wallet needed
+        </Text>
+        <Text
+          tag="h1"
+          id="near-heading"
+          variant="displayLG"
+          className="text-inverse-foreground mt-6 max-w-3xl tracking-tight text-balance"
+        >
+          Know an agent&apos;s <em>worst case</em> before you deal with it
+        </Text>
+        <Text
+          tag="p"
+          variant="textBase"
+          className="text-inverse-foreground/70 mt-6 max-w-xl text-pretty"
+        >
+          A Bound certificate puts a pre-funded reserve and an auditor&apos;s
+          slashable stake behind a NEAR agent account, and the agent&apos;s only
+          key can call nothing but the contract&apos;s metered{" "}
+          <code className="text-inverse-foreground font-sans">pay</code>. Every
+          figure below is a view call to{" "}
+          <AccountLink id={BOUND_CONTRACT} tone="inverse" /> made by this server
+          when the page rendered.
+        </Text>
+      </GradientHero>
+      <section aria-label="Verify an agent">
+        <Wrapper className={clsx("grid pb-24", grid)}>
+          <div className={clsx("min-w-0", mainCol, mainStart)}>
+            <form
+              action="/app/near"
+              method="get"
+              role="search"
+              aria-labelledby="verify-heading"
+              className="max-w-xl"
             >
-              {s.verified}
-            </Link>{" "}
-            (Verified) or{" "}
-            <Link
-              className="font-address underline"
-              href={`/app/near?agent=${s.settled}`}
-            >
-              {s.settled}
-            </Link>{" "}
-            (settled against)
-          </span>
-        ))}
-        . Same answer as{" "}
-        <code className="font-address">pnpm near:verify &lt;agent&gt;</code> and{" "}
-        <code className="font-address">GET /api/near/verify/&lt;agent&gt;</code>
-        .
-      </p>
-    </section>
+              <Text
+                tag="h2"
+                id="verify-heading"
+                variant="textBase"
+                className="text-foreground font-medium"
+              >
+                Verify an agent
+              </Text>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <label htmlFor="agent" className="sr-only">
+                  NEAR account id of the agent
+                </label>
+                <Input
+                  id="agent"
+                  name="agent"
+                  defaultValue={agent}
+                  placeholder="agent.testnet"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <Button type="submit" variant="accent" className="shrink-0">
+                  Verify
+                </Button>
+              </div>
+              {sample ? (
+                <Text
+                  tag="p"
+                  variant="textSM"
+                  className="text-muted-foreground mt-4 text-pretty"
+                >
+                  Try{" "}
+                  <Link
+                    className={clsx(inlineLink, "text-foreground break-all")}
+                    href={`/app/near?agent=${sample.verified}`}
+                  >
+                    {sample.verified}
+                  </Link>{" "}
+                  (Verified) or{" "}
+                  <Link
+                    className={clsx(inlineLink, "text-foreground break-all")}
+                    href={`/app/near?agent=${sample.settled}`}
+                  >
+                    {sample.settled}
+                  </Link>{" "}
+                  (settled against). Same answer as{" "}
+                  <Code>pnpm near:verify &lt;agent&gt;</Code> and{" "}
+                  <Code>GET /api/near/verify/&lt;agent&gt;</Code>.
+                </Text>
+              ) : null}
+            </form>
+          </div>
+        </Wrapper>
+      </section>
+    </>
   );
 }
 
@@ -298,8 +352,7 @@ function VerifyResult({
   if (lookup === null) {
     return (
       <Decision deal={false} title={`"${agent}" is not a NEAR account id`}>
-        Account ids are lowercase, 2 to 64 characters, like{" "}
-        <span className="font-address">name.testnet</span>.
+        Account ids are lowercase, 2 to 64 characters, like name.testnet.
       </Decision>
     );
   }
@@ -318,51 +371,70 @@ function VerifyResult({
         deal={false}
         title={`Refuse: ${agent} has no Bound certificate`}
       >
-        Nothing stands behind this agent. Ask for prepayment or decline.
-        <ConfinementLine keys={keys} />
+        <span className="block">
+          Nothing stands behind this agent. Ask for prepayment or decline.
+        </span>
+        <ConfinementLine keys={keys} dark={false} />
       </Decision>
     );
   }
   const cov = coverage(view);
+  const dark = a.deal;
   return (
     <Decision
       deal={a.deal}
       title={a.deal ? `Deal: ${agent} is Verified` : `Refuse: ${a.reason}`}
+      action={
+        <ArrowLink asChild tone={dark ? "inverse" : "default"}>
+          <Link href={`/app/near/cert/${view.cert_id}`}>
+            Full certificate, key confinement and settlement
+          </Link>
+        </ArrowLink>
+      }
     >
       <span className="block">
         Certificate #{view.cert_id}{" "}
-        <NearStatusBadge status={view.status} halted={view.halted} /> · bound{" "}
-        <Amount value={formatMusdc(view.bound)} /> · coverage{" "}
+        <StatusLabel
+          status={view.status}
+          halted={view.halted}
+          tone={dark ? "inverse" : "default"}
+        />{" "}
+        · bound <Amount value={formatMusdc(view.bound)} /> · coverage{" "}
         <Amount value={formatMusdc(cov.victimCover)} /> (reserve{" "}
         <Amount value={formatMusdc(view.reserve_locked)} /> + auditor stake{" "}
         <Amount value={formatMusdc(view.allocation)} />) · expires{" "}
         {isoUtc(view.expires_at)}
       </span>
-      <span className="mt-1 block">
+      <span className="mt-2 block">
         Coverage{" "}
-        <span className="text-foreground font-medium">
+        <span
+          className={clsx(
+            "font-medium",
+            dark ? "text-inverse-foreground" : "text-foreground",
+          )}
+        >
           <Amount value={formatMusdc(cov.victimCover)} />
         </span>{" "}
         is what arbitrated victims of this certificate can recover in total;
         bound is a spend meter, not a guarantee.
       </span>
-      <ConfinementLine keys={keys} />
-      <Link
-        href={`/app/near/cert/${view.cert_id}`}
-        className="text-primary mt-2 inline-flex items-center gap-1 text-sm font-medium underline"
-      >
-        Full certificate, key confinement and settlement
-        <ArrowRight aria-hidden className="size-4" />
-      </Link>
+      <ConfinementLine keys={keys} dark={dark} />
     </Decision>
   );
 }
 
 /** Key confinement, read from the agent's access keys and view_account. */
-function ConfinementLine({ keys }: { keys: Confinement | null }) {
+function ConfinementLine({
+  keys,
+  dark,
+}: {
+  keys: Confinement | null;
+  dark: boolean;
+}) {
+  const ink = dark ? "text-inverse-foreground" : "text-foreground";
   return (
     <span className="mt-2 block">
-      <span className="text-foreground font-medium">Key confinement: </span>
+      <span className={clsx("font-medium", ink)}>Key confinement: </span>
       {keys === null ? (
         <span>
           could not be read (the access key list did not answer), so it is
@@ -371,11 +443,10 @@ function ConfinementLine({ keys }: { keys: Confinement | null }) {
       ) : (
         <>
           <span
-            className={
-              keys.confined
-                ? "text-primary font-semibold"
-                : "text-destructive font-semibold"
-            }
+            className={clsx(
+              "font-semibold",
+              keys.confined && !dark ? "text-primary" : ink,
+            )}
           >
             {keys.confined ? "yes" : "no"}
           </span>
@@ -387,110 +458,130 @@ function ConfinementLine({ keys }: { keys: Confinement | null }) {
   );
 }
 
+/** The verdict as a Navy CtaPanel: primary for a deal, muted for a refusal. */
 function Decision({
   deal,
   title,
+  action,
   children,
 }: {
   deal: boolean;
   title: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const Icon = deal ? CheckCircle2 : XCircle;
   return (
-    <div
-      role="status"
-      className={
-        deal
-          ? "bg-primary/5 ring-primary/30 mt-4 rounded-xl p-5 ring-1"
-          : "bg-destructive/5 ring-destructive/30 mt-4 rounded-xl p-5 ring-1"
-      }
-    >
-      <p className="text-foreground flex items-center gap-2 font-semibold">
-        <Icon
-          aria-hidden
-          className={deal ? "text-primary size-5" : "text-destructive size-5"}
-        />
-        {title}
-      </p>
-      <div className="text-muted-foreground mt-2 text-sm">{children}</div>
+    <div role="status">
+      <CtaPanel
+        tone={deal ? "primary" : "muted"}
+        title={title}
+        text={<span className="block max-w-2xl wrap-anywhere">{children}</span>}
+        className="wrap-anywhere"
+      >
+        {action}
+      </CtaPanel>
     </div>
   );
 }
 
+const th = "px-5 py-4 text-left align-bottom font-normal whitespace-nowrap";
+const td = "px-5 py-4 align-top";
+
 function CertTable({ certs }: { certs: CertView[] }) {
   if (certs.length === 0)
     return (
-      <p className="text-muted-foreground mt-2 text-sm">No certificates yet.</p>
+      <Text tag="p" variant="textSM" className="text-muted-foreground mt-6">
+        No certificates yet.
+      </Text>
     );
   return (
-    <>
-      <p className="text-muted-foreground mt-4 text-xs sm:hidden">
+    <div className="mt-12">
+      <Text
+        tag="p"
+        variant="textXS"
+        className="text-muted-foreground sm:hidden"
+      >
         Scroll the table sideways for bound, reserve, stake and spent.
-      </p>
-      <div className="-mx-5 mt-2 overflow-x-auto sm:mx-0 sm:mt-4">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="text-muted-foreground text-xs uppercase tracking-wide">
-            <tr>
-              <th className="px-5 py-2 font-medium sm:px-2">#</th>
-              <th className="px-2 py-2 font-medium">Agent</th>
-              <th className="px-2 py-2 font-medium">Status</th>
-              <th className="px-2 py-2 text-right font-medium">Bound</th>
-              <th className="px-2 py-2 text-right font-medium">Reserve</th>
-              <th className="px-2 py-2 text-right font-medium">
+      </Text>
+      <div className="mt-4 overflow-x-auto sm:mt-0">
+        <table className="w-full min-w-3xl text-sm">
+          <thead className="border-border border-b">
+            <tr className="text-muted-foreground text-xs uppercase">
+              <th scope="col" className={th}>
+                #
+              </th>
+              <th scope="col" className={th}>
+                Agent
+              </th>
+              <th scope="col" className={th}>
+                Status
+              </th>
+              <th scope="col" className={th}>
+                Bound
+              </th>
+              <th scope="col" className={th}>
+                Reserve
+              </th>
+              <th scope="col" className={th}>
                 Auditor stake
               </th>
-              <th className="px-2 py-2 text-right font-medium">Spent</th>
+              <th scope="col" className={th}>
+                Spent
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-border divide-y">
-            {certs.map((c) => (
-              <tr key={c.cert_id}>
-                <td className="px-5 py-2.5 sm:px-2">
+          <tbody>
+            {certs.map((c, i) => (
+              <tr key={c.cert_id} className={clsx(i % 2 === 0 && "bg-muted")}>
+                <th scope="row" className={clsx(td, "text-left font-normal")}>
                   <Link
                     href={`/app/near/cert/${c.cert_id}`}
-                    className="text-primary font-medium underline"
+                    className={clsx(inlineLink, "text-foreground font-medium")}
                   >
                     {c.cert_id}
                   </Link>
-                </td>
+                </th>
                 <td
-                  className="font-address max-w-[16rem] truncate px-2 py-2.5 text-xs"
+                  className={clsx(td, "text-foreground max-w-64 truncate")}
                   title={c.agent}
                 >
                   {c.agent}
                 </td>
-                <td className="px-2 py-2.5">
-                  <NearStatusBadge status={c.status} halted={c.halted} />
+                <td className={td}>
+                  <StatusLabel status={c.status} halted={c.halted} />
                 </td>
-                <td className="px-2 py-2.5 text-right tabular-nums">
+                <td className={clsx(td, "text-foreground tabular-nums")}>
                   {formatMusdc(c.bound)}
                 </td>
-                <td className="px-2 py-2.5 text-right tabular-nums">
+                <td className={clsx(td, "text-foreground tabular-nums")}>
                   {formatMusdc(c.reserve_locked)}
                   <span className="text-muted-foreground">
                     {" "}
                     / {formatMusdc(c.reserve_promised)}
                   </span>
                 </td>
-                <td className="px-2 py-2.5 text-right tabular-nums">
+                <td className={clsx(td, "text-foreground tabular-nums")}>
                   {formatMusdc(c.allocation)}
                 </td>
-                <td className="px-2 py-2.5 text-right tabular-nums">
+                <td className={clsx(td, "text-foreground tabular-nums")}>
                   {formatMusdc(c.spent)}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p className="text-muted-foreground mt-3 px-5 text-xs sm:px-0">
-          Amounts in mock USDC. Spent is gross flow through the meter, not loss.
-          {certOrigins(certs).map((line) => (
-            <span key={line}> {line}</span>
-          ))}
-        </p>
       </div>
-    </>
+      <Text
+        tag="p"
+        variant="textSM"
+        className="text-muted-foreground mt-6 max-w-2xl text-pretty"
+      >
+        Amounts in mock USDC. Spent is gross flow through the meter, not loss.
+        {certOrigins(certs).map((line) => (
+          <span key={line}> {line}</span>
+        ))}
+      </Text>
+    </div>
   );
 }
 

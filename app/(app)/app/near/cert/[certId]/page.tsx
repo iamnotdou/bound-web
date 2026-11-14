@@ -1,24 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  Gauge,
-  Gavel,
-  KeyRound,
-  Scale,
-  ShieldCheck,
-  Timer,
-} from "lucide-react";
+import { clsx } from "clsx";
+// Fundations
+import { GradientHero } from "@/components/navy/gradient-hero";
+import { Section } from "@/components/navy/section";
+import { Text } from "@/components/navy/text";
+import { Wrapper } from "@/components/navy/wrapper";
+// Components
 import {
   AccountLink,
   Amount,
-  NearStatusBadge,
-  Panel,
-  Row,
+  Code,
+  Fact,
+  FactList,
+  SectionHead,
+  StatusLabel,
   Unreadable,
-} from "@/components/app/near/ui";
+} from "@/components/near/app/ui";
+import { Stats } from "@/components/near/app/stats";
 import { WindowCountdown } from "@/components/app/near/window-countdown";
+// Content
 import {
   getBalances,
   getCert,
@@ -40,7 +42,6 @@ import {
   type CertView,
   type Settlement,
 } from "@/lib/near/format";
-import { cn } from "@/lib/utils";
 
 export const revalidate = 10;
 
@@ -57,6 +58,11 @@ export async function generateMetadata({
   return { title: `NEAR certificate #${certId}` };
 }
 
+const backLink =
+  "text-inverse-foreground/70 hover:text-inverse-foreground focus-visible:ring-primary/30 rounded-sm text-sm transition-colors focus-visible:ring-3 focus-visible:outline-none";
+const inlineLink =
+  "rounded-sm underline decoration-1 underline-offset-4 transition-colors focus-visible:ring-3 focus-visible:ring-primary/30 focus-visible:outline-none";
+
 export default async function NearCertPage({
   params,
 }: PageProps<"/app/near/cert/[certId]">) {
@@ -68,9 +74,27 @@ export default async function NearCertPage({
 
   if (!lookup.ok || !lookup.value) {
     return (
-      <Shell>
-        <Unreadable what={`Certificate #${id}`} />
-      </Shell>
+      <GradientHero labelledBy="cert-heading">
+        <Link href="/app/near" className={backLink}>
+          Bound on NEAR
+        </Link>
+        <Text
+          tag="h1"
+          id="cert-heading"
+          variant="displayLG"
+          className="text-inverse-foreground mt-6 tracking-tight text-balance"
+        >
+          NEAR certificate #{id}
+        </Text>
+        <Text
+          tag="p"
+          variant="textBase"
+          className="text-inverse-foreground/70 mt-6 max-w-xl text-pretty"
+        >
+          Certificate #{id} could not be read from testnet just now. That is a
+          failure to get an answer, not an answer; reload in a few seconds.
+        </Text>
+      </GradientHero>
     );
   }
   const view = lookup.value;
@@ -82,95 +106,133 @@ export default async function NearCertPage({
   const run = CURRENT_RUNS.find((r) => r.certId === id || r.cert2Id === id);
 
   return (
-    <Shell>
-      <header className="mt-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-muted-foreground font-mono text-xs uppercase tracking-widest">
+    <>
+      <GradientHero labelledBy="cert-heading">
+        <Link href="/app/near" className={backLink}>
+          Bound on NEAR
+        </Link>
+        <div className="mt-10 flex flex-wrap items-baseline gap-x-4 gap-y-2">
+          <Text
+            tag="p"
+            variant="textXS"
+            className="text-inverse-foreground/70 uppercase"
+          >
             NEAR certificate #{view.cert_id}
-          </span>
-          <NearStatusBadge status={view.status} halted={view.halted} />
+          </Text>
+          <StatusLabel
+            status={view.status}
+            halted={view.halted}
+            tone="inverse"
+          />
         </div>
-        <h1 className="text-foreground font-address mt-3 break-all text-2xl font-semibold tracking-tight sm:text-3xl">
-          {view.agent}
-        </h1>
-        <p
-          className={cn(
-            "mt-3 text-balance",
-            a.deal ? "text-foreground" : "text-muted-foreground",
-          )}
+        <Text
+          tag="h1"
+          id="cert-heading"
+          variant="displayLG"
+          className="text-inverse-foreground mt-6 tracking-tight break-all"
         >
-          {a.deal
-            ? "A counterparty may deal with this agent: the reserve is locked, an auditor has staked behind it, and its spend is metered."
-            : `A counterparty should refuse: ${a.reason.toLowerCase()}.`}{" "}
-          Read at block time {isoUtc(view.now)}.
-          {run ? (
-            <>
-              {" "}
-              Created by demo run{" "}
-              <Link className="underline" href={`/app/near/run/${run.runId}`}>
-                {run.runId}
-              </Link>
-              .
-            </>
-          ) : null}
-        </p>
-      </header>
+          {view.agent}
+        </Text>
+      </GradientHero>
 
-      <div className="grid grid-cols-1 gap-x-6 lg:grid-cols-2">
-        <CoverageCard view={view} />
-        <MeterCard view={view} />
-      </div>
+      <section aria-label="Verdict">
+        <Wrapper className="pt-24 pb-24">
+          <div
+            role="status"
+            className={clsx("p-8 lg:p-10", a.deal ? "bg-primary" : "bg-muted")}
+          >
+            <Text
+              tag="p"
+              variant="displaySM"
+              className={clsx(
+                "max-w-3xl tracking-tight text-balance",
+                a.deal ? "text-primary-foreground" : "text-foreground",
+              )}
+            >
+              {a.deal
+                ? "A counterparty may deal with this agent: the reserve is locked, an auditor has staked behind it, and its spend is metered."
+                : `A counterparty should refuse: ${a.reason.toLowerCase()}.`}
+            </Text>
+            <Text
+              tag="p"
+              variant="textSM"
+              className={clsx(
+                "mt-2",
+                a.deal ? "text-primary-foreground/75" : "text-muted-foreground",
+              )}
+            >
+              Read at block time {isoUtc(view.now)}.
+              {run ? (
+                <>
+                  {" "}
+                  Created by demo run{" "}
+                  <Link
+                    className={clsx(
+                      inlineLink,
+                      a.deal ? "text-primary-foreground" : "text-foreground",
+                    )}
+                    href={`/app/near/run/${run.runId}`}
+                  >
+                    {run.runId}
+                  </Link>
+                  .
+                </>
+              ) : null}
+            </Text>
+          </div>
+        </Wrapper>
+      </section>
 
-      <Panel
-        id="keys-heading"
-        title="The agent's keys (confinement proof)"
-        icon={<KeyRound aria-hidden className="text-primary size-5" />}
+      <CoverageSection view={view} />
+      <MeterSection view={view} />
+
+      <Section
+        label="Key confinement"
+        aria-labelledby="keys-heading"
+        wrapperClassName="pb-24"
       >
+        <SectionHead
+          id="keys-heading"
+          title={
+            <>
+              The agent&apos;s keys (<em>confinement</em> proof)
+            </>
+          }
+        />
         {keys === null ? (
-          <Unreadable what="The agent's access key list" />
+          <Unreadable what="The agent's access key list" className="mt-6" />
         ) : (
           <>
-            <p
-              className={cn(
-                "mt-2 text-sm font-medium",
-                keys.confined ? "text-primary" : "text-muted-foreground",
+            <Text
+              tag="p"
+              variant="textBase"
+              className={clsx(
+                "mt-6 max-w-2xl font-medium text-pretty",
+                keys.confined ? "text-primary" : "text-foreground",
               )}
             >
               {keys.summary}.
-            </p>
-            <ul className="mt-3 space-y-2">
+            </Text>
+            <FactList className="mt-10">
               {keys.functionCall.map((k) => (
-                <li
+                <Fact
                   key={k.publicKey}
-                  className="bg-muted/40 rounded-md p-3 text-xs"
+                  label="FunctionCall key"
+                  note={<span className="break-all">{k.publicKey}</span>}
                 >
-                  <span className="font-address block break-all">
-                    {k.publicKey}
-                  </span>
-                  <span className="text-muted-foreground mt-1 block">
-                    FunctionCall · receiver{" "}
-                    <span className="font-address text-foreground">
-                      {k.receiver}
-                    </span>{" "}
-                    · methods{" "}
-                    <span className="font-address text-foreground">
-                      [{k.methods.join(", ")}]
-                    </span>{" "}
-                    · gas allowance {k.allowanceNear ?? "unlimited"} NEAR
-                  </span>
-                </li>
+                  receiver <span className="text-foreground">{k.receiver}</span>{" "}
+                  · methods [{k.methods.join(", ")}] · gas allowance{" "}
+                  {k.allowanceNear ?? "unlimited"} NEAR
+                </Fact>
               ))}
               {keys.fullAccess > 0 ? (
-                <li className="bg-muted/40 rounded-md p-3 text-xs">
+                <Fact label="FullAccess keys">
                   {keys.fullAccess} FullAccess key
                   {keys.fullAccess === 1 ? "" : "s"}
-                </li>
+                </Fact>
               ) : null}
-              <li className="bg-muted/40 rounded-md p-3 text-xs">
-                <span className="text-muted-foreground">
-                  Contract code on the account (view_account.code_hash):{" "}
-                </span>
-                <span className="font-address text-foreground break-all">
+              <Fact label="Contract code on the account (view_account.code_hash)">
+                <span className="break-all">
                   {keys.codeHash ?? "could not be read"}
                 </span>
                 <span className="text-muted-foreground">
@@ -180,13 +242,9 @@ export default async function NearCertPage({
                       ? " (code deployed: it runs as the agent without a key)"
                       : ""}
                 </span>
-              </li>
-              <li className="bg-muted/40 rounded-md p-3 text-xs">
-                <span className="text-muted-foreground">
-                  Global contract (view_account.global_contract_hash /
-                  global_contract_account_id):{" "}
-                </span>
-                <span className="font-address text-foreground break-all">
+              </Fact>
+              <Fact label="Global contract (view_account.global_contract_hash / global_contract_account_id)">
+                <span className="break-all">
                   {keys.codeHash === null
                     ? "could not be read"
                     : (keys.globalContract ?? "none")}
@@ -197,16 +255,28 @@ export default async function NearCertPage({
                     (its code runs as the agent without a key)
                   </span>
                 ) : null}
-              </li>
-            </ul>
-            <p className="text-muted-foreground mt-3 text-xs text-balance">
+              </Fact>
+            </FactList>
+            <Text
+              tag="p"
+              variant="textSM"
+              className="text-muted-foreground mt-6 max-w-2xl text-pretty"
+            >
               A function-call key cannot attach a deposit and cannot reach any
               other contract, so NEAR itself (not this contract, not an SDK)
-              refuses an <code>ft_transfer</code>, a <code>withdraw</code> or a
-              plain NEAR transfer signed with it. Check it yourself:{" "}
-              <code className="font-address bg-muted/60 mt-1 block rounded px-2 py-1 break-all">
+              refuses an <Code>ft_transfer</Code>, a <Code>withdraw</Code> or a
+              plain NEAR transfer signed with it. Check it yourself:
+            </Text>
+            <p className="bg-muted text-foreground mt-4 max-w-2xl px-4 py-3 text-sm break-all">
+              <Code>
                 near account list-keys {view.agent} network-config testnet now
-              </code>
+              </Code>
+            </p>
+            <Text
+              tag="p"
+              variant="textSM"
+              className="text-muted-foreground mt-4 max-w-2xl text-pretty"
+            >
               Keys are only half of it: code deployed on the agent account, or a
               global contract it uses, would run as the agent with no key, so
               the account must also have no contract code (code_hash of all
@@ -214,106 +284,120 @@ export default async function NearCertPage({
               code_hash of all ones, so both global_contract fields must be
               empty). The Bound contract cannot see any of this, which is why
               this page reads it.
-            </p>
+            </Text>
           </>
         )}
-      </Panel>
+      </Section>
 
-      <ChallengesCard view={view} challenges={challenges} />
+      <ClaimsSection view={view} challenges={challenges} />
       {view.settlement ? (
-        <SettlementCard s={view.settlement} view={view} />
+        <SettlementSection s={view.settlement} view={view} />
       ) : null}
-      <ParticipantsCard view={view} />
-    </Shell>
+      <ParticipantsSection view={view} />
+    </>
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:py-14">
-      <Link
-        href="/app/near"
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex items-center gap-1.5 rounded text-sm transition-colors focus-visible:outline-none focus-visible:ring-2"
-      >
-        <ArrowLeft aria-hidden className="size-4" />
-        Bound on NEAR
-      </Link>
-      {children}
-    </div>
-  );
-}
-
-function CoverageCard({ view }: { view: CertView }) {
+function CoverageSection({ view }: { view: CertView }) {
   const c = coverage(view);
   return (
-    <Panel
-      id="coverage-heading"
-      title="What stands behind it"
-      icon={<ShieldCheck aria-hidden className="text-primary size-5" />}
+    <Section
+      label="Coverage"
+      wrapperClassName="pb-24"
+      aria-labelledby="coverage-heading"
     >
-      <dl className="mt-4 space-y-3">
-        <Row
-          label={
-            view.status === "Verified"
-              ? "Coverage (reserve + auditor stake)"
-              : "Still held (not active coverage)"
-          }
-        >
-          <Amount value={formatMusdc(c.victimCover)} />
-        </Row>
-        <Row label="Bound (spend meter, not a guarantee)">
-          <Amount value={formatMusdc(view.bound)} />
-        </Row>
-        <Row label="Reserve locked / promised">
-          <span
-            className={
-              c.reserveFull || view.settlement ? "" : "text-destructive"
-            }
-          >
-            <Amount
-              value={`${formatMusdc(view.reserve_locked)} / ${formatMusdc(view.reserve_promised)}`}
-            />
-          </span>
-        </Row>
-        <Row label="Auditor stake allocated">
-          <Amount value={formatMusdc(view.allocation)} />
-        </Row>
-        <Row label="Premium paid at attest">
+      <SectionHead
+        id="coverage-heading"
+        title={
+          <>
+            What stands <em>behind</em> it
+          </>
+        }
+        intro={
+          <>
+            Coverage is the most that arbiter-upheld victims of this certificate
+            recover together: first from the operator&apos;s reserve, then from
+            the auditor&apos;s slashed stake for what the reserve could not
+            cover. Every service extending credit to this agent shares it. The
+            arbiter is the Bound team&apos;s own account on testnet.
+          </>
+        }
+      />
+      <Stats
+        cols={2}
+        className="mt-12"
+        stats={[
+          {
+            value: formatMusdc(c.victimCover),
+            unit: "mUSDC",
+            smallUnit: true,
+            label:
+              view.status === "Verified"
+                ? "Coverage (reserve + auditor stake)"
+                : "Still held (not active coverage)",
+          },
+          {
+            value: formatMusdc(view.bound),
+            unit: "mUSDC",
+            smallUnit: true,
+            label: "Bound (spend meter, not a guarantee)",
+          },
+          {
+            value: formatMusdc(view.reserve_locked),
+            unit: `/ ${formatMusdc(view.reserve_promised)}`,
+            smallUnit: true,
+            label: "Reserve locked / promised",
+            text:
+              c.reserveFull || view.settlement
+                ? undefined
+                : "Locked is short of what was promised.",
+          },
+          {
+            value: formatMusdc(view.allocation),
+            unit: "mUSDC",
+            smallUnit: true,
+            label: "Auditor stake allocated",
+          },
+        ]}
+      />
+      <FactList className="mt-12">
+        <Fact label="Premium paid at attest">
           <Amount value={formatMusdc(view.premium)} />
-        </Row>
-        <Row label="Expires">
+        </Fact>
+        <Fact label="Expires">
           {isoUtc(view.expires_at)}
           {view.expires_at > view.now
             ? ` (in ${formatDuration(view.expires_at - view.now)})`
             : " (past)"}
-        </Row>
-      </dl>
-      <p className="text-muted-foreground mt-4 text-xs text-balance">
-        Coverage is the most that arbiter-upheld victims of this certificate
-        recover together: first from the operator&apos;s reserve, then from the
-        auditor&apos;s slashed stake for what the reserve could not cover. Every
-        service extending credit to this agent shares it. The arbiter is the
-        Bound team&apos;s own account on testnet.
-      </p>
-    </Panel>
+        </Fact>
+      </FactList>
+    </Section>
   );
 }
 
-function MeterCard({ view }: { view: CertView }) {
+function MeterSection({ view }: { view: CertView }) {
   const pct = percentOf(view.spent, view.bound) ?? 0;
   return (
-    <Panel
-      id="meter-heading"
-      title="Spend meter"
-      icon={<Gauge aria-hidden className="text-primary size-5" />}
+    <Section
+      label="Spend meter"
+      aria-labelledby="meter-heading"
+      wrapperClassName="pb-24"
     >
-      <div className="mt-4">
-        <div className="flex items-baseline justify-between text-sm">
-          <span className="text-muted-foreground">Spent vs bound</span>
-          <span className="tabular-nums">{pct}%</span>
-        </div>
+      <SectionHead
+        id="meter-heading"
+        title={
+          <>
+            Spend <em>meter</em>
+          </>
+        }
+        intro="Spend is gross flow to counterparties, not loss."
+      />
+      <div className="mt-12">
+        <Stats
+          stats={[{ value: String(pct), unit: "%", label: "Spent vs bound" }]}
+        />
         <div
-          className="bg-muted mt-2 h-2 overflow-hidden rounded-full"
+          className="bg-muted mt-6 h-2 overflow-hidden"
           role="meter"
           aria-valuenow={pct}
           aria-valuemin={0}
@@ -321,46 +405,38 @@ function MeterCard({ view }: { view: CertView }) {
           aria-label="Spent as a share of the bound"
         >
           <div
-            className={cn(
-              "h-full",
-              pct > 100 ? "bg-destructive" : "bg-primary",
-            )}
+            className={clsx("h-full", pct > 100 ? "bg-inverse" : "bg-primary")}
             style={{ width: `${Math.min(100, pct)}%` }}
           />
         </div>
       </div>
-      <dl className="mt-4 space-y-3">
-        <Row label="Spent through pay">
+      <FactList className="mt-10">
+        <Fact label="Spent through pay">
           <Amount value={formatMusdc(view.spent)} /> in {view.pay_count} payment
           {view.pay_count === 1 ? "" : "s"}
-        </Row>
-        <Row label="Float left / cap">
+        </Fact>
+        <Fact label="Float left / cap">
           <Amount
             value={`${formatMusdc(view.float)} / ${formatMusdc(view.float_cap)}`}
           />
-        </Row>
-        <Row label="Spent after expiry">
+        </Fact>
+        <Fact label="Spent after expiry">
           <Amount value={formatMusdc(view.post_expiry_spent)} />
-        </Row>
-        <Row label="Recipient allowlist">
-          {view.allowlist === null ? (
-            "any registered account"
-          ) : (
-            <span className="font-address text-xs">
-              {view.allowlist.join(", ")}
-            </span>
-          )}
-        </Row>
-        <Row label="Operator halt">{view.halted ? "halted" : "not halted"}</Row>
-      </dl>
-      <p className="text-muted-foreground mt-4 text-xs">
-        Spend is gross flow to counterparties, not loss.
-      </p>
-    </Panel>
+        </Fact>
+        <Fact label="Recipient allowlist">
+          {view.allowlist === null
+            ? "any registered account"
+            : view.allowlist.join(", ")}
+        </Fact>
+        <Fact label="Operator halt">
+          {view.halted ? "halted" : "not halted"}
+        </Fact>
+      </FactList>
+    </Section>
   );
 }
 
-function ChallengesCard({
+function ClaimsSection({
   view,
   challenges,
 }: {
@@ -369,88 +445,127 @@ function ChallengesCard({
 }) {
   const w = windowState(view);
   return (
-    <Panel
-      id="claims-heading"
-      title="Claims and the claim window"
-      icon={<Gavel aria-hidden className="text-primary size-5" />}
+    <Section
+      label="Claims"
+      aria-labelledby="claims-heading"
+      wrapperClassName="pb-24"
     >
-      <p className="text-foreground mt-2 flex items-center gap-2 text-sm">
-        <Timer aria-hidden className="size-4" />
-        {w.kind === "none" ? (
-          view.settlement ? (
-            "Window closed and settled."
-          ) : (
-            "No claim window open."
-          )
-        ) : w.kind === "open" ? (
+      <SectionHead
+        id="claims-heading"
+        title={
           <>
-            Window open with {view.open_claims} claim
-            {view.open_claims === 1 ? "" : "s"}, payments frozen;{" "}
-            <WindowCountdown secondsLeft={w.secondsLeft} />
+            Claims and the <em>claim window</em>
           </>
-        ) : (
-          "Window has passed: anyone may call close_window to settle."
-        )}
-      </p>
+        }
+      />
+      <div className="border-border mt-10 border-t pt-6">
+        <Text
+          tag="p"
+          variant="textXS"
+          className="text-muted-foreground uppercase"
+        >
+          Claim window
+        </Text>
+        <Text
+          tag="p"
+          variant="textBase"
+          className="text-foreground mt-3 max-w-2xl text-pretty"
+        >
+          {w.kind === "none" ? (
+            view.settlement ? (
+              "Window closed and settled."
+            ) : (
+              "No claim window open."
+            )
+          ) : w.kind === "open" ? (
+            <>
+              Window open with {view.open_claims} claim
+              {view.open_claims === 1 ? "" : "s"}, payments frozen;{" "}
+              <WindowCountdown secondsLeft={w.secondsLeft} />
+            </>
+          ) : (
+            "Window has passed: anyone may call close_window to settle."
+          )}
+        </Text>
+      </div>
       {challenges === null ? (
-        <Unreadable what="The challenge list" />
+        <Unreadable what="The challenge list" className="mt-6" />
       ) : challenges.length === 0 ? (
-        <p className="text-muted-foreground mt-3 text-sm">No claims filed.</p>
+        <Text tag="p" variant="textSM" className="text-muted-foreground mt-6">
+          No claims filed.
+        </Text>
       ) : (
-        <ul className="mt-4 space-y-3">
+        <ol className="border-border mt-10 flex flex-col border-b">
           {challenges.map((c) => {
             const ev = proofEvidence(c.proof);
             return (
               <li
                 key={c.challenge_id}
-                className="ring-foreground/10 rounded-lg p-4 ring-1"
+                className="border-border flex flex-col gap-3 border-t py-8"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-foreground text-sm font-medium">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <Text
+                    tag="h3"
+                    variant="textBase"
+                    className="text-foreground font-medium"
+                  >
                     #{c.challenge_id} {proofLabel(c.proof)}
-                  </span>
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-xs ring-1",
+                  </Text>
+                  <Text
+                    tag="span"
+                    variant="textXS"
+                    className={clsx(
+                      "font-medium uppercase",
                       c.verdict === "Upheld"
-                        ? "text-primary ring-primary/30"
+                        ? "text-primary"
                         : c.verdict === "Rejected"
-                          ? "text-destructive ring-destructive/30"
-                          : "text-muted-foreground ring-foreground/10",
+                          ? "text-foreground"
+                          : "text-muted-foreground",
                     )}
                   >
                     {c.verdict}
-                  </span>
+                  </Text>
                 </div>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  by <span className="font-address">{c.challenger}</span> for
-                  victim <span className="font-address">{c.victim}</span> · bond{" "}
-                  {formatMusdc(c.bond)} · filed {isoUtc(c.filed_at)}
+                <Text
+                  tag="p"
+                  variant="textSM"
+                  className="text-muted-foreground max-w-2xl wrap-anywhere"
+                >
+                  by <span className="text-foreground">{c.challenger}</span> for
+                  victim <span className="text-foreground">{c.victim}</span> ·
+                  bond {formatMusdc(c.bond)} · filed {isoUtc(c.filed_at)}
                   {c.adjudicated
                     ? ` · arbiter: ${c.proven ? "proven" : "not proven"}, harm ${formatMusdc(c.harm)}`
                     : ""}
                   {ev ? (
                     <>
                       {" "}
-                      · evidence <span className="font-address">{ev}</span>
+                      · evidence <span className="text-foreground">{ev}</span>
                     </>
                   ) : null}
-                </p>
+                </Text>
                 {c.verdict === "Rejected" ? (
-                  <p className="text-muted-foreground mt-1 text-xs">
+                  <Text
+                    tag="p"
+                    variant="textSM"
+                    className="text-muted-foreground"
+                  >
                     The bond went to the treasury in the same transaction.
-                  </p>
+                  </Text>
                 ) : null}
               </li>
             );
           })}
-        </ul>
+        </ol>
       )}
-    </Panel>
+    </Section>
   );
 }
 
-function SettlementCard({ s, view }: { s: Settlement; view: CertView }) {
+const th = "px-5 py-4 text-left align-bottom font-normal whitespace-nowrap";
+const td = "px-5 py-4 align-top";
+
+function SettlementSection({ s, view }: { s: Settlement; view: CertView }) {
   const rows: Array<[string, string, string]> = [
     ["Payable", s.payable, "min(total harm, reserve + allocation)"],
     ["Drawn from reserve", s.reserve_draw, "min(payable, reserve)"],
@@ -483,38 +598,65 @@ function SettlementCard({ s, view }: { s: Settlement; view: CertView }) {
     ["Hygiene bounty", s.hygiene_bounty_paid, "trustless hygiene claims only"],
   ];
   return (
-    <Panel
-      id="settle-heading"
-      title={`Settlement (${s.mode})`}
-      icon={<Scale aria-hidden className="text-primary size-5" />}
+    <Section
+      label="Settlement"
+      aria-labelledby="settle-heading"
+      wrapperClassName="pb-24"
+      full={
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-xl text-sm">
+            <thead className="border-border border-b">
+              <tr className="text-muted-foreground text-xs uppercase">
+                <th scope="col" className={th}>
+                  Step
+                </th>
+                <th scope="col" className={th}>
+                  Rule
+                </th>
+                <th scope="col" className={th}>
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(([label, v, why], i) => (
+                <tr key={label} className={clsx(i % 2 === 0 && "bg-muted")}>
+                  <th
+                    scope="row"
+                    className={clsx(
+                      td,
+                      "text-foreground text-left font-medium",
+                    )}
+                  >
+                    {label}
+                  </th>
+                  <td className={clsx(td, "text-muted-foreground")}>{why}</td>
+                  <td className={clsx(td, "text-foreground")}>
+                    <Amount value={formatMusdc(v)} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      }
     >
-      <p className="text-muted-foreground mt-2 text-sm">
-        Settled {isoUtc(s.settled_at)} with {s.admitted} admitted claim
-        {s.admitted === 1 ? "" : "s"}, in one transaction. Certificate is now{" "}
-        {view.status}.
-      </p>
-      <dl className="mt-4 space-y-3">
-        {rows.map(([label, v, why]) => (
-          <Row
-            key={label}
-            label={
-              <span>
-                {label}
-                <span className="text-muted-foreground/80 block text-xs">
-                  {why}
-                </span>
-              </span>
-            }
-          >
-            <Amount value={formatMusdc(v)} />
-          </Row>
-        ))}
-      </dl>
-    </Panel>
+      <SectionHead
+        id="settle-heading"
+        title={`Settlement (${s.mode})`}
+        intro={
+          <>
+            Settled {isoUtc(s.settled_at)} with {s.admitted} admitted claim
+            {s.admitted === 1 ? "" : "s"}, in one transaction. Certificate is
+            now {view.status}.
+          </>
+        }
+      />
+    </Section>
   );
 }
 
-async function ParticipantsCard({ view }: { view: CertView }) {
+async function ParticipantsSection({ view }: { view: CertView }) {
   const people: Array<[string, string]> = [
     ["Operator", view.operator],
     ["Agent", view.agent],
@@ -522,35 +664,77 @@ async function ParticipantsCard({ view }: { view: CertView }) {
   ];
   const balances = await Promise.all(people.map(([, id]) => getBalances(id)));
   return (
-    <Panel id="people-heading" title="Participants">
-      <dl className="mt-4 space-y-3">
-        {people.map(([role, id], i) => (
-          <Row
-            key={role}
-            label={
-              <span>
-                {role}
-                <span className="text-muted-foreground/80 block text-xs">
-                  Bound balance{" "}
-                  {balances[i].bound === null
-                    ? "?"
-                    : formatMusdc(balances[i].bound!)}{" "}
-                  · wallet{" "}
-                  {balances[i].token === null
-                    ? "?"
-                    : formatMusdc(balances[i].token!)}{" "}
-                  mUSDC
-                </span>
-              </span>
-            }
-          >
-            <AccountLink id={id} />
-          </Row>
-        ))}
-        <Row label="Contract">
-          <AccountLink id={BOUND_CONTRACT} />
-        </Row>
-      </dl>
-    </Panel>
+    <Section
+      label="Participants"
+      aria-labelledby="people-heading"
+      wrapperClassName="pb-32"
+      full={
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-2xl text-sm">
+            <thead className="border-border border-b">
+              <tr className="text-muted-foreground text-xs uppercase">
+                <th scope="col" className={th}>
+                  Role
+                </th>
+                <th scope="col" className={th}>
+                  Account
+                </th>
+                <th scope="col" className={th}>
+                  Bound balance
+                </th>
+                <th scope="col" className={th}>
+                  Wallet
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {people.map(([role, id], i) => (
+                <tr key={role} className={clsx(i % 2 === 0 && "bg-muted")}>
+                  <th
+                    scope="row"
+                    className={clsx(
+                      td,
+                      "text-foreground text-left font-medium",
+                    )}
+                  >
+                    {role}
+                  </th>
+                  <td className={td}>
+                    <AccountLink id={id} />
+                  </td>
+                  <td className={clsx(td, "text-foreground tabular-nums")}>
+                    {balances[i].bound === null
+                      ? "?"
+                      : formatMusdc(balances[i].bound!)}{" "}
+                    <span className="text-xs opacity-70">mUSDC</span>
+                  </td>
+                  <td className={clsx(td, "text-foreground tabular-nums")}>
+                    {balances[i].token === null
+                      ? "?"
+                      : formatMusdc(balances[i].token!)}{" "}
+                    <span className="text-xs opacity-70">mUSDC</span>
+                  </td>
+                </tr>
+              ))}
+              <tr className={clsx(people.length % 2 === 0 && "bg-muted")}>
+                <th
+                  scope="row"
+                  className={clsx(td, "text-foreground text-left font-medium")}
+                >
+                  Contract
+                </th>
+                <td className={td}>
+                  <AccountLink id={BOUND_CONTRACT} />
+                </td>
+                <td className={td} />
+                <td className={td} />
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    >
+      <SectionHead id="people-heading" title="Participants" />
+    </Section>
   );
 }

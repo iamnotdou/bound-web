@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  CircleSlash,
-  ShieldX,
-  XCircle,
-} from "lucide-react";
-import { Panel, TxLink } from "@/components/app/near/ui";
+import { clsx } from "clsx";
+// Fundations
+import { GradientHero } from "@/components/navy/gradient-hero";
+import { Section } from "@/components/navy/section";
+import { grid, mainCol, mainStart } from "@/components/navy/grid";
+import { Text } from "@/components/navy/text";
+import { Wrapper } from "@/components/navy/wrapper";
+// Components
+import { SectionHead, TxLink } from "@/components/near/app/ui";
+import { Stats } from "@/components/near/app/stats";
+// Content
 import {
   ACT_TITLES,
   findRun,
@@ -16,7 +19,6 @@ import {
   type DemoStep,
 } from "@/lib/near/deployment";
 import { txStatus, type TxStatus } from "@/lib/near/rpc";
-import { cn } from "@/lib/utils";
 
 // Rendered per request, never at build time: a build that hit a busy RPC
 // node would otherwise serve "could not be fetched" for an hour. Final
@@ -44,6 +46,11 @@ async function checkAll(steps: DemoStep[]): Promise<Map<string, TxStatus>> {
   return out;
 }
 
+const backLink =
+  "text-inverse-foreground/70 hover:text-inverse-foreground focus-visible:ring-primary/30 rounded-sm text-sm transition-colors focus-visible:ring-3 focus-visible:outline-none";
+const inlineLink =
+  "text-foreground rounded-sm underline decoration-1 underline-offset-4 transition-colors focus-visible:ring-3 focus-visible:ring-primary/30 focus-visible:outline-none";
+
 export default async function NearRunPage({
   params,
 }: PageProps<"/app/near/run/[runId]">) {
@@ -57,140 +64,218 @@ export default async function NearRunPage({
     (s) => checks.get(s.hash!)?.succeeded === s.ok,
   ).length;
   const unreachable = withTx.filter((s) => !checks.get(s.hash!)?.found).length;
+  const refused = run.steps.length - withTx.length;
+  const passed = run.asserts.filter((a) => a.pass).length;
   const acts = [...new Set(run.steps.map((s) => s.act))].sort((a, b) => a - b);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
-      <Link
-        href="/app/near"
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded text-sm transition-colors"
-      >
-        <ArrowLeft aria-hidden className="size-4" />
-        Bound on NEAR
-      </Link>
-
-      <header className="mt-6">
-        <p className="text-muted-foreground font-mono text-xs uppercase tracking-widest">
+    <>
+      <GradientHero labelledBy="run-heading">
+        <Link href="/app/near" className={backLink}>
+          Bound on NEAR
+        </Link>
+        <Text
+          tag="p"
+          variant="textXS"
+          className="text-inverse-foreground/70 mt-10 uppercase"
+        >
           Demo run {run.runId} · {run.startedAt.replace("T", " ").slice(0, 19)}{" "}
           UTC
-        </p>
-        <h1 className="text-foreground mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
-          {matched} of {withTx.length} recorded transactions match the chain
-        </h1>
-        <p className="text-muted-foreground mt-3 max-w-3xl text-balance">
-          This server asked an archival NEAR node for every hash the run
-          recorded and compared success or failure with what the run claimed.
-          Expected failures (attacks, a false claim, an early close) count as a
-          match when the chain shows them failing. Steps without a hash were
-          refused by NEAR before execution: a function-call key that tries a
-          deposit, another contract or a transfer never becomes a transaction.
-          {unreachable > 0
-            ? ` ${unreachable} hash(es) could not be fetched just now; that is no answer, not a mismatch.`
-            : ""}{" "}
-          Recorded assertions: {run.asserts.filter((a) => a.pass).length}/
-          {run.asserts.length} passed.{" "}
-          {run.superseded ? (
-            <>
-              This run used the superseded contract{" "}
-              <span className="font-address">{run.contract}</span> (
-              {supersededReason(run)}), so its certificates #{run.certId} and #
-              {run.cert2Id} are not on the contract this page reads. Its
-              transactions still check out.
-            </>
-          ) : (
-            <>
-              Certificates{" "}
-              <Link className="underline" href={`/app/near/cert/${run.certId}`}>
-                #{run.certId}
-              </Link>{" "}
-              (settled) and{" "}
-              <Link
-                className="underline"
-                href={`/app/near/cert/${run.cert2Id}`}
-              >
-                #{run.cert2Id}
-              </Link>{" "}
-              (left Verified).
-            </>
-          )}
-        </p>
-      </header>
-
-      {acts.map((act) => (
-        <Panel
-          key={act}
-          id={`act-${act}`}
-          title={`Act ${act}. ${ACT_TITLES[act] ?? ""}`}
+        </Text>
+        <Text
+          tag="h1"
+          id="run-heading"
+          variant="displayLG"
+          className="text-inverse-foreground mt-6 max-w-3xl tracking-tight text-balance"
         >
-          <ol className="mt-3 space-y-2">
+          {matched} of {withTx.length} recorded transactions match the{" "}
+          <em>chain</em>
+        </Text>
+      </GradientHero>
+
+      <section aria-label="How the run was checked">
+        <Wrapper className={clsx("grid pt-24", grid)}>
+          <div className={clsx("min-w-0", mainCol, mainStart)}>
+            <Text
+              tag="p"
+              variant="textBase"
+              className="text-muted-foreground max-w-2xl text-pretty"
+            >
+              This server asked an archival NEAR node for every hash the run
+              recorded and compared success or failure with what the run
+              claimed. Expected failures (attacks, a false claim, an early
+              close) count as a match when the chain shows them failing. Steps
+              without a hash were refused by NEAR before execution: a
+              function-call key that tries a deposit, another contract or a
+              transfer never becomes a transaction.
+              {unreachable > 0
+                ? ` ${unreachable} hash(es) could not be fetched just now; that is no answer, not a mismatch.`
+                : ""}{" "}
+              Recorded assertions: {passed}/{run.asserts.length} passed.{" "}
+              {run.superseded ? (
+                <>
+                  This run used the superseded contract{" "}
+                  <span className="text-foreground break-all">
+                    {run.contract}
+                  </span>{" "}
+                  ({supersededReason(run)}), so its certificates #{run.certId}{" "}
+                  and #{run.cert2Id} are not on the contract this page reads.
+                  Its transactions still check out.
+                </>
+              ) : (
+                <>
+                  Certificates{" "}
+                  <Link
+                    className={inlineLink}
+                    href={`/app/near/cert/${run.certId}`}
+                  >
+                    #{run.certId}
+                  </Link>{" "}
+                  (settled) and{" "}
+                  <Link
+                    className={inlineLink}
+                    href={`/app/near/cert/${run.cert2Id}`}
+                  >
+                    #{run.cert2Id}
+                  </Link>{" "}
+                  (left Verified).
+                </>
+              )}
+            </Text>
+          </div>
+        </Wrapper>
+      </section>
+
+      <Section
+        label="Summary"
+        aria-label="Summary"
+        full={
+          <Stats
+            stats={[
+              {
+                value: String(matched),
+                unit: `/${withTx.length}`,
+                label: "Recorded transactions match the chain",
+              },
+              {
+                value: String(refused),
+                label: "Steps refused by NEAR before execution",
+                text: "No transaction exists for these.",
+              },
+              {
+                value: String(passed),
+                unit: `/${run.asserts.length}`,
+                label: "Recorded assertions passed",
+              },
+              {
+                value: String(unreachable),
+                label: "Hashes not fetched just now",
+                text: "That is no answer, not a mismatch.",
+              },
+            ]}
+          />
+        }
+      />
+
+      {acts.map((act, i) => (
+        <Section
+          key={act}
+          label={`Act ${act}`}
+          aria-labelledby={`act-${act}`}
+          wrapperClassName={i === acts.length - 1 ? "pb-32" : "pb-24"}
+        >
+          <SectionHead
+            id={`act-${act}`}
+            title={`Act ${act}. ${ACT_TITLES[act] ?? ""}`}
+          />
+          <ol className="border-border mt-10 flex flex-col border-b">
             {run.steps
               .filter((s) => s.act === act)
-              .map((s, i) => (
+              .map((s, j) => (
                 <StepRow
-                  key={`${act}-${i}`}
+                  key={`${act}-${j}`}
                   step={s}
                   check={s.hash ? checks.get(s.hash) : undefined}
                 />
               ))}
           </ol>
           <AssertList asserts={run.asserts.filter((a) => a.act === act)} />
-        </Panel>
+        </Section>
       ))}
-    </div>
+    </>
   );
 }
 
+type Verdict = { label: string; text: string; tone: string };
+
+function verdictOf(step: DemoStep, check?: TxStatus): Verdict {
+  if (!step.hash)
+    return {
+      label: "Refused",
+      text: "refused by NEAR before execution, no transaction exists",
+      tone: "text-primary",
+    };
+  if (!check?.found)
+    return {
+      label: "Not fetched",
+      text: "not fetched just now",
+      tone: "text-muted-foreground",
+    };
+  if (check.succeeded === step.ok)
+    return {
+      label: "Match",
+      text: check.succeeded
+        ? "succeeded on chain"
+        : "failed on chain, as intended",
+      tone: "text-primary",
+    };
+  return {
+    label: "Mismatch",
+    text: `MISMATCH: chain says ${check.succeeded ? "succeeded" : "failed"}`,
+    tone: "text-foreground",
+  };
+}
+
 function StepRow({ step, check }: { step: DemoStep; check?: TxStatus }) {
-  let icon: React.ReactNode;
-  let verdict: string;
-  if (!step.hash) {
-    icon = <ShieldX aria-hidden className="text-primary size-4 shrink-0" />;
-    verdict = "refused by NEAR before execution, no transaction exists";
-  } else if (!check?.found) {
-    icon = (
-      <CircleSlash
-        aria-hidden
-        className="text-muted-foreground size-4 shrink-0"
-      />
-    );
-    verdict = "not fetched just now";
-  } else if (check.succeeded === step.ok) {
-    icon = (
-      <CheckCircle2 aria-hidden className="text-primary size-4 shrink-0" />
-    );
-    verdict = check.succeeded
-      ? "succeeded on chain"
-      : "failed on chain, as intended";
-  } else {
-    icon = <XCircle aria-hidden className="text-destructive size-4 shrink-0" />;
-    verdict = `MISMATCH: chain says ${check.succeeded ? "succeeded" : "failed"}`;
-  }
+  const v = verdictOf(step, check);
   return (
-    <li className="flex gap-3 text-sm">
-      <span className="mt-0.5">{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="text-foreground">{step.label}</span>
-        <span className="text-muted-foreground block text-xs">
-          <span className="font-address">{step.method}</span> on{" "}
-          <span className="font-address">{step.receiver}</span> · {verdict}
-          {step.hash ? (
-            <>
-              {" "}
-              · <TxLink hash={step.hash} />
-            </>
-          ) : null}
-        </span>
+    <li className="border-border grid gap-2 border-t py-5 sm:grid-cols-4 sm:gap-8">
+      <Text
+        tag="span"
+        variant="textXS"
+        className={clsx("font-medium uppercase sm:pt-0.5", v.tone)}
+      >
+        {v.label}
+      </Text>
+      <div className="min-w-0 sm:col-span-3">
+        <Text tag="p" variant="textSM" className="text-foreground font-medium">
+          {step.label}
+        </Text>
+        <Text
+          tag="p"
+          variant="textSM"
+          className="text-muted-foreground mt-1 wrap-anywhere"
+        >
+          {step.method} on {step.receiver} · {v.text}
+        </Text>
+        {step.hash ? (
+          <div className="mt-2">
+            <TxLink hash={step.hash} />
+          </div>
+        ) : null}
         {step.error ? (
-          <span
-            className={cn(
-              "font-address mt-1 block text-xs [overflow-wrap:anywhere]",
-              step.expectOk ? "text-destructive" : "text-muted-foreground",
+          <Text
+            tag="p"
+            variant="textXS"
+            className={clsx(
+              "mt-2 wrap-anywhere",
+              step.expectOk ? "text-foreground" : "text-muted-foreground",
             )}
           >
             {step.error.slice(0, 220)}
-          </span>
+          </Text>
         ) : null}
-      </span>
+      </div>
     </li>
   );
 }
@@ -207,22 +292,39 @@ function AssertList({
 }) {
   if (asserts.length === 0) return null;
   return (
-    <div className="bg-muted/40 mt-4 rounded-md p-3">
-      <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+    <div className="mt-12">
+      <Text tag="h3" variant="textSM" className="text-muted-foreground">
         Assertions checked by the run
-      </p>
-      <ul className="mt-2 space-y-1 text-xs">
+      </Text>
+      <ul className="border-border mt-4 border-t">
         {asserts.map((a, i) => (
-          <li key={i} className="flex flex-wrap justify-between gap-2">
-            <span>{a.label}</span>
-            <span
-              className={cn(
-                "font-address min-w-0 [overflow-wrap:anywhere]",
-                a.pass ? "text-primary" : "text-destructive",
+          <li
+            key={i}
+            className="border-border flex flex-col gap-1 border-b py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
+          >
+            <Text tag="span" variant="textSM" className="text-foreground">
+              {a.label}
+            </Text>
+            <Text
+              tag="span"
+              variant="textSM"
+              className={clsx(
+                "min-w-0 wrap-anywhere",
+                a.pass
+                  ? "text-muted-foreground"
+                  : "text-foreground font-medium",
               )}
             >
-              expected {a.expected}, got {a.actual} {a.pass ? "ok" : "FAIL"}
-            </span>
+              expected {a.expected}, got {a.actual}{" "}
+              <span
+                className={clsx(
+                  "text-xs uppercase",
+                  a.pass ? "text-primary" : "text-foreground",
+                )}
+              >
+                {a.pass ? "ok" : "FAIL"}
+              </span>
+            </Text>
           </li>
         ))}
       </ul>

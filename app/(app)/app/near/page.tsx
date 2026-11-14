@@ -424,66 +424,73 @@ function CertTable({ certs }: { certs: CertView[] }) {
       <p className="text-muted-foreground mt-2 text-sm">No certificates yet.</p>
     );
   return (
-    <div className="-mx-5 mt-4 overflow-x-auto sm:mx-0">
-      <table className="w-full min-w-[640px] text-left text-sm">
-        <thead className="text-muted-foreground text-xs uppercase tracking-wide">
-          <tr>
-            <th className="px-5 py-2 font-medium sm:px-2">#</th>
-            <th className="px-2 py-2 font-medium">Agent</th>
-            <th className="px-2 py-2 font-medium">Status</th>
-            <th className="px-2 py-2 text-right font-medium">Bound</th>
-            <th className="px-2 py-2 text-right font-medium">Reserve</th>
-            <th className="px-2 py-2 text-right font-medium">Auditor stake</th>
-            <th className="px-2 py-2 text-right font-medium">Spent</th>
-          </tr>
-        </thead>
-        <tbody className="divide-border divide-y">
-          {certs.map((c) => (
-            <tr key={c.cert_id}>
-              <td className="px-5 py-2.5 sm:px-2">
-                <Link
-                  href={`/app/near/cert/${c.cert_id}`}
-                  className="text-primary font-medium underline"
-                >
-                  {c.cert_id}
-                </Link>
-              </td>
-              <td
-                className="font-address max-w-[16rem] truncate px-2 py-2.5 text-xs"
-                title={c.agent}
-              >
-                {c.agent}
-              </td>
-              <td className="px-2 py-2.5">
-                <NearStatusBadge status={c.status} halted={c.halted} />
-              </td>
-              <td className="px-2 py-2.5 text-right tabular-nums">
-                {formatMusdc(c.bound)}
-              </td>
-              <td className="px-2 py-2.5 text-right tabular-nums">
-                {formatMusdc(c.reserve_locked)}
-                <span className="text-muted-foreground">
-                  {" "}
-                  / {formatMusdc(c.reserve_promised)}
-                </span>
-              </td>
-              <td className="px-2 py-2.5 text-right tabular-nums">
-                {formatMusdc(c.allocation)}
-              </td>
-              <td className="px-2 py-2.5 text-right tabular-nums">
-                {formatMusdc(c.spent)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="text-muted-foreground mt-3 px-5 text-xs sm:px-0">
-        Amounts in mock USDC. Spent is gross flow through the meter, not loss.
-        {certOrigins(certs).map((line) => (
-          <span key={line}> {line}</span>
-        ))}
+    <>
+      <p className="text-muted-foreground mt-4 text-xs sm:hidden">
+        Scroll the table sideways for bound, reserve, stake and spent.
       </p>
-    </div>
+      <div className="-mx-5 mt-2 overflow-x-auto sm:mx-0 sm:mt-4">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead className="text-muted-foreground text-xs uppercase tracking-wide">
+            <tr>
+              <th className="px-5 py-2 font-medium sm:px-2">#</th>
+              <th className="px-2 py-2 font-medium">Agent</th>
+              <th className="px-2 py-2 font-medium">Status</th>
+              <th className="px-2 py-2 text-right font-medium">Bound</th>
+              <th className="px-2 py-2 text-right font-medium">Reserve</th>
+              <th className="px-2 py-2 text-right font-medium">
+                Auditor stake
+              </th>
+              <th className="px-2 py-2 text-right font-medium">Spent</th>
+            </tr>
+          </thead>
+          <tbody className="divide-border divide-y">
+            {certs.map((c) => (
+              <tr key={c.cert_id}>
+                <td className="px-5 py-2.5 sm:px-2">
+                  <Link
+                    href={`/app/near/cert/${c.cert_id}`}
+                    className="text-primary font-medium underline"
+                  >
+                    {c.cert_id}
+                  </Link>
+                </td>
+                <td
+                  className="font-address max-w-[16rem] truncate px-2 py-2.5 text-xs"
+                  title={c.agent}
+                >
+                  {c.agent}
+                </td>
+                <td className="px-2 py-2.5">
+                  <NearStatusBadge status={c.status} halted={c.halted} />
+                </td>
+                <td className="px-2 py-2.5 text-right tabular-nums">
+                  {formatMusdc(c.bound)}
+                </td>
+                <td className="px-2 py-2.5 text-right tabular-nums">
+                  {formatMusdc(c.reserve_locked)}
+                  <span className="text-muted-foreground">
+                    {" "}
+                    / {formatMusdc(c.reserve_promised)}
+                  </span>
+                </td>
+                <td className="px-2 py-2.5 text-right tabular-nums">
+                  {formatMusdc(c.allocation)}
+                </td>
+                <td className="px-2 py-2.5 text-right tabular-nums">
+                  {formatMusdc(c.spent)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="text-muted-foreground mt-3 px-5 text-xs sm:px-0">
+          Amounts in mock USDC. Spent is gross flow through the meter, not loss.
+          {certOrigins(certs).map((line) => (
+            <span key={line}> {line}</span>
+          ))}
+        </p>
+      </div>
+    </>
   );
 }
 

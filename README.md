@@ -33,7 +33,7 @@ the app is prior Stellar work.
   [`usdc.boundproto-nh26.testnet`](https://testnet.nearblocks.io/address/usdc.boundproto-nh26.testnet)
   (mock USDC, play money). Recorded transactions: see the on-chain proof table
   in the `bound` README.
-- Live demo: [bound-near.vercel.app/app/near](https://bound-near.vercel.app/app/near) (a deploy of the
+- Live demo: [near.boundprotocol.dev/app/near](https://near.boundprotocol.dev/app/near) (a deploy of the
   `hackathon-submission` commit), or run it locally as below. The demo video
   is linked from the X post.
 - Code written in the window:

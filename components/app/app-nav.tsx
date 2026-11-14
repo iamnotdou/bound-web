@@ -5,12 +5,14 @@
  * pages: the Stellar marketplace links and the Stellar wallet button would
  * send a NEAR visitor into a different chain's app, so they are replaced by
  * a read-only NEAR badge. Every other route keeps the Stellar app as is.
+ * On the NEAR-only deploy the link back to the main site is dropped too.
  */
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, Banknote, Landmark, Plus, ShieldCheck } from "lucide-react";
 import { ConnectWalletButton } from "@/components/app/connect-wallet-button";
 import { isNearRoute } from "@/lib/near/route";
+import { NEAR_ONLY } from "@/lib/site";
 
 export function HomeLink({ children }: { children: React.ReactNode }) {
   const near = isNearRoute(usePathname());
@@ -82,13 +84,15 @@ function NearNav() {
         <ShieldCheck aria-hidden className="text-primary size-4" />
         NEAR testnet, read-only
       </Link>
-      <Link
-        href="/"
-        className="text-muted-foreground hover:text-foreground hidden items-center gap-1.5 text-sm transition-colors md:inline-flex"
-      >
-        <ArrowLeft aria-hidden className="size-4" />
-        boundprotocol.dev
-      </Link>
+      {NEAR_ONLY ? null : (
+        <Link
+          href="/"
+          className="text-muted-foreground hover:text-foreground hidden items-center gap-1.5 text-sm transition-colors md:inline-flex"
+        >
+          <ArrowLeft aria-hidden className="size-4" />
+          boundprotocol.dev
+        </Link>
+      )}
     </nav>
   );
 }

@@ -22,8 +22,15 @@ export function NearHeader() {
   return (
     <header className="bg-background/80 border-border sticky top-0 z-40 w-full border-b backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-        <Link href="/" aria-label="Bound on NEAR, home" className="shrink-0">
+        <Link
+          href="/"
+          aria-label="Bound on NEAR, home"
+          className="flex shrink-0 items-center gap-2"
+        >
           <Logo />
+          <span className="text-muted-foreground hidden text-sm sm:inline">
+            on NEAR
+          </span>
         </Link>
 
         <nav

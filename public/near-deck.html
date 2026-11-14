@@ -218,7 +218,7 @@
       </div>
       <div class="card">
         <div class="k">Spend meter</div>
-        <div class="v">Every payment is counted against a bound and a float, to <b>allowlisted recipients only</b>.</div>
+        <div class="v">Every payment is limited by the float and metered in spent, and goes only to <b>allowlisted recipients</b> when the operator sets an allowlist.</div>
       </div>
     </div>
     <p class="lead anim" style="margin-top:1.5rem">
@@ -237,8 +237,8 @@
       <tbody>
         <tr><td><b>Operator</b></td><td>publishes the certificate (bound, reserve, float cap, allowlist, expiry) and funds it</td></tr>
         <tr><td><b>Agent</b></td><td>accepts once, then keeps only a function-call key that can call <span class="addr">pay</span></td></tr>
-        <tr><td><b>Auditor</b></td><td>attests by locking stake, earns the premium</td></tr>
-        <tr><td><b>Victim</b></td><td>files a harm claim; the arbiter rules; a claim window freezes payments until anyone closes it</td></tr>
+        <tr><td><b>Auditor</b></td><td>attests by locking stake, earns the premium (less a 10% protocol fee)</td></tr>
+        <tr><td><b>Victim</b></td><td>files a harm claim, which opens a claim window and freezes payments; the arbiter rules; when the window ends anyone closes it</td></tr>
       </tbody>
     </table>
     <p class="lead anim" style="margin-top:1.4rem">
@@ -326,7 +326,7 @@
       <tbody>
         <tr><td><b>Bound contract</b> in Rust on near-sdk, with an open-mint test token</td><td class="num">bound-v3 live</td></tr>
         <tr><td><b>Two rounds of review fixes</b>, each redeployed; earlier versions kept and labelled superseded</td><td class="num">v1 · v2 · v3</td></tr>
-        <tr><td><b>@bound/near</b>: client, CLI, MCP server, a 402-style service gate</td><td class="num">package</td></tr>
+        <tr><td><b>@bound/near</b>: client, CLI, MCP server; plus a 402-style demo service gate in the repo</td><td class="num">package</td></tr>
         <tr><td><b>End-to-end demo</b>, eight acts, committed as evidence</td><td class="num">4 runs</td></tr>
         <tr><td><b>This site</b>: verify, certificates, run pages, docs</td><td class="num">read-only</td></tr>
       </tbody>

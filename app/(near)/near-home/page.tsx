@@ -212,7 +212,7 @@ function Hero() {
           </div>
           <p className="text-muted-foreground mt-4 text-sm">
             Read-only, no wallet needed. Every live figure on this page is a
-            view call made when it rendered.
+            view call, refreshed about every 15 seconds.
           </p>
         </div>
       </Container>
@@ -265,7 +265,7 @@ const PARTS = [
   {
     icon: Landmark,
     title: "Auditor",
-    body: "Attests the certificate by locking part of its own stake behind it, and earns the premium for doing so.",
+    body: "Attests the certificate by locking part of its own stake behind it, and earns the premium, less the 10% protocol fee.",
   },
   {
     icon: Lock,
@@ -280,12 +280,12 @@ const PARTS = [
   {
     icon: Gauge,
     title: "Spend meter",
-    body: "Every pay is counted against the bound and the float, and only allowlisted recipients can be paid. Bound is a meter, not a guarantee.",
+    body: "Every pay is limited by the float and recorded in spent; when the operator sets an allowlist, only those recipients can be paid. Bound is a meter, not a guarantee.",
   },
   {
     icon: Timer,
     title: "Claim window",
-    body: "Once a harm claim is resolved, a window opens. Payments freeze until anyone closes it, then the certificate settles.",
+    body: "Filing a claim opens a claim window and freezes payments. The arbiter rules on harm claims inside it; once it closes, anyone calls close_window and the certificate settles.",
   },
 ] as const;
 
@@ -595,9 +595,10 @@ function TrustModel() {
                 money.
               </li>
               <li>
-                The arbiter, the treasury and the contract&apos;s full-access
-                key are held by the author. A harm claim is decided by that one
-                arbiter account, disclosed on every certificate.
+                The arbiter, the treasury and the full-access keys of the Bound
+                and mock USDC contracts are held by the author. A harm claim is
+                decided by that one arbiter account, fixed at init and readable
+                by anyone with get_accounts on the contract.
               </li>
               <li>
                 Because the contract account keeps its deployer key, its code

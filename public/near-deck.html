@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bound on NEAR — deck</title>
+<meta name="description" content="Bound on NEAR: a surety bond for AI agents. Built at NEAR HACKATHON." />
+<meta property="og:title" content="Bound on NEAR — deck" />
+<meta property="og:description" content="Know a NEAR agent's worst case before you deal with it. Built at NEAR HACKATHON." />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Bound on NEAR" />
+<meta property="og:url" content="https://near.boundprotocol.dev/deck" />
+<meta property="og:image" content="https://near.boundprotocol.dev/opengraph-image" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Bound on NEAR — deck" />
+<meta name="twitter:image" content="https://near.boundprotocol.dev/opengraph-image" />
+<link rel="icon" href="/mini-logo.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* Bound's own tokens, lifted from app/globals.css so the deck and the
+     product cannot drift apart. */
+  :root {
+    --background: #09090b;          /* zinc-950 */
+    --foreground: #ffffff;
+    --card: #1c1c1f;                /* zinc-800 mixed toward black */
+    --muted-foreground: #a1a1aa;    /* zinc-400 */
+    --primary: oklch(68.5% 0.204 39.4);   /* #FF5400 */
+    --border: rgba(255, 255, 255, 0.075);
+    --radius: 0.625rem;
+    --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+    --font-address: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--background); }
+  body {
+    font-family: var(--font-sans);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(2.5rem, 6vw, 6rem);
+    padding-bottom: clamp(4.5rem, 8vw, 7rem);
+    opacity: 0;
+    transition: opacity .25s ease;
+  }
+  .slide[data-active] { display: flex; opacity: 1; }
+
+  /* --- chrome ------------------------------------------------------ */
+  .meta {
+    position: absolute; top: clamp(1.5rem, 3vw, 2.5rem); left: clamp(2.5rem, 6vw, 6rem);
+    font-size: clamp(.62rem, .82vw, .75rem);
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .page {
+    position: absolute; bottom: clamp(1.5rem, 3vw, 2.5rem); right: clamp(2.5rem, 6vw, 6rem);
+    font-size: clamp(.62rem, .82vw, .75rem);
+    letter-spacing: .12em; color: var(--muted-foreground);
+    font-family: var(--font-address);
+  }
+  .page b { color: var(--foreground); font-weight: 500; }
+  .byline {
+    position: absolute; bottom: clamp(1.5rem, 3vw, 2.5rem); left: clamp(2.5rem, 6vw, 6rem);
+    font-size: clamp(.62rem, .82vw, .75rem);
+    letter-spacing: .14em; text-transform: uppercase; color: var(--muted-foreground);
+  }
+  .rail {
+    position: fixed; left: 0; bottom: 0; height: 2px;
+    background: var(--primary); transition: width .25s ease; z-index: 10;
+  }
+
+  /* --- type -------------------------------------------------------- */
+  .tag {
+    display: inline-block; align-self: flex-start;
+    font-size: clamp(.62rem, .8vw, .72rem);
+    letter-spacing: .16em; text-transform: uppercase;
+    color: var(--primary);
+    border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    border-radius: 999px; padding: .35rem .8rem; margin-bottom: 1.6rem;
+  }
+  h1 {
+    font-size: clamp(3rem, 8.5vw, 8rem);
+    line-height: .95; letter-spacing: -.035em; font-weight: 600;
+    margin: 0 0 1.5rem;
+  }
+  h2 {
+    font-size: clamp(2.2rem, 5.6vw, 4.6rem);
+    line-height: 1.02; letter-spacing: -.03em; font-weight: 600;
+    margin: 0 0 1.5rem; text-wrap: balance;
+  }
+  h3 {
+    font-size: clamp(1.6rem, 3.4vw, 3rem);
+    line-height: 1.06; letter-spacing: -.025em; font-weight: 600;
+    margin: 0 0 1.25rem; text-wrap: balance;
+  }
+  p.lead {
+    font-size: clamp(1rem, 1.55vw, 1.4rem);
+    line-height: 1.55; color: var(--muted-foreground);
+    max-width: 52ch; margin: 0 0 1rem; text-wrap: balance;
+  }
+  p.lead strong { color: var(--foreground); font-weight: 500; }
+  .hl { color: var(--primary); font-weight: 500; }
+  .addr { font-family: var(--font-address); font-size: .82em; letter-spacing: -.01em; }
+
+  /* --- surfaces ---------------------------------------------------- */
+  .grid { display: grid; gap: 1rem; margin-top: .5rem; }
+  .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 0 0 1px var(--border);
+    padding: clamp(1rem, 1.6vw, 1.5rem);
+  }
+  .card .k {
+    font-size: clamp(.6rem, .78vw, .7rem); letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted-foreground);
+    margin-bottom: .6rem;
+  }
+  .card .v { font-size: clamp(.95rem, 1.25vw, 1.15rem); line-height: 1.45; }
+  .card .v b { font-weight: 600; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin-top: .5rem;
+    font-size: clamp(.82rem, 1.12vw, 1.05rem);
+  }
+  th, td {
+    text-align: left; padding: .7rem .9rem;
+    border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  th {
+    font-size: clamp(.6rem, .76vw, .7rem); letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted-foreground); font-weight: 500;
+  }
+  td.num, th.num { text-align: right; font-family: var(--font-address); }
+  td b { font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+
+  .rule {
+    width: 4.5rem; height: 3px; background: var(--primary);
+    border-radius: 2px; margin: 0 0 1.6rem;
+  }
+
+  /* Entrance: the same quiet fade the app uses, not a slide transition. */
+  .slide[data-active] .anim { animation: rise .45s cubic-bezier(.2,.7,.3,1) backwards; }
+  .slide[data-active] .anim:nth-child(2) { animation-delay: .05s; }
+  .slide[data-active] .anim:nth-child(3) { animation-delay: .1s; }
+  .slide[data-active] .anim:nth-child(4) { animation-delay: .15s; }
+  .slide[data-active] .anim:nth-child(5) { animation-delay: .2s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .anim { animation: none !important; } }
+
+  @media (max-width: 720px) {
+    .grid.three, .grid.two { grid-template-columns: minmax(0, 1fr); }
+    .slide { justify-content: flex-start; overflow-y: auto; padding-top: 4rem; }
+    th, td { padding: .5rem .5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 01 · cover -->
+  <section class="slide">
+    <div class="meta">NEAR HACKATHON · 2026</div>
+    <span class="tag anim">NEAR testnet</span>
+    <h1 class="anim">Bound</h1>
+    <div class="rule anim"></div>
+    <p class="lead anim" style="max-width:46ch">
+      A surety bond for AI agents on NEAR. <strong>Know an agent's worst case
+      before you deal with it</strong>, with a number anyone can read in one
+      view call.
+    </p>
+    <div class="byline">near.boundprotocol.dev</div>
+    <div class="page"><b>01</b> / 10</div>
+  </section>
+
+  <!-- 02 · problem -->
+  <section class="slide">
+    <div class="meta">The problem</div>
+    <h2 class="anim">An agent with a key<br />is an unpriced risk</h2>
+    <p class="lead anim">
+      Services are asked to sell to agents, and to extend them credit, on
+      <strong>&ldquo;trust me, my agent is safe.&rdquo;</strong> Nobody can
+      check that sentence, size it, or recover against it.
+    </p>
+    <p class="lead anim">
+      A prompt-injected agent spends whatever its key allows, and when harm
+      happens there is no money set aside and no rule for who is paid first.
+    </p>
+    <div class="page"><b>02</b> / 10</div>
+  </section>
+
+  <!-- 03 · solution -->
+  <section class="slide">
+    <div class="meta">The solution</div>
+    <h3 class="anim">One certificate, three numbers you can check</h3>
+    <div class="grid three anim">
+      <div class="card">
+        <div class="k">Reserve</div>
+        <div class="v">Pre-funded by the operator and <b>locked in the contract</b>. Arbitrated victims are paid from it first.</div>
+      </div>
+      <div class="card">
+        <div class="k">Slashable stake</div>
+        <div class="v">An auditor locks <b>its own capital</b> behind the certificate and is slashed for what the reserve could not cover.</div>
+      </div>
+      <div class="card">
+        <div class="k">Spend meter</div>
+        <div class="v">Every payment is counted against a bound and a float, to <b>allowlisted recipients only</b>.</div>
+      </div>
+    </div>
+    <p class="lead anim" style="margin-top:1.5rem">
+      <span class="hl">Coverage = reserve + auditor stake.</span> The bound is a
+      meter, not a guarantee.
+    </p>
+    <div class="page"><b>03</b> / 10</div>
+  </section>
+
+  <!-- 04 · how it works -->
+  <section class="slide">
+    <div class="meta">How it works</div>
+    <h3 class="anim">Publish, confine, pay, claim, settle</h3>
+    <table class="anim">
+      <thead><tr><th>Who</th><th>Does</th></tr></thead>
+      <tbody>
+        <tr><td><b>Operator</b></td><td>publishes the certificate (bound, reserve, float cap, allowlist, expiry) and funds it</td></tr>
+        <tr><td><b>Agent</b></td><td>accepts once, then keeps only a function-call key that can call <span class="addr">pay</span></td></tr>
+        <tr><td><b>Auditor</b></td><td>attests by locking stake, earns the premium</td></tr>
+        <tr><td><b>Victim</b></td><td>files a harm claim; the arbiter rules; a claim window freezes payments until anyone closes it</td></tr>
+      </tbody>
+    </table>
+    <p class="lead anim" style="margin-top:1.4rem">
+      Settlement waterfall, run <span class="addr">mwfnc6q8</span>:
+      <span class="hl addr">120 = 100 reserve + 20 slash</span>. The
+      auditor's other 180 was not touched.
+    </p>
+    <div class="page"><b>04</b> / 10</div>
+  </section>
+
+  <!-- 05 · why NEAR -->
+  <section class="slide">
+    <div class="meta">Why NEAR</div>
+    <h3 class="anim">The account model does half the enforcement</h3>
+    <div class="grid two anim">
+      <div class="card">
+        <div class="k">Function-call access key</div>
+        <div class="v">The agent's only key is scoped to the Bound contract and <b>the single method pay</b>, gas-only allowance.</div>
+      </div>
+      <div class="card">
+        <div class="k">Named accounts</div>
+        <div class="v">Certificates and allowlists name <b>readable accounts</b>, not key hashes.</div>
+      </div>
+      <div class="card">
+        <div class="k">View calls</div>
+        <div class="v"><span class="addr">verify</span>, <span class="addr">get_cert</span> and the access-key list are <b>free reads anyone can make</b>. No wallet, no indexer.</div>
+      </div>
+      <div class="card">
+        <div class="k">No code on the agent</div>
+        <div class="v">No contract and <b>no global contract</b> on the agent account: nothing on it can route around the meter.</div>
+      </div>
+    </div>
+    <div class="page"><b>05</b> / 10</div>
+  </section>
+
+  <!-- 06 · proof -->
+  <section class="slide">
+    <div class="meta">Demo and proof</div>
+    <span class="tag anim">Run mwfnc6q8</span>
+    <h3 class="anim">Recorded, then re-checked against the chain</h3>
+    <table class="anim">
+      <thead><tr><th>Claim</th><th class="num">Result</th></tr></thead>
+      <tbody>
+        <tr><td><b>Recorded transactions</b>, each re-checked on an archival node by the run page</td><td class="num">37 / 37</td></tr>
+        <tr><td><b>Assertions</b> on balances, statuses and keys</td><td class="num">36 pass</td></tr>
+        <tr><td><b>Hijacked-key attempts</b>: overspend, off-allowlist, ft_transfer, mint, withdraw, send NEAR</td><td class="num">all refused</td></tr>
+        <tr><td><b>False fraud claim</b> rejected in the same transaction, bond forfeited</td><td class="num">rejected</td></tr>
+        <tr><td><b>Contract code hash</b> against the wasm built from the tagged commit</td><td class="num">matches</td></tr>
+      </tbody>
+    </table>
+    <div class="page"><b>06</b> / 10</div>
+  </section>
+
+  <!-- 07 · developer surface -->
+  <section class="slide">
+    <div class="meta">Developer surface</div>
+    <h3 class="anim">Ask the same question from anywhere</h3>
+    <div class="grid two anim">
+      <div class="card">
+        <div class="k">SDK</div>
+        <div class="v"><span class="addr">npm install @bound/near</span><br />a typed client for the contract</div>
+      </div>
+      <div class="card">
+        <div class="k">CLI</div>
+        <div class="v"><span class="addr">verify &lt;agent&gt;</span><br />the deal-or-refuse answer from a terminal</div>
+      </div>
+      <div class="card">
+        <div class="k">MCP server</div>
+        <div class="v"><span class="addr">near_verify_agent · near_get_certificate · near_check_agent_keys · near_pay</span></div>
+      </div>
+      <div class="card">
+        <div class="k">HTTP</div>
+        <div class="v"><span class="addr">GET /api/near/verify/&lt;agent&gt;</span><br />for a service gate</div>
+      </div>
+    </div>
+    <div class="page"><b>07</b> / 10</div>
+  </section>
+
+  <!-- 08 · built in the window -->
+  <section class="slide">
+    <div class="meta">What was built in the window</div>
+    <h3 class="anim">From zero to a settled claim on testnet</h3>
+    <table class="anim">
+      <thead><tr><th>What</th><th class="num">State</th></tr></thead>
+      <tbody>
+        <tr><td><b>Bound contract</b> in Rust on near-sdk, with an open-mint test token</td><td class="num">bound-v3 live</td></tr>
+        <tr><td><b>Two rounds of review fixes</b>, each redeployed; earlier versions kept and labelled superseded</td><td class="num">v1 · v2 · v3</td></tr>
+        <tr><td><b>@bound/near</b>: client, CLI, MCP server, a 402-style service gate</td><td class="num">package</td></tr>
+        <tr><td><b>End-to-end demo</b>, eight acts, committed as evidence</td><td class="num">4 runs</td></tr>
+        <tr><td><b>This site</b>: verify, certificates, run pages, docs</td><td class="num">read-only</td></tr>
+      </tbody>
+    </table>
+    <div class="page"><b>08</b> / 10</div>
+  </section>
+
+  <!-- 09 · trust model -->
+  <section class="slide">
+    <div class="meta">The honest slide</div>
+    <h3 class="anim">Trust model and limits</h3>
+    <table class="anim">
+      <thead><tr><th>A claim we could have made</th><th>What is actually true</th></tr></thead>
+      <tbody>
+        <tr><td>It moves real money</td><td><b>testnet only</b>, with an open-mint test token</td></tr>
+        <tr><td>Claims are decided trustlessly</td><td>arithmetic proofs are; a harm claim is decided by <b>one arbiter account, held by the author</b></td></tr>
+        <tr><td>The contract is immutable</td><td>its deployer key is still on it; <b>the code-hash check</b> is how you see it has not changed</td></tr>
+        <tr><td>An independent auditor</td><td>the demo auditor and treasury are <b>ours, and disclosed</b></td></tr>
+      </tbody>
+    </table>
+    <div class="page"><b>09</b> / 10</div>
+  </section>
+
+  <!-- 10 · roadmap and ask -->
+  <section class="slide">
+    <div class="meta">What comes next</div>
+    <span class="tag anim">Roadmap</span>
+    <h1 class="anim" style="font-size:clamp(2.4rem,6vw,5.4rem)">Mainnet, a DAO arbiter,<br />Intents funding</h1>
+    <div class="rule anim"></div>
+    <p class="lead anim" style="max-width:52ch">
+      Deploy to <strong>mainnet</strong> with the deployer key removed. Hand the
+      arbiter role to a <strong>Sputnik DAO</strong>. Let operators fund reserves
+      through <strong>NEAR Intents</strong>. The ask: a first service willing to
+      gate its agents on a certificate.
+    </p>
+    <div class="byline addr" style="text-transform:none;letter-spacing:0">
+      near.boundprotocol.dev · github.com/iamnotdou/bound/tree/near-hackathon · npm @bound/near
+    </div>
+    <div class="page"><b>10</b> / 10</div>
+  </section>
+
+</div>
+<div class="rail" id="rail"></div>
+
+<script>
+  // Keyboard first: a deck is driven from a clicker, which sends arrows and
+  // page keys. Click advances too, because somebody always drives it by hand.
+  const slides = [...document.querySelectorAll(".slide")];
+  const rail = document.getElementById("rail");
+  let at = 0;
+
+  function show(next) {
+    at = Math.max(0, Math.min(slides.length - 1, next));
+    slides.forEach((s, i) => i === at ? s.setAttribute("data-active", "") : s.removeAttribute("data-active"));
+    rail.style.width = ((at + 1) / slides.length * 100) + "vw";
+    if (location.hash !== "#" + (at + 1)) history.replaceState(null, "", "#" + (at + 1));
+  }
+
+  addEventListener("keydown", (e) => {
+    if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); show(at + 1); }
+    if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); show(at - 1); }
+    if (e.key === "Home") show(0);
+    if (e.key === "End") show(slides.length - 1);
+  });
+  addEventListener("click", (e) => show(at + (e.clientX < innerWidth * 0.25 ? -1 : 1)));
+
+  show(Math.max(0, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+</script>
+</body>
+</html>

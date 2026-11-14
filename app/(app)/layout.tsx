@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/components/app/app-header";
 import { PendingTransactions } from "@/components/app/pending-transactions";
+import { NearFooter } from "@/components/near/near-footer";
+import { NearHeader } from "@/components/near/near-header";
+import { NEAR_ONLY } from "@/lib/site";
 import { WalletProvider } from "@/lib/wallet/wallet-provider";
 
 export const metadata: Metadata = {
@@ -15,6 +18,18 @@ export const metadata: Metadata = {
 export default function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // The NEAR-only deploy serves nothing in this group but `/app/near/*`,
+  // which is read-only, so it gets the NEAR shell and no pending-transaction
+  // tray. The provider stays: the redirected Stellar pages still prerender.
+  if (NEAR_ONLY) {
+    return (
+      <WalletProvider>
+        <NearHeader />
+        <main className="bg-background flex-1">{children}</main>
+        <NearFooter />
+      </WalletProvider>
+    );
+  }
   return (
     <WalletProvider>
       <AppHeader />

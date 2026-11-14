@@ -116,6 +116,14 @@ describe("assess", () => {
     expect(assess(VERIFIED).deal).toBe(true);
     expect(assess({ ...VERIFIED, halted: true }).deal).toBe(false);
   });
+
+  it("follows the contract's deal flag (float 0 is not a deal)", () => {
+    expect(assess({ ...VERIFIED, deal: true }).deal).toBe(true);
+    expect(assess({ ...VERIFIED, float: "0", deal: false })).toEqual({
+      deal: false,
+      reason: "No float left: the agent cannot pay",
+    });
+  });
 });
 
 describe("coverage", () => {

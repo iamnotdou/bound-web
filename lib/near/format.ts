@@ -95,6 +95,8 @@ export interface CertView {
   settlement: Settlement | null;
   /** Block timestamp (seconds) at which the view was computed. */
   now: number;
+  /** The contract's own verdict: Verified, not halted and float > 0. */
+  deal?: boolean;
 }
 
 export type Proof =
@@ -160,6 +162,9 @@ export function assess(view: CertView | null): {
     return { deal: false, reason: `Certificate status is ${view.status}` };
   if (view.halted)
     return { deal: false, reason: "Halted by its operator: payments stopped" };
+  // The contract also requires float > 0; follow its verdict when present.
+  if (view.deal === false)
+    return { deal: false, reason: "No float left: the agent cannot pay" };
   return { deal: true, reason: "Verified: reserve locked and auditor staked" };
 }
 

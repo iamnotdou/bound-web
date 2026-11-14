@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/components/app/app-header";
 import { PendingTransactions } from "@/components/app/pending-transactions";
-import { NearFooter } from "@/components/near/near-footer";
-import { NearHeader } from "@/components/near/near-header";
+import { Footer } from "@/components/navy/footer";
+import { Navigation } from "@/components/navy/navigation";
 import { NEAR_ONLY } from "@/lib/site";
 import { WalletProvider } from "@/lib/wallet/wallet-provider";
 
@@ -24,9 +24,11 @@ export default function AppLayout({
   if (NEAR_ONLY) {
     return (
       <WalletProvider>
-        <NearHeader />
-        <main className="bg-background flex-1">{children}</main>
-        <NearFooter />
+        <Navigation />
+        <main data-navy-main className="bg-background relative flex-1">
+          {children}
+        </main>
+        <Footer />
       </WalletProvider>
     );
   }

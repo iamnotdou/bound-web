@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { NearFooter } from "@/components/near/near-footer";
-import { NearHeader } from "@/components/near/near-header";
+import { Footer } from "@/components/navy/footer";
+import { Navigation } from "@/components/navy/navigation";
 import { NEAR_ONLY } from "@/lib/site";
 
 /**
@@ -15,9 +15,11 @@ export default function NearSiteLayout({
   if (!NEAR_ONLY) notFound();
   return (
     <>
-      <NearHeader />
-      <main className="bg-background flex-1">{children}</main>
-      <NearFooter />
+      <Navigation />
+      <main data-navy-main className="bg-background relative flex-1">
+        {children}
+      </main>
+      <Footer />
     </>
   );
 }

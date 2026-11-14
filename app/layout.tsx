@@ -46,8 +46,30 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", "font-sans", outfit.variable)}
+      // The NEAR-only deploy wears the Navy theme (app/navy.css): every
+      // rule there is scoped to this attribute, so the main site is untouched.
+      data-theme={NEAR_ONLY ? "navy" : undefined}
+      className={cn(
+        "h-full",
+        "antialiased",
+        "font-sans",
+        !NEAR_ONLY && outfit.variable,
+      )}
     >
+      {NEAR_ONLY && (
+        <head>
+          {/* Switzer, Navy's one family, from Fontshare: NEAR-only builds. */}
+          <link
+            rel="preconnect"
+            href="https://api.fontshare.com"
+            crossOrigin=""
+          />
+          <link
+            rel="stylesheet"
+            href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,601&display=swap"
+          />
+        </head>
+      )}
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

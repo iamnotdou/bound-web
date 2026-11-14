@@ -33,9 +33,15 @@ the app is prior Stellar work.
   [`usdc.boundproto-nh26.testnet`](https://testnet.nearblocks.io/address/usdc.boundproto-nh26.testnet)
   (mock USDC, play money). Recorded transactions: see the on-chain proof table
   in the `bound` README.
-- Live demo: [near.boundprotocol.dev/app/near](https://near.boundprotocol.dev/app/near) (a deploy of the
-  `hackathon-submission` commit), or run it locally as below. The demo video
-  is linked from the X post.
+- Site: [near.boundprotocol.dev](https://near.boundprotocol.dev) (landing),
+  [docs](https://near.boundprotocol.dev/docs),
+  [deck](https://near.boundprotocol.dev/deck), built from this repo with
+  `NEXT_PUBLIC_NEAR_ONLY=1 NEXT_PUBLIC_SITE_URL=https://near.boundprotocol.dev`.
+- Live demo: [near.boundprotocol.dev/app/near](https://near.boundprotocol.dev/app/near),
+  or run it locally as below. The demo video is linked from the X post.
+- npm: [`@bound/near`](https://www.npmjs.com/package/@bound/near) (published
+  right after submission prep); MCP for agents:
+  `{"command": "npx", "args": ["-y", "@bound/near", "mcp"]}`.
 - Code written in the window:
   [`pre-hackathon...near-hackathon`](https://github.com/iamnotdou/bound-web/compare/pre-hackathon...near-hackathon)
   (also frozen as tag `hackathon-submission`). Contract side:

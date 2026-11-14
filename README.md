@@ -33,8 +33,9 @@ the app is prior Stellar work.
   [`usdc.boundproto-nh26.testnet`](https://testnet.nearblocks.io/address/usdc.boundproto-nh26.testnet)
   (mock USDC, play money). Recorded transactions: see the on-chain proof table
   in the `bound` README.
-- Live demo: no hosted copy yet; run it locally as below. The demo video is
-  linked from the X post.
+- Live demo: [bound-near.vercel.app/app/near](https://bound-near.vercel.app/app/near) (a deploy of the
+  `hackathon-submission` commit), or run it locally as below. The demo video
+  is linked from the X post.
 - Code written in the window:
   [`pre-hackathon...near-hackathon`](https://github.com/iamnotdou/bound-web/compare/pre-hackathon...near-hackathon)
   (also frozen as tag `hackathon-submission`). Contract side:
@@ -94,7 +95,7 @@ AI tools used: these NEAR pages were written by Claude Code (Anthropic) under
 the author's direction.
 
 Limitations: read-only (no wallet, no writes); testnet only with mock USDC;
-no hosted copy yet; demo runs `mwfgi0ij` and `mwfgqr0u` ran on the
+demo runs `mwfgi0ij` and `mwfgqr0u` ran on the
 superseded `bound-v1` contract and run `mwfiv11v` on the superseded
 `bound-v2`, and all three are labeled as such; transactions older
 than a few days are read from an archival node, and a rate-limited IP can see

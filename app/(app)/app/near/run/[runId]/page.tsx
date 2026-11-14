@@ -183,7 +183,7 @@ function StepRow({ step, check }: { step: DemoStep; check?: TxStatus }) {
         {step.error ? (
           <span
             className={cn(
-              "font-address mt-1 block break-all text-xs",
+              "font-address mt-1 block text-xs [overflow-wrap:anywhere]",
               step.expectOk ? "text-destructive" : "text-muted-foreground",
             )}
           >
@@ -217,7 +217,7 @@ function AssertList({
             <span>{a.label}</span>
             <span
               className={cn(
-                "font-address",
+                "font-address min-w-0 [overflow-wrap:anywhere]",
                 a.pass ? "text-primary" : "text-destructive",
               )}
             >

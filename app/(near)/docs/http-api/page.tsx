@@ -87,9 +87,11 @@ export default function HttpApiPage() {
     <DocArticle slug="http-api">
       <P>
         One read-only endpoint, served by this site. No key, no wallet, no auth.
-        Responses carry <C>cache-control: no-store</C>: a verdict is about now,
+        Responses carry <C>cache-control: no-store</C>, and every chain read
+        behind them skips the server&apos;s data cache: a verdict is about now,
         and a cached deal after a claim window opens is the exact failure a
-        certificate exists to prevent.
+        certificate exists to prevent. <C>cert.now</C> is the chain time of the
+        read; compare it with the current time before relying on <C>deal</C>.
       </P>
       <CodeBlock lang="http" code={`GET /api/near/verify/<agent>`} />
       <CodeBlock

@@ -56,8 +56,9 @@ export default function Quickstart() {
       <CodeBlock lang="sh" code={`curl ${SITE_URL}/api/near/verify/${AGENT}`} />
       <P>
         The answer is JSON with <C>deal</C>, <C>reason</C>, the raw certificate
-        view and the confinement check, never cached. See{" "}
-        <A href="/docs/http-api">HTTP API</A>.
+        view and the confinement check, read fresh from testnet and sent with{" "}
+        <C>cache-control: no-store</C> (check <C>cert.now</C> for freshness).
+        See <A href="/docs/http-api">HTTP API</A>.
       </P>
 
       <H2 id="mcp">4. From an LLM agent (MCP)</H2>

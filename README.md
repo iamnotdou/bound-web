@@ -24,12 +24,12 @@ Only these NEAR pages are part of the submission from this repo; the rest of
 the app is prior Stellar work.
 
 - Tracks: `security` (primary), `agents`, `open`.
-- Why NEAR: the agent's function-call access key (receiver `bound-v2`, method
+- Why NEAR: the agent's function-call access key (receiver `bound-v3`, method
   `pay`, no deposit) is enforced by the protocol itself, and these pages prove
   it from `view_access_key_list` plus `view_account.code_hash`. Accounts are
-  named, so you verify `bound-agent2-mwfiv11v.testnet`, not a hex address.
-- Contract: [`bound-v2.boundproto-nh26.testnet`](https://testnet.nearblocks.io/address/bound-v2.boundproto-nh26.testnet)
-  (code hash `AZU11gUWgawHb91Zr6maxPqoYAdS89ftNjfT5e3De1b`), token
+  named, so you verify `bound-agent2-mwfnc6q8.testnet`, not a hex address.
+- Contract: [`bound-v3.boundproto-nh26.testnet`](https://testnet.nearblocks.io/address/bound-v3.boundproto-nh26.testnet)
+  (code hash `A3yf1yzihbUdZAaHn92aAm5dBAdFCq1QCwhBJixD2B4H`), token
   [`usdc.boundproto-nh26.testnet`](https://testnet.nearblocks.io/address/usdc.boundproto-nh26.testnet)
   (mock USDC, play money). Recorded transactions: see the on-chain proof table
   in the `bound` README.
@@ -63,9 +63,9 @@ From a clean clone (node 22, pnpm 10):
 5. In a second terminal, `pnpm check:near http://localhost:3000`:
    `12/12 checks passed` (read-only, live testnet).
 6. Open `http://localhost:3000/app/near`, verify
-   `bound-agent2-mwfiv11v.testnet` (deal, coverage 130, confined), then
+   `bound-agent2-mwfnc6q8.testnet` (deal, coverage 130, confined), then
    `/app/near/cert/0` (settled: victim paid 120 = 100 reserve + 20 slash) and
-   `/app/near/run/mwfiv11v` (`37 of 37` transactions match the chain).
+   `/app/near/run/mwfnc6q8` (`37 of 37` transactions match the chain).
 
 ### How it fits
 
@@ -73,7 +73,7 @@ From a clean clone (node 22, pnpm 10):
 flowchart LR
   browser([Browser or agent]) --> pages["/app/near pages<br/>/api/near/verify"]
   pages --> rpc["lib/near/rpc.ts<br/>server-only, retries,<br/>archival fallback"]
-  rpc --> chain[("NEAR testnet<br/>bound-v2, usdc")]
+  rpc --> chain[("NEAR testnet<br/>bound-v3, usdc")]
   pages --> record["lib/near/testnet.json + evidence<br/>copied from bound"]
 ```
 

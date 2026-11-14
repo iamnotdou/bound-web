@@ -63,7 +63,7 @@ export function Numbers({
       value: view ? formatMusdc(view.allocation) : null,
       unit: "mUSDC",
       text: view
-        ? "The insurance layer: slashable, pays what the reserve could not."
+        ? "The insurance: slashable, pays what the reserve could not cover."
         : missing,
     },
     {

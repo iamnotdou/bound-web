@@ -150,9 +150,9 @@ export function WhyNear() {
         variant="textBase"
         className="text-muted-foreground mt-4 max-w-xl text-pretty"
       >
-        A bond only means something if the agent cannot spend around it. On NEAR
-        that limit is a property of the agent&apos;s account, not a promise in
-        its code, and anyone can read it.
+        The agent cannot route around its spend meter. On NEAR that limit is a
+        property of the agent&apos;s account, not a promise in its code, and
+        anyone can read it.
       </Text>
     </Section>
   );

@@ -24,8 +24,7 @@ export default function KeyConfinement() {
   return (
     <DocArticle slug="key-confinement">
       <P>
-        A bond only means something if the agent cannot spend around it, and a
-        spend meter only matters if the agent cannot route around it. On NEAR,
+        A spend meter only matters if the agent cannot route around it. On NEAR,
         an account can hold function-call access keys that are limited to one
         receiver contract and a list of methods, and that can never attach a
         deposit. Bound uses that to confine the agent at the protocol level:

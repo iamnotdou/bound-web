@@ -127,9 +127,9 @@ export default function DocsOverview() {
       <P>
         Bound is the bond-and-insurance layer for AI agents on NEAR. You hire a
         contractor because they are bonded and insured, not because you trust
-        them personally. Bound gives an agent the same backing: the agent is
-        bonded by a USDC reserve the operator pre-funds and locks, and insured
-        by an auditor&apos;s slashable stake locked to that one certificate. A
+        them personally. Bound gives an agent the same backing: the operator
+        bonds it with a USDC reserve it pre-funds and locks, and an auditor
+        insures it with a slashable stake locked to that one certificate. A
         spend meter that the agent&apos;s NEAR key cannot get around limits what
         it can send.
       </P>

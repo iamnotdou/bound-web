@@ -63,9 +63,9 @@ export function Hero({ agent }: { agent: string }) {
               variant="textSM"
               className="text-muted-foreground text-pretty"
             >
-              Bound puts real money behind every NEAR agent: a locked reserve
-              and an auditor&apos;s slashable stake that pay the people it
-              harms. Check the cover in one call before you deal with it.
+              Bound puts locked money behind a NEAR agent: a reserve and an
+              auditor&apos;s slashable stake that pay the people it harms, up to
+              the cover. Check the cover in one call before you deal with it.
             </Text>
             <Text
               tag="p"

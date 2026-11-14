@@ -14,13 +14,13 @@ can challenge one.
 
 **The bond-and-insurance layer for AI agents on NEAR.** You hire a contractor
 because they are bonded and insured, not because you trust them personally.
-Bound gives AI agents on NEAR the same thing: real money behind the agent that
-pays the people it harms.
+Bound gives AI agents on NEAR the same thing: locked money behind the agent that
+pays the people it harms, up to its cover.
 
 Built at NEAR HACKATHON. Branch `near-hackathon` adds read-only pages for
 **Bound on NEAR**: a counterparty checks, before dealing with an AI agent's
-NEAR account, the cover behind it (a locked USDC reserve, the bond; an
-auditor's slashable stake, the insurance; plus a spend meter) and whether the
+NEAR account, the cover behind it (the bond: a locked USDC reserve; the
+insurance: an auditor's slashable stake), its spend meter, and whether the
 agent's keys are confined to the contract's `pay`. It is a surety bond plus
 staked cover, not a regulated insurance product. The contract, its tests, the demo and the main
 submission README live in the `bound` repo, branch `near-hackathon`

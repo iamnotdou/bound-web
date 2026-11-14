@@ -14,7 +14,12 @@ import {
   type NearConfig,
 } from "./format";
 import { BOUND_CONTRACT, NEAR_DEPLOYMENT, TOKEN_CONTRACT } from "./deployment";
-import { viewAccessKeys, viewAccount, viewFunction } from "./rpc";
+import {
+  type ReadCache,
+  viewAccessKeys,
+  viewAccount,
+  viewFunction,
+} from "./rpc";
 
 async function attempt<T>(fn: () => Promise<T>): Promise<T | null> {
   try {
@@ -116,13 +121,17 @@ export type Lookup<T> = { ok: true; value: T } | { ok: false };
 /** `{ok:true, value:null}` is "no certificate"; `{ok:false}` is "no answer". */
 export async function verifyAgent(
   agent: string,
+  cache?: ReadCache,
 ): Promise<Lookup<CertView | null>> {
   try {
     return {
       ok: true,
-      value: await viewFunction<CertView | null>(BOUND_CONTRACT, "verify", {
-        agent,
-      }),
+      value: await viewFunction<CertView | null>(
+        BOUND_CONTRACT,
+        "verify",
+        { agent },
+        cache,
+      ),
     };
   } catch {
     return { ok: false };
@@ -170,10 +179,11 @@ export async function getChallengesForCert(
 
 export async function getConfinement(
   agent: string,
+  cache?: ReadCache,
 ): Promise<Confinement | null> {
   const [keys, acc] = await Promise.all([
-    attempt(() => viewAccessKeys(agent)),
-    attempt(() => viewAccount(agent)),
+    attempt(() => viewAccessKeys(agent, cache)),
+    attempt(() => viewAccount(agent, cache)),
   ]);
   return keys ? confinement(keys, BOUND_CONTRACT, acc) : null;
 }

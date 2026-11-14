@@ -7,8 +7,9 @@
  *     -> 400 { error }   not a NEAR account id
  *     -> 502 { error }   testnet did not answer; no verdict rather than a wrong one
  *
- * `no-store`: a verdict is about now. A cached "deal" after the window opens
- * is the exact failure the certificate exists to prevent.
+ * `no-store`, on the response and on every chain read behind it: a verdict is
+ * about now. A cached "deal" after the window opens is the exact failure the
+ * certificate exists to prevent.
  */
 import { getConfinement, verifyAgent } from "@/lib/near/bound";
 import { BOUND_CONTRACT } from "@/lib/near/deployment";
@@ -32,8 +33,8 @@ export async function GET(
     );
   }
   const [lookup, confinement] = await Promise.all([
-    verifyAgent(agent),
-    getConfinement(agent),
+    verifyAgent(agent, "no-store"),
+    getConfinement(agent, "no-store"),
   ]);
   if (!lookup.ok) {
     return Response.json(

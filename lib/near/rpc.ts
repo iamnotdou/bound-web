@@ -46,11 +46,18 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * answer it waits (0.5 s, then 1.5 s) and tries again. A real node answer
  * (unknown tx, unknown account) is returned at once as an RpcError.
  */
+/**
+ * How a chain read may be reused. The default lets Next's data cache keep an
+ * answer for 15 s (stale-while-revalidate, so after an idle period the first
+ * answer can be older); `"no-store"` always asks the node.
+ */
+export type ReadCache = { revalidate: number } | "no-store";
+
 async function rpc<T>(
   method: string,
   params: unknown,
   urls: string[] = RPC,
-  cache: { revalidate: number } | "no-store" = { revalidate: 15 },
+  cache: ReadCache = { revalidate: 15 },
 ): Promise<T> {
   let last: unknown;
   for (const [pass, wait] of [0, 500, 1500].entries()) {
@@ -110,14 +117,20 @@ export async function viewFunction<T>(
   contractId: string,
   method: string,
   args: Record<string, unknown> = {},
+  cache?: ReadCache,
 ): Promise<T> {
-  const r = await rpc<{ result: number[] }>("query", {
-    request_type: "call_function",
-    finality: "final",
-    account_id: contractId,
-    method_name: method,
-    args_base64: Buffer.from(JSON.stringify(args)).toString("base64"),
-  });
+  const r = await rpc<{ result: number[] }>(
+    "query",
+    {
+      request_type: "call_function",
+      finality: "final",
+      account_id: contractId,
+      method_name: method,
+      args_base64: Buffer.from(JSON.stringify(args)).toString("base64"),
+    },
+    undefined,
+    cache,
+  );
   return decodeCallResult<T>(r.result);
 }
 
@@ -131,20 +144,36 @@ export interface AccountView {
   global_contract_account_id?: string | null;
 }
 
-export function viewAccount(accountId: string): Promise<AccountView> {
-  return rpc<AccountView>("query", {
-    request_type: "view_account",
-    finality: "final",
-    account_id: accountId,
-  });
+export function viewAccount(
+  accountId: string,
+  cache?: ReadCache,
+): Promise<AccountView> {
+  return rpc<AccountView>(
+    "query",
+    {
+      request_type: "view_account",
+      finality: "final",
+      account_id: accountId,
+    },
+    undefined,
+    cache,
+  );
 }
 
-export async function viewAccessKeys(accountId: string): Promise<AccessKey[]> {
-  const r = await rpc<{ keys: AccessKey[] }>("query", {
-    request_type: "view_access_key_list",
-    finality: "final",
-    account_id: accountId,
-  });
+export async function viewAccessKeys(
+  accountId: string,
+  cache?: ReadCache,
+): Promise<AccessKey[]> {
+  const r = await rpc<{ keys: AccessKey[] }>(
+    "query",
+    {
+      request_type: "view_access_key_list",
+      finality: "final",
+      account_id: accountId,
+    },
+    undefined,
+    cache,
+  );
   return r.keys;
 }
 

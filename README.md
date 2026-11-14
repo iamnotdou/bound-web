@@ -43,12 +43,12 @@ the app is prior Stellar work.
 The pages need no wallet and no key: every figure is a view call or
 access-key query the server makes to NEAR testnet over FastNEAR's JSON-RPC.
 
-| Route                          | What it shows                                                                                                                                                                                        |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/app/near`                    | verify an agent (deal or refuse, and why), every certificate on the contract, deployment check (on-chain `code_hash` equals the recorded build)                                                      |
-| `/app/near/cert/<id>`          | coverage (reserve + auditor stake), spend meter, confinement proof (the agent's access keys AND its account code hash), claims, claim window countdown, settlement waterfall, participants' balances |
-| `/app/near/run/<runId>`        | a committed `pnpm near:demo` run, each recorded transaction re-checked against an archival node                                                                                                      |
-| `GET /api/near/verify/<agent>` | the same verdict as JSON for agents and services                                                                                                                                                     |
+| Route                          | What it shows                                                                                                                                                                                                                           |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/app/near`                    | verify an agent (deal or refuse, and why), every certificate on the contract, deployment check (on-chain `code_hash` equals the recorded build)                                                                                         |
+| `/app/near/cert/<id>`          | coverage (reserve + auditor stake), spend meter, confinement proof (the agent's access keys AND its account code: code hash all ones, no global contract), claims, claim window countdown, settlement waterfall, participants' balances |
+| `/app/near/run/<runId>`        | a committed `pnpm near:demo` run, each recorded transaction re-checked against an archival node                                                                                                                                         |
+| `GET /api/near/verify/<agent>` | the same verdict as JSON for agents and services                                                                                                                                                                                        |
 
 ### Quickstart
 
@@ -56,8 +56,8 @@ From a clean clone (node 22, pnpm 10):
 
 1. `git clone -b near-hackathon https://github.com/iamnotdou/bound-web && cd bound-web`
 2. `pnpm install --frozen-lockfile`: exit 0.
-3. `pnpm typecheck && pnpm lint && pnpm test && pnpm build`: exit 0, 143
-   tests in 6 files; the build lists `/app/near`, `/app/near/cert/[certId]`,
+3. `pnpm typecheck && pnpm lint && pnpm test && pnpm build`: exit 0, 146
+   tests in 7 files; the build lists `/app/near`, `/app/near/cert/[certId]`,
    `/app/near/run/[runId]` and `/api/near/verify/[agent]` as dynamic.
 4. `pnpm start`: ready on port 3000.
 5. In a second terminal, `pnpm check:near http://localhost:3000`:

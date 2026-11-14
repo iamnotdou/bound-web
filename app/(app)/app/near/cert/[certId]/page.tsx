@@ -252,7 +252,13 @@ function CoverageCard({ view }: { view: CertView }) {
       icon={<ShieldCheck aria-hidden className="text-primary size-5" />}
     >
       <dl className="mt-4 space-y-3">
-        <Row label="Coverage (reserve + auditor stake)">
+        <Row
+          label={
+            view.status === "Verified"
+              ? "Coverage (reserve + auditor stake)"
+              : "Still held (not active coverage)"
+          }
+        >
           <Amount value={formatMusdc(c.victimCover)} />
         </Row>
         <Row label="Bound (spend meter, not a guarantee)">

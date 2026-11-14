@@ -2,5 +2,6 @@
 import run0 from "./near-demo-mwfgi0ij.json";
 import run1 from "./near-demo-mwfgqr0u.json";
 import run2 from "./near-demo-mwfiv11v.json";
+import run3 from "./near-demo-mwfnc6q8.json";
 
-export const EVIDENCE: readonly unknown[] = [run0, run1, run2];
+export const EVIDENCE: readonly unknown[] = [run0, run1, run2, run3];

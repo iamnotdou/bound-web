@@ -25,11 +25,7 @@ const bound = d.contracts.bound;
 const token = d.contracts.token;
 
 function Mono({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="font-address text-xs [overflow-wrap:anywhere]">
-      {children}
-    </span>
-  );
+  return <span className="wrap-anywhere">{children}</span>;
 }
 
 export default function DeploymentsPage() {
@@ -135,7 +131,7 @@ cd ../.. && shasum -a 256 target/near/bound/bound.wasm
         head={["Run", "Contract", "Started", "Transactions", "Result"]}
         rows={DEMO_RUNS.map((r) => [
           <A key="r" href={`/app/near/run/${r.runId}`}>
-            <span className="font-address">{r.runId}</span>
+            <span className="wrap-anywhere">{r.runId}</span>
           </A>,
           r.superseded ? (
             <span key="c">

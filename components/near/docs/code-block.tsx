@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { clsx } from "clsx";
+import { Button } from "@/components/navy/button";
 
 /**
- * A code block with a copy button. The text is passed as a plain string so
- * what is copied is exactly what is shown. Long lines scroll inside the
- * block, never the page.
+ * A code block in a muted panel with a copy button. The text is passed as a
+ * plain string so what is copied is exactly what is shown. Long lines scroll
+ * inside the block, never the page. The only place the code face is used.
  */
 export function CodeBlock({
   code,
@@ -30,34 +30,30 @@ export function CodeBlock({
 
   return (
     <div
-      className={cn(
-        "bg-card ring-foreground/10 not-first:mt-4 relative overflow-hidden rounded-lg ring-1",
-        className,
-      )}
+      className={clsx("bg-muted border-input my-8 min-w-0 border", className)}
     >
-      <div className="border-border text-muted-foreground flex h-9 items-center justify-between gap-2 border-b pl-3 pr-1 text-xs">
-        <span className="font-address truncate">{label ?? ""}</span>
-        <button
-          type="button"
+      <div className="border-border flex items-center justify-between gap-4 border-b py-2 pl-5 pr-2">
+        <span className="text-muted-foreground truncate text-xs uppercase">
+          {label ?? ""}
+        </span>
+        <Button
+          variant="muted"
+          size="xxs"
           onClick={() => {
             navigator.clipboard
               .writeText(code)
               .then(() => setCopied(true))
               .catch(() => setCopied(false));
           }}
-          aria-label={copied ? "Copied" : "Copy code"}
-          className="hover:text-foreground hover:bg-muted focus-visible:ring-ring inline-flex h-7 items-center gap-1.5 rounded-md px-2 transition-colors focus-visible:outline-none focus-visible:ring-2"
         >
-          {copied ? (
-            <Check aria-hidden className="text-primary size-3.5" />
-          ) : (
-            <Copy aria-hidden className="size-3.5" />
-          )}
-          <span>{copied ? "Copied" : "Copy"}</span>
-        </button>
+          {copied ? "Copied" : "Copy"}
+        </Button>
+        <span aria-live="polite" className="sr-only">
+          {copied ? "Copied to clipboard" : ""}
+        </span>
       </div>
-      <pre className="font-address overflow-x-auto p-3 text-xs leading-relaxed">
-        <code>{code}</code>
+      <pre className="font-code text-foreground my-0 overflow-x-auto border-0 bg-transparent px-5 py-4 text-sm leading-relaxed">
+        <code className="font-code">{code}</code>
       </pre>
     </div>
   );

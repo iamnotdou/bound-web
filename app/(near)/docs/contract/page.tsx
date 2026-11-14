@@ -378,30 +378,40 @@ const VIEWS: [string, string, string][] = [
   ],
 ];
 
+function Row({ k, children }: { k: string; children: React.ReactNode }) {
+  return (
+    <>
+      <dt className="text-muted-foreground pt-2 text-xs uppercase sm:col-span-1 sm:pt-0.5">
+        {k}
+      </dt>
+      <dd className="text-foreground my-0 pl-0 sm:col-span-3">{children}</dd>
+    </>
+  );
+}
+
 function MethodCard({ m }: { m: Method }) {
   return (
-    <div className="bg-card ring-foreground/10 rounded-lg p-4 ring-1">
-      <H3 id={`m-${m.name.split(" ")[0]}`}>
-        <span className="font-address">{m.name}</span>
+    <div className="border-border border-b py-8">
+      <H3 id={`m-${m.name.split(" ")[0]}`} className="mt-0">
+        {m.name}
       </H3>
-      <p className="font-address text-muted-foreground mt-1 text-xs [overflow-wrap:anywhere]">
+      <p className="text-muted-foreground mb-0 mt-2 text-sm wrap-anywhere">
         {m.sig}
       </p>
-      <dl className="mt-3 grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[7rem_1fr]">
-        <dt className="text-muted-foreground">Caller</dt>
-        <dd>{m.caller}</dd>
-        <dt className="text-muted-foreground">Deposit</dt>
-        <dd>{m.deposit}</dd>
-        <dt className="text-muted-foreground">Returns</dt>
-        <dd className="font-address text-xs leading-5">{m.returns}</dd>
-        <dt className="text-muted-foreground">Does</dt>
-        <dd>{m.does}</dd>
-        <dt className="text-muted-foreground">Errors</dt>
-        <dd className="flex flex-wrap gap-1">
-          {m.errors.map((e) => (
-            <C key={e}>{e}</C>
-          ))}
-        </dd>
+      <dl className="mb-0 mt-6 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-4 sm:gap-y-3">
+        <Row k="Caller">{m.caller}</Row>
+        <Row k="Deposit">{m.deposit}</Row>
+        <Row k="Returns">
+          <span className="wrap-anywhere">{m.returns}</span>
+        </Row>
+        <Row k="Does">{m.does}</Row>
+        <Row k="Errors">
+          <span className="flex flex-wrap gap-1">
+            {m.errors.map((e) => (
+              <C key={e}>{e}</C>
+            ))}
+          </span>
+        </Row>
       </dl>
     </div>
   );
@@ -438,11 +448,13 @@ export default function ContractReference() {
       </UL>
 
       {METHODS.map((g) => (
-        <section key={g.id} className="space-y-3">
+        <section key={g.id}>
           <H2 id={g.id}>{g.group}</H2>
-          {g.items.map((m) => (
-            <MethodCard key={m.name} m={m} />
-          ))}
+          <div className="border-border border-t">
+            {g.items.map((m) => (
+              <MethodCard key={m.name} m={m} />
+            ))}
+          </div>
         </section>
       ))}
 
@@ -466,7 +478,7 @@ export default function ContractReference() {
         head={["View", "Returns", "Notes"]}
         rows={VIEWS.map(([v, r, n]) => [
           <C key="v">{v}</C>,
-          <span key="r" className="font-address text-xs">
+          <span key="r" className="wrap-anywhere">
             {r}
           </span>,
           n,
@@ -546,7 +558,7 @@ export default function ContractReference() {
           ],
         ].map(([f, v, m]) => [
           <C key="f">{f}</C>,
-          <span key="v" className="font-address">
+          <span key="v" className="wrap-anywhere">
             {v}
           </span>,
           m,

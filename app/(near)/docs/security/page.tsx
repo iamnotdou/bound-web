@@ -79,10 +79,7 @@ export default function SecurityPage() {
         head={["Item", "Where it is checked"]}
         rows={CHECKLIST.map(([a, b]) => [
           a,
-          <span
-            key="b"
-            className="font-address text-xs [overflow-wrap:anywhere]"
-          >
+          <span key="b" className="wrap-anywhere">
             {b}
           </span>,
         ])}

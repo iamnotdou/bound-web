@@ -2,19 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { clsx } from "clsx";
+import { Text } from "@/components/navy/text";
 import { DOC_GROUPS, DOC_PAGES, docHref } from "@/lib/near/docs";
-import { cn } from "@/lib/utils";
 
 function NavList({ pathname }: { pathname: string }) {
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-8">
       {DOC_GROUPS.map((group) => (
         <div key={group}>
-          <p className="text-foreground/50 mb-1.5 px-2 text-xs font-medium uppercase tracking-wide">
+          <Text
+            tag="p"
+            variant="textXS"
+            className="text-muted-foreground uppercase"
+          >
             {group}
-          </p>
-          <ul className="space-y-0.5">
+          </Text>
+          <ul className="mt-3 flex flex-col gap-2">
             {DOC_PAGES.filter((p) => p.group === group).map((p) => {
               const href = docHref(p.slug);
               const active = pathname === href;
@@ -23,11 +27,11 @@ function NavList({ pathname }: { pathname: string }) {
                   <Link
                     href={href}
                     aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "focus-visible:ring-ring block rounded-md px-2 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
+                    className={clsx(
+                      "focus-visible:ring-primary/30 block rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-3",
                       active
-                        ? "bg-muted text-foreground font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+                        ? "text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {p.title}
@@ -43,8 +47,8 @@ function NavList({ pathname }: { pathname: string }) {
 }
 
 /**
- * Docs navigation: a sticky sidebar from `lg` up, a collapsible menu above
- * the content below that. Both read `DOC_PAGES`.
+ * Docs navigation in the side column: sticky from `lg` up, a collapsible
+ * hairline row above the article below that. Both read `DOC_PAGES`.
  */
 export function DocsNav() {
   const pathname = usePathname();
@@ -54,26 +58,43 @@ export function DocsNav() {
     <>
       <details
         key={pathname}
-        className="bg-card ring-foreground/10 group rounded-lg ring-1 lg:hidden"
+        className="border-border group border-y lg:hidden"
       >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-sm [&::-webkit-details-marker]:hidden">
+        <summary className="focus-visible:ring-primary/30 text-foreground hover:text-muted-foreground flex cursor-pointer select-none list-none items-center justify-between gap-6 py-4 focus-visible:outline-none focus-visible:ring-3 [&::-webkit-details-marker]:hidden">
           <span>
-            <span className="text-muted-foreground">Docs / </span>
-            <span className="text-foreground font-medium">{current}</span>
+            <Text
+              tag="span"
+              variant="textXS"
+              className="text-muted-foreground block uppercase"
+            >
+              Docs
+            </Text>
+            <Text
+              tag="span"
+              variant="textSM"
+              className="mt-1 block font-medium"
+            >
+              {current}
+            </Text>
           </span>
-          <ChevronDown
-            aria-hidden
-            className="text-muted-foreground size-4 transition-transform group-open:rotate-180"
-          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            aria-hidden="true"
+            className="text-faint-foreground size-4 shrink-0 transition-transform duration-300 group-open:rotate-45 motion-reduce:transition-none"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
         </summary>
-        <nav aria-label="Docs" className="border-border border-t p-2">
+        <nav aria-label="Docs" className="pb-8 pt-4">
           <NavList pathname={pathname} />
         </nav>
       </details>
-      <nav
-        aria-label="Docs"
-        className="sticky top-20 hidden max-h-[calc(100vh-6rem)] overflow-y-auto pb-8 lg:block"
-      >
+      <nav aria-label="Docs" className="hidden lg:sticky lg:top-28 lg:block">
         <NavList pathname={pathname} />
       </nav>
     </>

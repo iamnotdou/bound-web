@@ -12,6 +12,8 @@ export interface DocPage {
   /** "" for the docs index (`/docs`). */
   slug: string;
   title: string;
+  /** The word(s) of the title set in italic semibold in the page's h1. */
+  emphasis?: string;
   description: string;
   group: "Start" | "Protocol" | "Build" | "Reference";
 }
@@ -34,6 +36,7 @@ export const DOC_PAGES: readonly DocPage[] = [
   {
     slug: "how-it-works",
     title: "How it works",
+    emphasis: "works",
     description:
       "The certificate lifecycle: publish, accept, fund, attest, pay, halt, challenge, close_window and release.",
     group: "Protocol",
@@ -41,6 +44,7 @@ export const DOC_PAGES: readonly DocPage[] = [
   {
     slug: "key-confinement",
     title: "Key confinement",
+    emphasis: "confinement",
     description:
       "Why the agent holds only a pay-only function-call key and no code, and how to check that yourself.",
     group: "Protocol",
@@ -48,6 +52,7 @@ export const DOC_PAGES: readonly DocPage[] = [
   {
     slug: "trust-model",
     title: "Trust model and limits",
+    emphasis: "limits",
     description:
       "Who holds which role on testnet, what a certificate does not protect, and the known limitations.",
     group: "Protocol",
@@ -69,6 +74,7 @@ export const DOC_PAGES: readonly DocPage[] = [
   {
     slug: "mcp",
     title: "MCP server",
+    emphasis: "server",
     description:
       "Four tools that let an LLM agent verify a counterparty and pay through the metered pay method.",
     group: "Build",
@@ -83,6 +89,7 @@ export const DOC_PAGES: readonly DocPage[] = [
   {
     slug: "contract",
     title: "Contract reference",
+    emphasis: "reference",
     description:
       "Every public method and view of the Bound contract: arguments, caller, deposit and errors. Plus the mock USDC token.",
     group: "Reference",

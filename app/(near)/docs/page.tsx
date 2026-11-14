@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { clsx } from "clsx";
+import { Text } from "@/components/navy/text";
 import {
   A,
   C,
@@ -19,23 +21,39 @@ function Box({
   title,
   lines,
   accent,
+  className,
 }: {
   title: string;
   lines: string[];
   accent?: boolean;
+  className?: string;
 }) {
   return (
     <div
-      className={
-        accent
-          ? "bg-primary/5 ring-primary/30 rounded-lg p-3 ring-1"
-          : "bg-background ring-foreground/10 rounded-lg p-3 ring-1"
-      }
+      className={clsx(
+        "border-border flex flex-col border-b border-r p-6",
+        accent && "bg-inverse",
+        className,
+      )}
     >
-      <p className="text-foreground text-sm font-medium">{title}</p>
-      <ul className="text-muted-foreground mt-1 space-y-0.5 text-xs">
+      <Text
+        tag="p"
+        variant="textBase"
+        className={clsx(
+          "my-0 font-medium wrap-anywhere",
+          accent ? "text-inverse-foreground" : "text-foreground",
+        )}
+      >
+        {title}
+      </Text>
+      <ul
+        className={clsx(
+          "mt-3 mb-0 flex list-none flex-col gap-1 pl-0 text-sm *:my-0 *:pl-0",
+          accent ? "text-inverse-foreground/75" : "text-muted-foreground",
+        )}
+      >
         {lines.map((l) => (
-          <li key={l} className="font-address [overflow-wrap:anywhere]">
+          <li key={l} className="wrap-anywhere">
             {l}
           </li>
         ))}
@@ -44,32 +62,14 @@ function Box({
   );
 }
 
-/** Who calls what on the one Bound contract. Stacks on a phone. */
+/** Who calls what on the one Bound contract, as a hairline grid. */
 function ActorsDiagram() {
   return (
-    <figure className="bg-card ring-foreground/10 rounded-lg p-4 ring-1">
-      <div className="grid items-center gap-3 md:grid-cols-[1fr_1.2fr_1fr]">
-        <div className="space-y-3">
-          <Box
-            title="Operator"
-            lines={[
-              "publish",
-              "fund_reserve / fund_float",
-              "halt / resume",
-              "release_reserve",
-            ]}
-          />
-          <Box
-            title="Auditor"
-            lines={[
-              "stake (ft_transfer_call)",
-              "attest(allocation)",
-              "release_allocation",
-            ]}
-          />
-        </div>
+    <figure className="my-8">
+      <div className="border-border grid border-l border-t sm:grid-cols-2">
         <Box
           accent
+          className="sm:col-span-2"
           title={`Bound contract (${BOUND_CONTRACT})`}
           lines={[
             "certificate per agent",
@@ -80,23 +80,38 @@ function ActorsDiagram() {
             "coverage = reserve_locked + allocation",
           ]}
         />
-        <div className="space-y-3">
-          <Box
-            title="Agent (pay-only key, no code)"
-            lines={["accept", "pay(cert_id, to, amount)"]}
-          />
-          <Box
-            title="Counterparty / service"
-            lines={[
-              "verify(agent) + key and code check",
-              "challenge (Harm claim)",
-              "withdraw",
-            ]}
-          />
-          <Box title="Arbiter" lines={["resolve_by_arbiter"]} />
-        </div>
+        <Box
+          title="Operator"
+          lines={[
+            "publish",
+            "fund_reserve / fund_float",
+            "halt / resume",
+            "release_reserve",
+          ]}
+        />
+        <Box
+          title="Auditor"
+          lines={[
+            "stake (ft_transfer_call)",
+            "attest(allocation)",
+            "release_allocation",
+          ]}
+        />
+        <Box
+          title="Agent (pay-only key, no code)"
+          lines={["accept", "pay(cert_id, to, amount)"]}
+        />
+        <Box
+          title="Counterparty / service"
+          lines={[
+            "verify(agent) + key and code check",
+            "challenge (Harm claim)",
+            "withdraw",
+          ]}
+        />
+        <Box title="Arbiter" lines={["resolve_by_arbiter"]} />
       </div>
-      <figcaption className="text-muted-foreground mt-3 text-xs">
+      <figcaption className="text-muted-foreground mt-4 text-sm text-pretty">
         Every actor talks to one contract. Mock USDC ({TOKEN_CONTRACT}) enters
         only by <C>ft_transfer_call</C> and leaves only by <C>withdraw</C>;
         inside, only internal balances move. Anyone may call <C>close_window</C>{" "}

@@ -29,9 +29,9 @@ export function NearFooter() {
           <Link href="/docs" className="hover:text-foreground">
             Docs
           </Link>
-          <Link href="/deck" className="hover:text-foreground">
+          <a href="/deck" className="hover:text-foreground">
             Deck
-          </Link>
+          </a>
           <a
             href={NEAR_GITHUB_URL}
             target="_blank"

@@ -200,7 +200,7 @@ function Hero() {
             >
               Read the docs
             </Link>
-            <Link
+            <a
               className={cn(
                 buttonVariants({ size: "lg", variant: "ghost" }),
                 "text-sm",
@@ -208,7 +208,7 @@ function Hero() {
               href="/deck"
             >
               See the deck
-            </Link>
+            </a>
           </div>
           <p className="text-muted-foreground mt-4 text-sm">
             Read-only, no wallet needed. Every live figure on this page is a

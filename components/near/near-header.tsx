@@ -37,11 +37,19 @@ export function NearHeader() {
           aria-label="Bound on NEAR"
           className="flex min-w-0 items-center gap-3 sm:gap-5"
         >
-          {internal.map((l) => (
-            <Link key={l.href} href={l.href} className={linkClass}>
-              {l.label}
-            </Link>
-          ))}
+          {internal.map((l) =>
+            l.href === "/deck" ? (
+              // The deck is a static HTML file, not a Next route: a plain
+              // anchor avoids an RSC prefetch that would 404.
+              <a key={l.href} href={l.href} className={linkClass}>
+                {l.label}
+              </a>
+            ) : (
+              <Link key={l.href} href={l.href} className={linkClass}>
+                {l.label}
+              </Link>
+            ),
+          )}
           <a
             href={NEAR_GITHUB_URL}
             target="_blank"

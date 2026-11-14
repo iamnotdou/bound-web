@@ -134,6 +134,17 @@ export function docNeighbours(slug: string): {
   };
 }
 
+/**
+ * A page's own `openGraph` replaces the root one wholesale, images included,
+ * so every docs page points at the site's card (`app/opengraph-image.tsx`).
+ */
+const DOCS_OG_IMAGE = {
+  url: "/opengraph-image",
+  width: 1200,
+  height: 630,
+  alt: "Bound on NEAR — a surety bond for AI agents",
+} as const;
+
 export function docMetadata(slug: string): Metadata {
   const page = getDocPage(slug);
   const title =
@@ -151,11 +162,13 @@ export function docMetadata(slug: string): Metadata {
       url,
       siteName: "Bound on NEAR",
       type: "article",
+      images: [DOCS_OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: page.description,
+      images: [DOCS_OG_IMAGE.url],
     },
   };
 }

@@ -1,14 +1,14 @@
-import { OG_SIZE, renderOgImage } from "@/lib/og-image";
+import { NEAR_OG_HEADLINE, OG_SIZE, renderOgImage } from "@/lib/og-image";
 
-export const alt =
-  "Bound on NEAR: know an agent's worst case before you deal with it";
+export const alt = "Bound on NEAR: bonded and insured AI agents";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
 export default function NearHomeOpengraphImage() {
   return renderOgImage(
-    "A surety bond for NEAR agents: a pre-funded reserve, an auditor's slashable stake and a spend meter, live on NEAR testnet.",
+    "The bond-and-insurance layer for AI agents on NEAR: a locked reserve and an auditor's slashable stake, live on NEAR testnet.",
     "Built at NEAR HACKATHON",
     "navy",
+    NEAR_OG_HEADLINE,
   );
 }

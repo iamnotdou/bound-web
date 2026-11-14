@@ -13,7 +13,7 @@ export function Cta() {
         tone="inverse"
         title={
           <>
-            Look up an agent <em>before it pays you</em>
+            Check the cover <em>before it pays you</em>
           </>
         }
         text="Read-only, no wallet needed."

@@ -4,10 +4,11 @@ import { NEAR_ONLY } from "@/lib/site";
 // The NEAR site follows Navy's copy rules (no em dashes); the main site
 // keeps its original strings.
 const title = NEAR_ONLY
-  ? "Bound on NEAR: a surety bond for AI agents"
+  ? "Bound on NEAR: bonded and insured AI agents"
   : "Bound on NEAR — a surety bond for AI agents";
-const description =
-  "Know a NEAR agent's worst case before you deal with it: a pre-funded reserve, an auditor's slashable stake, and a spend meter its function-call key cannot route around. Read live from NEAR testnet, no wallet needed.";
+const description = NEAR_ONLY
+  ? "Check a NEAR agent's bond and cover before you deal with it: a locked reserve, an auditor's slashable stake, and a spend meter its function-call key cannot route around. Read live from NEAR testnet, no wallet needed."
+  : "Know a NEAR agent's worst case before you deal with it: a pre-funded reserve, an auditor's slashable stake, and a spend meter its function-call key cannot route around. Read live from NEAR testnet, no wallet needed.";
 
 export const metadata: Metadata = {
   title: {

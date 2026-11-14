@@ -143,15 +143,16 @@ export function WhyNear() {
         variant="displayMD"
         className="text-foreground max-w-xl tracking-tight text-balance"
       >
-        The account model does <em>half the enforcement</em>
+        The agent&apos;s key can <em>only call pay</em>
       </Text>
       <Text
         tag="p"
         variant="textBase"
         className="text-muted-foreground mt-4 max-w-xl text-pretty"
       >
-        On NEAR the confinement is a property of the agent&apos;s account, not a
-        promise in its code, and anyone can read it.
+        A bond only means something if the agent cannot spend around it. On NEAR
+        that limit is a property of the agent&apos;s account, not a promise in
+        its code, and anyone can read it.
       </Text>
     </Section>
   );

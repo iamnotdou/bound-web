@@ -4,8 +4,8 @@ import { Text } from "@/components/navy/text";
 /** Navy's StatusPages layout: heading on the left, a hairline list right. */
 const problems = [
   {
-    title: "Counterparties are asked to trust",
-    text: "A service that sells to an agent, or extends it credit, has nothing to check. “My agent is safe” cannot be sized and cannot be recovered against.",
+    title: "No one to hold liable",
+    text: "A service that sells to an agent, or extends it credit, has nothing to check and no one to recover from. “My agent is safe” cannot be sized and cannot be claimed against.",
   },
   {
     title: "Keys do whatever they can",
@@ -28,7 +28,7 @@ export function Problem() {
             variant="displayMD"
             className="text-foreground tracking-tight text-balance"
           >
-            An agent with a key is an <em>unpriced risk</em>
+            You cannot trust an agent <em>you cannot sue</em>
           </Text>
         </div>
         <dl className="border-border border-b lg:col-span-5">

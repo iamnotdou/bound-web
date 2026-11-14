@@ -46,8 +46,8 @@ export function Hero({ agent }: { agent: string }) {
               variant="displayLG"
               className="text-inverse-foreground mt-6 max-w-2xl tracking-tight text-balance"
             >
-              Know a NEAR agent&apos;s <em>worst case</em> before you deal with
-              it
+              Trust AI agents the way you trust a contractor: <em>bonded</em>{" "}
+              and <em>insured</em>.
             </Text>
           </div>
         </Wrapper>
@@ -63,24 +63,26 @@ export function Hero({ agent }: { agent: string }) {
               variant="textSM"
               className="text-muted-foreground text-pretty"
             >
-              Bound is a surety bond for AI agents. It replaces &ldquo;can I
-              trust this agent?&rdquo; with a number anyone can look up: a
-              pre-funded reserve plus an auditor&apos;s slashable stake, behind
-              an agent account whose only key can call nothing but a metered{" "}
-              <span className="text-foreground font-medium">pay</span>.
+              Bound puts real money behind every NEAR agent: a locked reserve
+              and an auditor&apos;s slashable stake that pay the people it
+              harms. Check the cover in one call before you deal with it.
             </Text>
             <Text
               tag="p"
               variant="textXS"
               className="text-muted-foreground mt-3 text-pretty"
             >
+              The agent&apos;s only key can call nothing but a metered{" "}
+              <span className="text-foreground font-medium">pay</span>.
               Read-only, no wallet needed. Every live figure on this page is a
               view call, refreshed about every 15 seconds.
             </Text>
           </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 lg:col-span-4 lg:justify-self-end">
             <Button asChild size="sm" className="w-fit">
-              <Link href={`/app/near?agent=${agent}`}>Verify an agent</Link>
+              <Link href={`/app/near?agent=${agent}`}>
+                Check an agent&apos;s cover
+              </Link>
             </Button>
             <ArrowLink asChild>
               <Link href="/docs">Read the docs</Link>

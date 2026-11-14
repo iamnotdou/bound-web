@@ -17,10 +17,9 @@ import { NEAR_RUN_ID } from "@/lib/near/links";
 // same for every visitor, so a short-lived cached shell is honest.
 export const revalidate = 15;
 
-const title =
-  "Bound on NEAR: know an agent's worst case before you deal with it";
+const title = "Bound on NEAR: bonded and insured AI agents";
 const description =
-  "A surety bond for NEAR agents: a pre-funded reserve, an auditor's slashable stake, and a spend meter the agent's function-call key cannot route around. Live on NEAR testnet, checkable with a view call.";
+  "The bond-and-insurance layer for AI agents on NEAR: a locked reserve and an auditor's slashable stake pay the people an agent harms, and one view call shows the cover. Live on NEAR testnet.";
 
 export const metadata: Metadata = {
   title: { absolute: title },

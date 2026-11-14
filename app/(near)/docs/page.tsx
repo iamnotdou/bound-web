@@ -125,19 +125,23 @@ export default function DocsOverview() {
   return (
     <DocArticle slug="">
       <P>
-        Bound lets a counterparty check what stands behind an AI agent before
-        dealing with it. On NEAR, three things back the agent: a USDC reserve
-        the operator pre-funds, an auditor&apos;s slashable stake locked to that
-        one certificate, and a spend meter that the agent&apos;s NEAR key cannot
-        get around.
+        Bound is the bond-and-insurance layer for AI agents on NEAR. You hire a
+        contractor because they are bonded and insured, not because you trust
+        them personally. Bound gives an agent the same backing: the agent is
+        bonded by a USDC reserve the operator pre-funds and locks, and insured
+        by an auditor&apos;s slashable stake locked to that one certificate. A
+        spend meter that the agent&apos;s NEAR key cannot get around limits what
+        it can send.
       </P>
       <P>
         A single view call, <C>verify(agent)</C>, returns the agent&apos;s
         certificate with <C>coverage = reserve_locked + allocation</C>. That is
-        the most that victims upheld by the arbiter can recover in total. If the
-        agent causes harm, a claim window opens, and one atomic settlement pays
-        the victim from the reserve first and then from the auditor&apos;s slash
-        for whatever the reserve could not cover.
+        the cover: the most that victims upheld by the arbiter can recover in
+        total. If the agent causes harm, the victim files a claim, a claim
+        window opens, and one atomic settlement pays the victim from the reserve
+        first and then from the auditor&apos;s slash for whatever the reserve
+        could not cover. It is a surety bond plus staked cover, not a regulated
+        insurance product.
       </P>
 
       <Note tone="warn" title="Testnet only">
@@ -215,7 +219,7 @@ export default function DocsOverview() {
         </li>
       </UL>
 
-      <H2 id="numbers">The number to rely on</H2>
+      <H2 id="numbers">The number to rely on: the cover</H2>
       <P>
         <C>coverage</C>, not <C>bound</C>. <C>bound</C> is a spend meter:{" "}
         <C>spent</C> is gross routed flow and can pass the bound by refilling

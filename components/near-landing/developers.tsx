@@ -85,7 +85,7 @@ export function Developers() {
         variant="displayMD"
         className="text-foreground max-w-xl tracking-tight text-balance"
       >
-        Check a certificate <em>before you serve</em> an agent
+        Check the cover <em>before you serve</em> an agent
       </Text>
       <Text
         tag="p"
@@ -94,7 +94,7 @@ export function Developers() {
       >
         The <Term>@bound/near</Term> package is a typed client for the contract,
         a command line and an MCP server, so a service, a script or an LLM agent
-        can ask the same question this site asks.
+        can check the same bond and cover this site shows.
       </Text>
     </Section>
   );

@@ -73,7 +73,7 @@ export function Proof({
             variant="displayMD"
             className="text-foreground tracking-tight text-balance"
           >
-            Checked, <em>not trusted</em>
+            The cover is <em>on chain</em>, and so is the payout
           </Text>
         </div>
         <dl className="border-border border-b lg:col-span-5">

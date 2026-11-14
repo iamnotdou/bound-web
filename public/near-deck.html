@@ -4,10 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bound on NEAR: deck</title>
-<meta name="description" content="Bound on NEAR: a surety bond for AI agents. Built at NEAR HACKATHON." />
+<meta name="description" content="Bound on NEAR: the bond-and-insurance layer for AI agents on NEAR. Built at NEAR HACKATHON." />
 <meta name="theme-color" content="#f8f8fd" />
 <meta property="og:title" content="Bound on NEAR: deck" />
-<meta property="og:description" content="Know a NEAR agent's worst case before you deal with it. Built at NEAR HACKATHON." />
+<meta property="og:description" content="Trust AI agents the way you trust a contractor: bonded and insured. Built at NEAR HACKATHON." />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Bound on NEAR" />
 <meta property="og:url" content="https://near.boundprotocol.dev/deck" />
@@ -254,9 +254,9 @@
       </div>
       <div class="wrap body grid" style="padding-block:clamp(1rem,3vh,2rem)">
         <p class="lead main anim">
-          A surety bond for AI agents on NEAR. <strong>Know an agent's worst case
-          before you deal with it</strong>, with a number anyone can read in one
-          view call.
+          The bond-and-insurance layer for AI agents on NEAR. <strong>Trust an
+          agent the way you trust a contractor: bonded and insured</strong>, with
+          the cover anyone can read in one view call.
         </p>
       </div>
       <div class="wrap foot">
@@ -272,11 +272,12 @@
       <div class="wrap body grid">
         <p class="label side"><span aria-hidden="true">///</span> The problem</p>
         <div class="main">
-          <h2 class="heading anim">An agent with a key<br />is an <em>unpriced risk</em></h2>
+          <h2 class="heading anim">You cannot trust an agent<br /><em>you cannot sue</em></h2>
           <p class="lead anim">
             Services are asked to sell to agents, and to extend them credit, on
             <strong>&ldquo;trust me, my agent is safe.&rdquo;</strong> Nobody can
-            check that sentence, size it, or recover against it.
+            check that sentence, size it, or claim against it. A contractor
+            without a bond or insurance would not get the job.
           </p>
           <p class="lead anim">
             A prompt-injected agent spends whatever its key allows, and when harm
@@ -294,20 +295,21 @@
       <div class="wrap body grid">
         <p class="label side"><span aria-hidden="true">///</span> The solution</p>
         <div class="main">
-          <h2 class="heading anim">One certificate, <em>three numbers</em> you can check</h2>
+          <h2 class="heading anim">Bonded and insured, <em>in one certificate</em></h2>
           <p class="lead anim">
+            The reserve is the bond, the auditor's stake is the insurance.
             <span class="accent">Coverage = reserve + auditor stake.</span> The bound is a
             meter, not a guarantee.
           </p>
         </div>
         <ul class="full cards c3 anim">
           <li class="card">
-            <p class="small">Reserve</p>
+            <p class="small">Reserve, the bond</p>
             <div><p class="title">Locked in the contract</p>
             <p>Pre-funded by the operator and <b>locked in the contract</b>. Arbitrated victims are paid from it first.</p></div>
           </li>
           <li class="card">
-            <p class="small">Slashable stake</p>
+            <p class="small">Slashable stake, the insurance</p>
             <div><p class="title">Its own capital</p>
             <p>An auditor locks <b>its own capital</b> behind the certificate and is slashed for what the reserve could not cover.</p></div>
           </li>
@@ -328,7 +330,7 @@
       <div class="wrap body grid">
         <p class="label side"><span aria-hidden="true">///</span> How it works</p>
         <div class="main">
-          <h2 class="heading anim">Publish, confine, pay, claim, <em>settle</em></h2>
+          <h2 class="heading anim">Bond, insure, verify, <em>claim</em></h2>
         </div>
         <div class="full anim">
           <table>
@@ -341,7 +343,7 @@
             </tbody>
           </table>
           <p class="lead note">
-            Settlement waterfall, run <strong>mwfnc6q8</strong>:
+            Payout waterfall, run <strong>mwfnc6q8</strong>:
             <span class="accent num">120 = 100 reserve + 20 slash</span>. The
             auditor's other 180 was not touched.
           </p>
@@ -357,7 +359,7 @@
       <div class="wrap body grid">
         <p class="label side"><span aria-hidden="true">///</span> Why NEAR</p>
         <div class="main">
-          <h2 class="heading anim">The account model does <em>half the enforcement</em></h2>
+          <h2 class="heading anim">The agent's key can <em>only call pay</em></h2>
         </div>
         <ul class="full cards c4 anim">
           <li class="card">
@@ -389,7 +391,7 @@
         <p class="label side"><span aria-hidden="true">///</span> Demo and proof</p>
         <div class="main">
           <p class="small anim">Run mwfnc6q8</p>
-          <h2 class="heading anim" style="margin-top:.75rem">Recorded, then <em>re-checked</em> against the chain</h2>
+          <h2 class="heading anim" style="margin-top:.75rem">The payout, recorded and <em>re-checked</em> on chain</h2>
         </div>
         <div class="full anim">
           <table>
@@ -414,7 +416,7 @@
       <div class="wrap body grid">
         <p class="label side"><span aria-hidden="true">///</span> Developer surface</p>
         <div class="main">
-          <h2 class="heading anim">Ask the <em>same question</em> from anywhere</h2>
+          <h2 class="heading anim">Check the cover <em>from anywhere</em></h2>
         </div>
         <ul class="full hairline anim">
           <li>
@@ -450,7 +452,7 @@
       <div class="wrap body grid">
         <p class="label side"><span aria-hidden="true">///</span> What was built in the window</p>
         <div class="main">
-          <h2 class="heading anim">From zero to a <em>settled claim</em> on testnet</h2>
+          <h2 class="heading anim">From zero to a <em>paid claim</em> on testnet</h2>
         </div>
         <div class="full anim">
           <table>
@@ -475,12 +477,13 @@
       <div class="wrap body grid">
         <p class="label side"><span aria-hidden="true">///</span> The honest slide</p>
         <div class="main">
-          <h2 class="heading anim">Trust model and <em>limits</em></h2>
+          <h2 class="heading anim">What the bond and the cover <em>do not promise</em></h2>
         </div>
         <div class="full anim">
           <table>
             <thead><tr><th scope="col">A claim we could have made</th><th scope="col">What is actually true</th></tr></thead>
             <tbody>
+              <tr><td class="strong">It is insurance</td><td>a <b>surety bond plus staked cover</b>, paid only on upheld claims up to the coverage; not a regulated insurance product</td></tr>
               <tr><td class="strong">It moves real money</td><td><b>testnet only</b>, with an open-mint test token</td></tr>
               <tr><td class="strong">Claims are decided trustlessly</td><td>arithmetic proofs are; a harm claim is decided by <b>one arbiter account, held by the author</b></td></tr>
               <tr><td class="strong">The contract is immutable</td><td>its deployer key is still on it; <b>the code-hash check</b> is how you see it has not changed</td></tr>
@@ -507,7 +510,7 @@
             Deploy to <strong>mainnet</strong> with the deployer key removed. Hand the
             arbiter role to a <strong>Sputnik DAO</strong>. Let operators fund reserves
             through <strong>NEAR Intents</strong>. The ask: a first service willing to
-            gate its agents on a certificate.
+            gate its agents on a bonded and insured certificate.
           </p>
         </div>
       </div>

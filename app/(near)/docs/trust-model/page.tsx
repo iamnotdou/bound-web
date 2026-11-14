@@ -29,6 +29,13 @@ export default function TrustModelPage() {
           treasury and the full-access keys of the Bound and mock USDC
           contracts.
         </p>
+        <p>
+          &ldquo;Bonded and insured&rdquo; is an analogy. Bound is a surety bond
+          (the operator&apos;s reserve) plus staked cover (the auditor&apos;s
+          allocation), paid only to victims whose claim the arbiter upholds, up
+          to the coverage. It is not a regulated insurance product and does not
+          promise that every loss is covered.
+        </p>
       </Note>
 
       <H2 id="roles">Trusted roles</H2>

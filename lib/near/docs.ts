@@ -23,7 +23,7 @@ export const DOC_PAGES: readonly DocPage[] = [
     slug: "",
     title: "Overview",
     description:
-      "What Bound is on NEAR: a pre-funded reserve, an auditor's slashable stake and a spend meter behind one agent account.",
+      "The bond-and-insurance layer for AI agents on NEAR: a locked reserve, an auditor's slashable stake and a spend meter behind one agent account.",
     group: "Start",
   },
   {
@@ -149,7 +149,7 @@ const DOCS_OG_IMAGE = {
   url: "/opengraph-image",
   width: 1200,
   height: 630,
-  alt: "Bound on NEAR: a surety bond for AI agents",
+  alt: "Bound on NEAR: bonded and insured AI agents",
 } as const;
 
 export function docMetadata(slug: string): Metadata {

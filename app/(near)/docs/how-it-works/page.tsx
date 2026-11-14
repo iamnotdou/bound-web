@@ -29,7 +29,10 @@ export default function HowItWorks() {
   return (
     <DocArticle slug="how-it-works">
       <P>
-        One contract holds the whole protocol. Tokens enter only through NEP-141{" "}
+        Bond, insure, verify, claim: the operator bonds the agent with a locked
+        reserve, an auditor insures it with a slashable stake, a counterparty
+        verifies the cover, and a harmed party claims against it. One contract
+        holds the whole protocol. Tokens enter only through NEP-141{" "}
         <C>ft_transfer_call</C> and are credited to an internal balance; inside
         the protocol only internal balances move (reserve, float, stake,
         allocation, bonds, payouts); tokens leave only by <C>withdraw</C>.

@@ -26,12 +26,12 @@ const steps: { title: string; text: React.ReactNode }[] = [
     text: "Attests the certificate by locking part of its own stake behind it, and earns the premium, less the 10% protocol fee.",
   },
   {
-    title: "Reserve",
+    title: "Reserve (the bond)",
     text: "Pre-funded by the operator and locked in the contract. Arbitrated victims are paid from it first.",
   },
   {
-    title: "Slashable stake",
-    text: "The auditor's allocation tops up what the reserve could not cover. Coverage is reserve plus allocation.",
+    title: "Slashable stake (the insurance)",
+    text: "The auditor's allocation pays what the reserve could not cover. Coverage is reserve plus allocation.",
   },
   {
     title: "Spend meter",
@@ -74,16 +74,19 @@ export function HowItWorks() {
         variant="displayMD"
         className="text-foreground max-w-xl tracking-tight text-balance"
       >
-        Three parties, one certificate, a <em>fixed waterfall</em>
+        Bond it, insure it, verify it, <em>claim against it</em>
       </Text>
       <Text
         tag="p"
         variant="textBase"
         className="text-muted-foreground mt-4 max-w-xl text-pretty"
       >
-        One NEAR contract holds the money and the rules. The arithmetic fraud
-        proofs are checked by the contract itself; a harm claim is decided by a
-        disclosed arbiter.
+        The operator bonds its agent with a locked reserve. An auditor insures
+        it with its own slashable stake. A counterparty verifies the cover in
+        one view call, and a harmed party claims against it. One NEAR contract
+        holds the money and the rules; the arithmetic fraud proofs are checked
+        by the contract itself, and a harm claim is decided by a disclosed
+        arbiter.
       </Text>
       <div className="mt-16 grid gap-x-10 gap-y-24 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((step) => (

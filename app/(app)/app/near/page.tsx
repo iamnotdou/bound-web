@@ -56,8 +56,9 @@ export const revalidate = 15;
 
 export const metadata: Metadata = {
   title: { absolute: "Bound on NEAR testnet" },
-  description:
-    "Verify a NEAR agent's Bound certificate before dealing with it: reserve, auditor stake, spend meter and settlement, read live from testnet with no wallet.",
+  description: NEAR_ONLY
+    ? "Check a NEAR agent's bond and cover before dealing with it: the locked reserve, the auditor's slashable stake, the spend meter and any payout, read live from testnet with no wallet."
+    : "Verify a NEAR agent's Bound certificate before dealing with it: reserve, auditor stake, spend meter and settlement, read live from testnet with no wallet.",
 };
 
 const inlineLink =
@@ -261,7 +262,7 @@ function Hero({ agent }: { agent: string }) {
           variant="displayLG"
           className="text-inverse-foreground mt-6 max-w-3xl tracking-tight text-balance"
         >
-          Know an agent&apos;s <em>worst case</em> before you deal with it
+          Check an agent&apos;s <em>bond and cover</em> before you deal with it
         </Text>
       </GradientHero>
       <section aria-label="Verify an agent">
@@ -272,9 +273,10 @@ function Hero({ agent }: { agent: string }) {
               variant="textBase"
               className="text-muted-foreground mb-12 max-w-xl text-pretty"
             >
-              A Bound certificate puts a pre-funded reserve and an
-              auditor&apos;s slashable stake behind a NEAR agent account, and
-              the agent&apos;s only key can call nothing but the contract&apos;s
+              A Bound certificate bonds a NEAR agent with a reserve its operator
+              locked, and insures it with an auditor&apos;s slashable stake.
+              Together they are the cover that pays upheld claims. The
+              agent&apos;s only key can call nothing but the contract&apos;s
               metered <code className="text-foreground font-sans">pay</code>.
               Every figure below is a view call to{" "}
               <AccountLink id={BOUND_CONTRACT} /> made by this server when the
@@ -293,7 +295,7 @@ function Hero({ agent }: { agent: string }) {
                 variant="textBase"
                 className="text-foreground font-medium"
               >
-                Verify an agent
+                Check an agent&apos;s cover
               </Text>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <label htmlFor="agent" className="sr-only">

@@ -28,11 +28,19 @@ const PALETTES = {
   },
 } as const;
 
+/** The original card headline; NEAR-only cards pass their own. */
+const DEFAULT_HEADLINE = "Know your worst case before you transact";
+
+/** The NEAR site's card headline (see submission MESSAGING.md). */
+export const NEAR_OG_HEADLINE =
+  "Trust AI agents the way you trust a contractor: bonded and insured.";
+
 /** The shared social card. Each segment passes its own subtitle and footer. */
 export function renderOgImage(
   subtitle: string,
   footer: string,
   theme: keyof typeof PALETTES = "default",
+  headline: string = DEFAULT_HEADLINE,
 ) {
   const c = PALETTES[theme];
   return new ImageResponse(
@@ -81,7 +89,7 @@ export function renderOgImage(
             maxWidth: 950,
           }}
         >
-          Know your worst case before you transact
+          {headline}
         </div>
         <div style={{ fontSize: 30, color: c.sub, maxWidth: 900 }}>
           {subtitle}

@@ -55,7 +55,7 @@ export function Numbers({
       value: view ? formatMusdc(view.reserve_locked) : null,
       unit: "mUSDC",
       text: view
-        ? "Pre-funded by the operator and locked in the contract."
+        ? "The bond: pre-funded by the operator and locked in the contract."
         : missing,
     },
     {
@@ -63,7 +63,7 @@ export function Numbers({
       value: view ? formatMusdc(view.allocation) : null,
       unit: "mUSDC",
       text: view
-        ? "Slashable; tops up what the reserve could not cover."
+        ? "The insurance layer: slashable, pays what the reserve could not."
         : missing,
     },
     {
@@ -188,7 +188,9 @@ export function Numbers({
             </div>
             <div className="sm:justify-self-end">
               <ArrowLink asChild>
-                <Link href={`/app/near?agent=${agent}`}>Verify this agent</Link>
+                <Link href={`/app/near?agent=${agent}`}>
+                  Check this agent&apos;s cover
+                </Link>
               </ArrowLink>
             </div>
           </dl>
@@ -201,7 +203,7 @@ export function Numbers({
         variant="displayMD"
         className="text-foreground max-w-xl tracking-tight text-balance"
       >
-        Read from the chain, <em>just now</em>
+        The cover behind this agent, <em>read just now</em>
       </Text>
       <Text
         tag="p"

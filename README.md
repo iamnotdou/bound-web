@@ -95,7 +95,8 @@ the author's direction.
 
 Limitations: read-only (no wallet, no writes); testnet only with mock USDC;
 no hosted copy yet; demo runs `mwfgi0ij` and `mwfgqr0u` ran on the
-superseded `bound-v1` contract and are labeled as such; transactions older
+superseded `bound-v1` contract and run `mwfiv11v` on the superseded
+`bound-v2`, and all three are labeled as such; transactions older
 than a few days are read from an archival node, and a rate-limited IP can see
 "could not be fetched just now", which is labeled as no answer, not as a
 mismatch. The trust model of the contract (author-held arbiter, treasury and

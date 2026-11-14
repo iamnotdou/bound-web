@@ -36,7 +36,7 @@ const CHECKLIST: [string, string][] = [
   ],
   [
     "every mutating method needs 1 yocto or its storage deposit, except pay, ft_on_transfer and the private callback",
-    "accept_without_yocto_rejected, *_deposit_too_small_rejected",
+    "accept_without_yocto_rejected, storage_deposit_too_small_rejected, publish_without_deposit_rejected, challenge_without_deposit_rejected",
   ],
   [
     "roles checked with predecessor_account_id, never signer_account_id",
@@ -67,12 +67,11 @@ export default function SecurityPage() {
       <P>
         The contract was reviewed before submission in several rounds. Every
         contract fix has a regression test in{" "}
-        <A href={SOURCE.tests}>src/tests.rs</A> that failed on the reviewed code
-        and passes now. The full write-up is{" "}
-        <A href={SOURCE.design}>DESIGN.md</A>, section 10 (review fixes) and
-        section 6 (checklist). The test suite is 120 unit tests in{" "}
-        <C>tests.rs</C>, 12 in <C>settle.rs</C>, 2 near-sandbox tests and 4 for
-        the mock token.
+        <A href={SOURCE.tests}>src/tests.rs</A> that pins the fixed behaviour.
+        The full write-up is <A href={SOURCE.design}>DESIGN.md</A>, section 10
+        (review fixes) and section 6 (checklist). The test suite is 120 unit
+        tests in <C>tests.rs</C>, 12 in <C>settle.rs</C>, 2 near-sandbox tests
+        and 4 for the mock token.
       </P>
 
       <H2 id="checklist">Checklist</H2>

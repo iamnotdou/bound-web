@@ -42,9 +42,12 @@ export default function KeyConfinement() {
         <li>It deletes its full-access key.</li>
       </OL>
       <P>
-        <C>pay</C> is the only mutating method that takes no deposit, which is
-        what lets a function-call key call it. Every other mutating method needs
-        1 yoctoNEAR or a storage deposit, so the key cannot reach it.
+        The key&apos;s method list is <C>[&quot;pay&quot;]</C>, so NEAR refuses
+        any other method on Bound, and a function-call key can never attach the
+        1 yoctoNEAR the other mutating methods require. <C>pay</C> takes no
+        deposit, which is why this key can call it at all. (
+        <C>ft_on_transfer</C> and <C>on_withdraw</C> also take none, but only
+        the token and the contract itself may call them.)
       </P>
       <P>What NEAR refuses, as recorded in act 4 of the demo:</P>
       <Table

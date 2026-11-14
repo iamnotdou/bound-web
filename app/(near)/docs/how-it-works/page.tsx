@@ -39,8 +39,9 @@ export default function HowItWorks() {
       <H2 id="lifecycle">The lifecycle at a glance</H2>
       <OL>
         <li>
-          <strong>Register.</strong> Every actor calls <C>storage_deposit</C> on
-          Bound (0.01 NEAR).
+          <strong>Register.</strong> Every account that holds a balance on Bound
+          (operator, auditor, challenger, service) calls <C>storage_deposit</C>{" "}
+          (0.01 NEAR). The agent does not need to.
         </li>
         <li>
           <strong>Stake.</strong> The auditor sends mock USDC with{" "}

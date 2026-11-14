@@ -26,7 +26,8 @@ export default function TrustModelPage() {
       >
         <p>
           One person, the author, holds every trusted role: the arbiter, the
-          treasury and the contract&apos;s full-access key.
+          treasury and the full-access keys of the Bound and mock USDC
+          contracts.
         </p>
       </Note>
 
@@ -49,7 +50,7 @@ export default function TrustModelPage() {
           [
             "Contract key",
             <C key="k">{BOUND}</C>,
-            "Keeps the deployer's full-access key during judging so a bug can be fixed by deploying to a fresh account. That key could replace the code.",
+            "Keeps the deployer's full-access keys on the Bound and mock USDC accounts during judging so a bug can be fixed by deploying to a fresh account. Those keys could replace the code.",
             "Delete the key or hand it to a DAO.",
           ],
         ]}

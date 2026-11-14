@@ -191,7 +191,7 @@ for (const p of payEvents(logs)) {
         </li>
         <li>
           <C>view(provider, contractId, method, args)</C>: a view call at{" "}
-          <C>final</C>, retried 3 times (<C>withRetry</C>).
+          <C>final</C>, tried up to 3 times (<C>withRetry</C>).
         </li>
         <li>
           <C>accountCodeOf</C>, <C>codeHashOf</C>, <C>chainNow</C> (final block

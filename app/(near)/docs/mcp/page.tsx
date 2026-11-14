@@ -137,7 +137,8 @@ export default function McpPage() {
         to the allowlisted service, was refused with <C>FloatExceeded</C> for
         500 and with <C>RecipientNotAllowed</C> for the treasury,{" "}
         <C>near_check_agent_keys</C> reported it confined, and its float dropped
-        by exactly 1. Every step has a transaction. No language model runs in
+        by exactly 1. Every write (the key swap and the three payments) has a
+        transaction; the reads are plain view calls. No language model runs in
         that script: the calls are the exact tool calls an LLM agent holding
         that key could make, so a prompt-injected model is refused the same way.
         See <A href={SOURCE.evidence}>near/evidence</A>.

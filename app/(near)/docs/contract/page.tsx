@@ -93,7 +93,7 @@ const METHODS: { group: string; id: string; items: Method[] }[] = [
         deposit: "1 yoctoNEAR",
         returns: "()",
         does: 'Moves internal balance to free stake. The same happens with ft_transfer_call msg {"stake":{}}.',
-        errors: ["InvalidAmount", "InsufficientBalance"],
+        errors: ["InvalidAmount", "NotRegistered", "InsufficientBalance"],
       },
       {
         name: "unstake",
@@ -169,6 +169,7 @@ const METHODS: { group: string; id: string; items: Method[] }[] = [
         returns: "()",
         does: "Locks allocation of free stake behind the certificate, pays the escrowed premium (protocol_fee_bps to the treasury, the rest to the auditor), Accepted to Verified.",
         errors: [
+          "NoSuchCert",
           "NotAuditor",
           "NotAccepted",
           "CertExpired",
@@ -184,7 +185,13 @@ const METHODS: { group: string; id: string; items: Method[] }[] = [
         deposit: "1 yoctoNEAR",
         returns: "U128 released",
         does: "Before attestation: at any time, also refunding an escrowed premium. Verified or Invalid: from the settlement deadline on. Returns reserve_locked plus float and marks the certificate Released.",
-        errors: ["NotOperator", "CertFrozen", "Locked", "NothingToRelease"],
+        errors: [
+          "NoSuchCert",
+          "NotOperator",
+          "CertFrozen",
+          "Locked",
+          "NothingToRelease",
+        ],
       },
       {
         name: "release_allocation",
@@ -193,7 +200,13 @@ const METHODS: { group: string; id: string; items: Method[] }[] = [
         deposit: "1 yoctoNEAR",
         returns: "U128 released",
         does: "From the settlement deadline on, with no open window: the remaining allocation goes back to free stake.",
-        errors: ["NotAuditor", "CertFrozen", "Locked", "NothingToRelease"],
+        errors: [
+          "NoSuchCert",
+          "NotAuditor",
+          "CertFrozen",
+          "Locked",
+          "NothingToRelease",
+        ],
       },
     ],
   },
@@ -403,7 +416,9 @@ export default function ContractReference() {
         <A href={SOURCE.contract}>near/contracts/bound/src/lib.rs</A>. Amounts
         are <C>U128</C> decimal strings in mock USDC base units (6 decimals);
         times are unix seconds. A panic message starts with the error code, for
-        example <C>FloatExceeded: amount 500000000 &gt; float 9000000</C>.
+        example <C>FloatExceeded: amount 500000000 &gt; float 9000000</C> (the 1
+        yoctoNEAR guard reads{" "}
+        <C>Requires attached deposit of exactly 1 yoctoNEAR</C>).
       </P>
       <UL>
         <li>

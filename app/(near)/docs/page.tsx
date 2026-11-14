@@ -128,9 +128,9 @@ export default function DocsOverview() {
       <Note tone="warn" title="Testnet only">
         <p>
           Everything here runs on NEAR testnet with a mock USDC token that
-          anyone can mint. The arbiter, the treasury and the contract&apos;s
-          full-access key are held by the author. A certificate proves committed
-          capital, not good behaviour. See{" "}
+          anyone can mint. The arbiter, the treasury and the full-access keys of
+          the Bound and mock USDC contracts are held by the author. A
+          certificate proves committed capital, not good behaviour. See{" "}
           <A href="/docs/trust-model">Trust model and limits</A>.
         </p>
       </Note>

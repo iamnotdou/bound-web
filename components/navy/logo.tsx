@@ -1,35 +1,47 @@
 import { clsx } from "clsx";
+import { LogoIcon } from "@/components/logo";
 
 /**
- * The Bound wordmark in Navy style: a plain uppercase, semibold, tight,
- * monochrome word with no mark (it takes `currentColor`, so colour it with a
- * text-* class).
+ * The Bound logo in Navy style: the Bound mark and the Bound name, both in
+ * `currentColor` (colour it with a text-* class). `tag` adds a small label
+ * tucked into the top-right corner of the name, e.g. "on NEAR".
  */
 export type LogoSize = "sm" | "base" | "lg";
 
-const sizes: Record<LogoSize, string> = {
-  sm: "text-base",
-  base: "text-xl",
-  lg: "text-2xl",
+const sizes: Record<LogoSize, { word: string; mark: string }> = {
+  sm: { word: "text-base", mark: "h-4 w-auto text-current" },
+  base: { word: "text-xl", mark: "h-5 w-auto text-current" },
+  lg: { word: "text-2xl", mark: "h-6 w-auto text-current" },
 };
 
 export function Logo({
   size = "base",
+  tag,
   className,
   ...rest
 }: React.HTMLAttributes<HTMLSpanElement> & {
   size?: LogoSize;
+  tag?: string;
 }) {
   return (
     <span
-      className={clsx(
-        "inline-flex items-center leading-none font-semibold tracking-tight uppercase",
-        sizes[size],
-        className,
-      )}
+      className={clsx("inline-flex items-center gap-2 leading-none", className)}
       {...rest}
     >
-      Bound
+      <LogoIcon className={sizes[size].mark} />
+      <span
+        className={clsx(
+          "relative font-semibold tracking-tight",
+          sizes[size].word,
+        )}
+      >
+        Bound
+        {tag ? (
+          <span className="absolute -top-1 left-full ml-0.5 text-xs leading-none font-medium tracking-normal whitespace-nowrap uppercase opacity-70">
+            {tag}
+          </span>
+        ) : null}
+      </span>
     </span>
   );
 }

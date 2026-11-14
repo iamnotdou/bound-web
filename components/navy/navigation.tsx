@@ -185,15 +185,10 @@ export function Navigation() {
             >
               <span className="sr-only">Bound on NEAR, home</span>
               <Logo
+                tag="on NEAR"
                 className="text-foreground nav-dark:text-inverse-foreground transition-colors"
                 aria-hidden
               />
-              <span
-                aria-hidden="true"
-                className="text-muted-foreground nav-dark:text-inverse-foreground/70 hidden text-sm sm:inline"
-              >
-                on NEAR
-              </span>
             </Link>
             <button
               ref={toggle}
@@ -269,7 +264,7 @@ export function Navigation() {
               className="focus-visible:ring-primary/30 rounded-sm focus-visible:ring-3 focus-visible:outline-none"
             >
               <span className="sr-only">Bound on NEAR, home</span>
-              <Logo className="text-foreground" aria-hidden />
+              <Logo tag="on NEAR" className="text-foreground" aria-hidden />
             </Link>
             <button
               ref={close}

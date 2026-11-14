@@ -160,7 +160,11 @@ export function Footer() {
             )}
           >
             <span className="sr-only">Bound on NEAR, home</span>
-            <Logo className="text-inverse-foreground" aria-hidden />
+            <Logo
+              tag="on NEAR"
+              className="text-inverse-foreground"
+              aria-hidden
+            />
           </Link>
           <Text
             tag="p"

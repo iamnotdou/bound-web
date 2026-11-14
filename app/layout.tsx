@@ -2,13 +2,18 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { SITE_URL } from "@/lib/site";
+import { NEAR_ONLY, SITE_URL } from "@/lib/site";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
-const title = "Bound — A surety bond for AI agents, on-chain";
-const description =
-  "Know your worst case before you transact. Bound replaces “can I trust this agent?” with a number you can look up: a pre-funded, auditor-staked worst-case loss, verifiable on Stellar.";
+// The NEAR-only deploy gets NEAR defaults, so a page that sets no metadata
+// of its own never inherits the main site's copy.
+const title = NEAR_ONLY
+  ? "Bound on NEAR — a surety bond for AI agents"
+  : "Bound — A surety bond for AI agents, on-chain";
+const description = NEAR_ONLY
+  ? "Know a NEAR agent's worst case before you deal with it: a pre-funded reserve, an auditor's slashable stake and a spend meter, live on NEAR testnet."
+  : "Know your worst case before you transact. Bound replaces “can I trust this agent?” with a number you can look up: a pre-funded, auditor-staked worst-case loss, verifiable on Stellar.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -27,7 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     title,
     description,
-    siteName: "Bound",
+    siteName: NEAR_ONLY ? "Bound on NEAR" : "Bound",
     type: "website",
   },
   twitter: {

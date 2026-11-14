@@ -146,6 +146,7 @@
   .card p.small { font-size: .75rem; line-height: 1rem; }
   .card p { font-size: 1rem; line-height: 1.5; text-wrap: pretty; overflow-wrap: anywhere; }
   .card p + p { margin-top: .25rem; font-size: .875rem; line-height: 1.25rem; }
+  .card p.title { font-weight: 500; }
   .card:nth-child(4n+1) { background: var(--inverse); color: var(--inverse-foreground); }
   .card:nth-child(4n+2) { background: var(--primary); color: var(--primary-foreground); }
   .card:nth-child(4n+3) { background: var(--lilac); color: var(--foreground); }
@@ -242,7 +243,7 @@
         <div aria-hidden="true" class="shader-fallback arch-gradient"></div>
         <canvas class="shader" data-gradient-shader aria-hidden="true"></canvas>
         <div class="wrap top">
-          <p class="label"><span aria-hidden="true">///</span> NEAR HACKATHON · 2026</p>
+          <p class="label"><span aria-hidden="true">///</span> NEAR HACKATHON, 2026</p>
         </div>
         <div class="wrap body grid">
           <div class="main">
@@ -302,15 +303,18 @@
         <ul class="full cards c3 anim">
           <li class="card">
             <p class="small">Reserve</p>
-            <p>Pre-funded by the operator and <b>locked in the contract</b>. Arbitrated victims are paid from it first.</p>
+            <div><p class="title">Locked in the contract</p>
+            <p>Pre-funded by the operator and <b>locked in the contract</b>. Arbitrated victims are paid from it first.</p></div>
           </li>
           <li class="card">
             <p class="small">Slashable stake</p>
-            <p>An auditor locks <b>its own capital</b> behind the certificate and is slashed for what the reserve could not cover.</p>
+            <div><p class="title">Its own capital</p>
+            <p>An auditor locks <b>its own capital</b> behind the certificate and is slashed for what the reserve could not cover.</p></div>
           </li>
           <li class="card">
             <p class="small">Spend meter</p>
-            <p>Every payment is limited by the float and metered in spent, and goes only to <b>allowlisted recipients</b> when the operator sets an allowlist.</p>
+            <div><p class="title">Limited by the float</p>
+            <p>Every payment is limited by the float and metered in spent, and goes only to <b>allowlisted recipients</b> when the operator sets an allowlist.</p></div>
           </li>
         </ul>
       </div>
@@ -453,7 +457,7 @@
             <thead><tr><th scope="col">What</th><th scope="col">State</th></tr></thead>
             <tbody>
               <tr><td><b>Bound contract</b> in Rust on near-sdk, with an open-mint test token</td><td class="result">bound-v3 live</td></tr>
-              <tr><td><b>Two rounds of review fixes</b>, each redeployed; earlier versions kept and labelled superseded</td><td class="result">v1 · v2 · v3</td></tr>
+              <tr><td><b>Two rounds of review fixes</b>, each redeployed; earlier versions kept and labelled superseded</td><td class="result">v1, v2, v3</td></tr>
               <tr><td><b>@bound/near</b>: client, CLI, MCP server; plus a 402-style demo service gate in the repo</td><td class="result">package</td></tr>
               <tr><td><b>End-to-end demo</b>, eight acts, committed as evidence</td><td class="result">4 runs</td></tr>
               <tr><td><b>This site</b>: verify, certificates, run pages, docs</td><td class="result">read-only</td></tr>
@@ -512,8 +516,8 @@
         <canvas class="shader" data-gradient-shader data-flip="true" aria-hidden="true"></canvas>
         <div class="wrap foot">
           <p class="counter">
-            <a href="https://near.boundprotocol.dev">near.boundprotocol.dev</a> ·
-            <a href="https://github.com/iamnotdou/bound/tree/near-hackathon" target="_blank" rel="noopener">github.com/iamnotdou/bound/tree/near-hackathon</a> ·
+            <a href="https://near.boundprotocol.dev">near.boundprotocol.dev</a>,
+            <a href="https://github.com/iamnotdou/bound/tree/near-hackathon" target="_blank" rel="noopener">github.com/iamnotdou/bound/tree/near-hackathon</a>,
             <a href="https://www.npmjs.com/package/@bound/near" target="_blank" rel="noopener">npm @bound/near</a>
           </p>
           <p class="counter"><b>10</b> / 10</p>

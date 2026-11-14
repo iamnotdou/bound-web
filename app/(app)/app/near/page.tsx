@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { LegacyNearHome } from "@/components/near/app/legacy/home";
+import { NEAR_ONLY } from "@/lib/site";
 import Link from "next/link";
 import { clsx } from "clsx";
 // Fundations
@@ -64,6 +66,8 @@ const inlineLink =
 export default async function NearPage({
   searchParams,
 }: PageProps<"/app/near">) {
+  // The main site keeps the pre-Navy page; only the NEAR build is Navy.
+  if (!NEAR_ONLY) return <LegacyNearHome searchParams={searchParams} />;
   const { agent: raw } = await searchParams;
   const agent = (Array.isArray(raw) ? raw[0] : raw)?.trim().toLowerCase() ?? "";
 
@@ -146,7 +150,7 @@ export default async function NearPage({
                   >
                     {r.steps.length} steps,{" "}
                     {r.steps.filter((s) => s.hash).length} transactions,{" "}
-                    {r.asserts.length} assertions ·{" "}
+                    {r.asserts.length} assertions,{" "}
                     {r.startedAt.slice(0, 16).replace("T", " ")} UTC
                   </Text>
                 </span>
@@ -208,9 +212,9 @@ export default async function NearPage({
           </Fact>
           {facts.config ? (
             <Fact label="Config (immutable, demo timers)">
-              claim window {facts.config.claim_window_secs}s · post-expiry{" "}
-              {facts.config.post_expiry_secs}s · challenger fee{" "}
-              {facts.config.challenger_fee_bps / 100}% · min bond{" "}
+              claim window {facts.config.claim_window_secs}s, post-expiry{" "}
+              {facts.config.post_expiry_secs}s, challenger fee{" "}
+              {facts.config.challenger_fee_bps / 100}%, min bond{" "}
               {formatMusdc(facts.config.min_challenge_bond)}
             </Fact>
           ) : (
@@ -249,7 +253,7 @@ function Hero({ agent }: { agent: string }) {
           variant="textXS"
           className="text-inverse-foreground/70 uppercase"
         >
-          NEAR testnet · read-only · no wallet needed
+          NEAR testnet, read-only, no wallet needed
         </Text>
         <Text
           tag="h1"
@@ -259,23 +263,23 @@ function Hero({ agent }: { agent: string }) {
         >
           Know an agent&apos;s <em>worst case</em> before you deal with it
         </Text>
-        <Text
-          tag="p"
-          variant="textBase"
-          className="text-inverse-foreground/70 mt-6 max-w-xl text-pretty"
-        >
-          A Bound certificate puts a pre-funded reserve and an auditor&apos;s
-          slashable stake behind a NEAR agent account, and the agent&apos;s only
-          key can call nothing but the contract&apos;s metered{" "}
-          <code className="text-inverse-foreground font-sans">pay</code>. Every
-          figure below is a view call to{" "}
-          <AccountLink id={BOUND_CONTRACT} tone="inverse" /> made by this server
-          when the page rendered.
-        </Text>
       </GradientHero>
       <section aria-label="Verify an agent">
         <Wrapper className={clsx("grid pb-24", grid)}>
           <div className={clsx("min-w-0", mainCol, mainStart)}>
+            <Text
+              tag="p"
+              variant="textBase"
+              className="text-muted-foreground mb-12 max-w-xl text-pretty"
+            >
+              A Bound certificate puts a pre-funded reserve and an
+              auditor&apos;s slashable stake behind a NEAR agent account, and
+              the agent&apos;s only key can call nothing but the contract&apos;s
+              metered <code className="text-foreground font-sans">pay</code>.
+              Every figure below is a view call to{" "}
+              <AccountLink id={BOUND_CONTRACT} /> made by this server when the
+              page rendered.
+            </Text>
             <form
               action="/app/near"
               method="get"
@@ -351,16 +355,28 @@ function VerifyResult({
 }) {
   if (lookup === null) {
     return (
-      <Decision deal={false} title={`"${agent}" is not a NEAR account id`}>
-        Account ids are lowercase, 2 to 64 characters, like name.testnet.
-      </Decision>
+      <Decision
+        deal={false}
+        title={
+          <>
+            &quot;{agent}&quot; is <em>not</em> a NEAR account id
+          </>
+        }
+        text="Account ids are lowercase, 2 to 64 characters, like name.testnet."
+      />
     );
   }
   if (!lookup.ok) {
     return (
-      <Decision deal={false} title="No answer from testnet">
-        The verify call failed. That is not a verdict on {agent}; reload.
-      </Decision>
+      <Decision
+        deal={false}
+        title={
+          <>
+            No <em>answer</em> from testnet
+          </>
+        }
+        text={`The verify call failed. That is not a verdict on ${agent}; reload.`}
+      />
     );
   }
   const view = lookup.value;
@@ -369,72 +385,73 @@ function VerifyResult({
     return (
       <Decision
         deal={false}
-        title={`Refuse: ${agent} has no Bound certificate`}
+        title={
+          <>
+            <em>Refuse</em>: {agent} has no Bound certificate
+          </>
+        }
+        text="Nothing stands behind this agent. Ask for prepayment or decline."
       >
-        <span className="block">
-          Nothing stands behind this agent. Ask for prepayment or decline.
-        </span>
-        <ConfinementLine keys={keys} dark={false} />
+        <FactList className="mt-8">
+          <ConfinementFact keys={keys} />
+        </FactList>
       </Decision>
     );
   }
   const cov = coverage(view);
-  const dark = a.deal;
   return (
     <Decision
       deal={a.deal}
-      title={a.deal ? `Deal: ${agent} is Verified` : `Refuse: ${a.reason}`}
+      title={
+        a.deal ? (
+          <>
+            Deal: {agent} is <em>Verified</em>
+          </>
+        ) : (
+          <>
+            <em>Refuse</em>: {a.reason}
+          </>
+        )
+      }
+      text={
+        <>
+          Coverage <Amount value={formatMusdc(cov.victimCover)} /> is what
+          arbitrated victims of this certificate can recover in total; bound is
+          a spend meter, not a guarantee.
+        </>
+      }
       action={
-        <ArrowLink asChild tone={dark ? "inverse" : "default"}>
+        <ArrowLink asChild tone={a.deal ? "inverse" : "default"}>
           <Link href={`/app/near/cert/${view.cert_id}`}>
             Full certificate, key confinement and settlement
           </Link>
         </ArrowLink>
       }
     >
-      <span className="block">
-        Certificate #{view.cert_id}{" "}
-        <StatusLabel
-          status={view.status}
-          halted={view.halted}
-          tone={dark ? "inverse" : "default"}
-        />{" "}
-        · bound <Amount value={formatMusdc(view.bound)} /> · coverage{" "}
-        <Amount value={formatMusdc(cov.victimCover)} /> (reserve{" "}
-        <Amount value={formatMusdc(view.reserve_locked)} /> + auditor stake{" "}
-        <Amount value={formatMusdc(view.allocation)} />) · expires{" "}
-        {isoUtc(view.expires_at)}
-      </span>
-      <span className="mt-2 block">
-        Coverage{" "}
-        <span
-          className={clsx(
-            "font-medium",
-            dark ? "text-inverse-foreground" : "text-foreground",
-          )}
-        >
-          <Amount value={formatMusdc(cov.victimCover)} />
-        </span>{" "}
-        is what arbitrated victims of this certificate can recover in total;
-        bound is a spend meter, not a guarantee.
-      </span>
-      <ConfinementLine keys={keys} dark={dark} />
+      <FactList className="mt-8">
+        <Fact label="Certificate">
+          #{view.cert_id}, {view.status}
+          {view.halted ? ", halted" : ""}
+        </Fact>
+        <Fact label="Bound">
+          <Amount value={formatMusdc(view.bound)} />
+        </Fact>
+        <Fact label="Coverage">
+          <Amount value={formatMusdc(cov.victimCover)} /> (reserve{" "}
+          <Amount value={formatMusdc(view.reserve_locked)} /> + auditor stake{" "}
+          <Amount value={formatMusdc(view.allocation)} />)
+        </Fact>
+        <Fact label="Expires">{isoUtc(view.expires_at)}</Fact>
+        <ConfinementFact keys={keys} />
+      </FactList>
     </Decision>
   );
 }
 
 /** Key confinement, read from the agent's access keys and view_account. */
-function ConfinementLine({
-  keys,
-  dark,
-}: {
-  keys: Confinement | null;
-  dark: boolean;
-}) {
-  const ink = dark ? "text-inverse-foreground" : "text-foreground";
+function ConfinementFact({ keys }: { keys: Confinement | null }) {
   return (
-    <span className="mt-2 block">
-      <span className={clsx("font-medium", ink)}>Key confinement: </span>
+    <Fact label="Key confinement">
       {keys === null ? (
         <span>
           could not be read (the access key list did not answer), so it is
@@ -444,42 +461,47 @@ function ConfinementLine({
         <>
           <span
             className={clsx(
-              "font-semibold",
-              keys.confined && !dark ? "text-primary" : ink,
+              "font-medium",
+              keys.confined ? "text-primary" : "text-foreground",
             )}
           >
             {keys.confined ? "yes" : "no"}
           </span>
-          {" · "}
-          {keys.summary}.
+          , {keys.summary}.
         </>
       )}
-    </span>
+    </Fact>
   );
 }
 
-/** The verdict as a Navy CtaPanel: primary for a deal, muted for a refusal. */
+/**
+ * The verdict as a Navy CtaPanel (primary for a deal, muted for a refusal):
+ * title and text on the left, the link on the right, and the certificate
+ * facts as a hairline list underneath.
+ */
 function Decision({
   deal,
   title,
+  text,
   action,
   children,
 }: {
   deal: boolean;
-  title: string;
+  title: React.ReactNode;
+  text: React.ReactNode;
   action?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) {
   return (
     <div role="status">
       <CtaPanel
         tone={deal ? "primary" : "muted"}
-        title={title}
-        text={<span className="block max-w-2xl wrap-anywhere">{children}</span>}
-        className="wrap-anywhere"
+        title={<span className="wrap-anywhere">{title}</span>}
+        text={text}
       >
         {action}
       </CtaPanel>
+      {children}
     </div>
   );
 }

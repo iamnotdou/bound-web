@@ -36,7 +36,7 @@ export function StatusLabel({
       )}
     >
       {status}
-      {halted ? " · halted" : ""}
+      {halted ? ", halted" : ""}
     </Text>
   );
 }
@@ -97,7 +97,7 @@ export function TxLink({
   );
 }
 
-/** A mock USDC amount; the unit is quieter than the figure. */
+/** A mock USDC amount: the figure and its unit as plain text. */
 export function Amount({
   value,
   unit = "mUSDC",
@@ -107,7 +107,7 @@ export function Amount({
 }) {
   return (
     <span className="tabular-nums">
-      {value} <span className="text-xs opacity-70">{unit}</span>
+      {value} {unit}
     </span>
   );
 }

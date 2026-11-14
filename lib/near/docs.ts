@@ -149,15 +149,15 @@ const DOCS_OG_IMAGE = {
   url: "/opengraph-image",
   width: 1200,
   height: 630,
-  alt: "Bound on NEAR — a surety bond for AI agents",
+  alt: "Bound on NEAR: a surety bond for AI agents",
 } as const;
 
 export function docMetadata(slug: string): Metadata {
   const page = getDocPage(slug);
   const title =
     page.slug === ""
-      ? "Docs — Bound on NEAR"
-      : `${page.title} — Bound on NEAR docs`;
+      ? "Docs, Bound on NEAR"
+      : `${page.title}, Bound on NEAR docs`;
   const url = docHref(page.slug);
   return {
     title: { absolute: title },

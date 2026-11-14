@@ -97,7 +97,7 @@ function NavAnchor({
 
 export function Navigation() {
   const pathname = usePathname() ?? "/";
-  const bar = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const close = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -164,7 +164,7 @@ export function Navigation() {
 
   return (
     <>
-      <div
+      <header
         ref={bar}
         data-nav="initial"
         className="bg-background nav-clear:bg-transparent nav-dark:bg-transparent fixed inset-x-0 top-0 z-50 w-full transition-colors duration-300 motion-reduce:transition-none"
@@ -250,7 +250,7 @@ export function Navigation() {
             </nav>
           </div>
         </Wrapper>
-      </div>
+      </header>
 
       <div
         id="navy-mobile-menu"

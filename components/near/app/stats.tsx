@@ -47,7 +47,7 @@ export function Stats({
             <Text
               tag="span"
               variant="display3XL"
-              className="text-foreground tracking-tight tabular-nums break-all"
+              className="text-foreground tracking-tight tabular-nums wrap-break-word"
             >
               {stat.value}
               {stat.unit ? (

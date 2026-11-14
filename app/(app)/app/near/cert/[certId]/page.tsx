@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { LegacyNearCert } from "@/components/near/app/legacy/cert";
+import { NEAR_ONLY } from "@/lib/site";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { clsx } from "clsx";
@@ -58,14 +60,14 @@ export async function generateMetadata({
   return { title: `NEAR certificate #${certId}` };
 }
 
-const backLink =
-  "text-inverse-foreground/70 hover:text-inverse-foreground focus-visible:ring-primary/30 rounded-sm text-sm transition-colors focus-visible:ring-3 focus-visible:outline-none";
 const inlineLink =
   "rounded-sm underline decoration-1 underline-offset-4 transition-colors focus-visible:ring-3 focus-visible:ring-primary/30 focus-visible:outline-none";
 
 export default async function NearCertPage({
   params,
 }: PageProps<"/app/near/cert/[certId]">) {
+  // The main site keeps the pre-Navy page; only the NEAR build is Navy.
+  if (!NEAR_ONLY) return <LegacyNearCert params={params} />;
   const { certId } = await params;
   const id = parseCertId(certId);
   if (id === null) notFound();
@@ -75,14 +77,11 @@ export default async function NearCertPage({
   if (!lookup.ok || !lookup.value) {
     return (
       <GradientHero labelledBy="cert-heading">
-        <Link href="/app/near" className={backLink}>
-          Bound on NEAR
-        </Link>
         <Text
           tag="h1"
           id="cert-heading"
           variant="displayLG"
-          className="text-inverse-foreground mt-6 tracking-tight text-balance"
+          className="text-inverse-foreground tracking-tight text-balance"
         >
           NEAR certificate #{id}
         </Text>
@@ -108,10 +107,7 @@ export default async function NearCertPage({
   return (
     <>
       <GradientHero labelledBy="cert-heading">
-        <Link href="/app/near" className={backLink}>
-          Bound on NEAR
-        </Link>
-        <div className="mt-10 flex flex-wrap items-baseline gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
           <Text
             tag="p"
             variant="textXS"
@@ -220,8 +216,8 @@ export default async function NearCertPage({
                   label="FunctionCall key"
                   note={<span className="break-all">{k.publicKey}</span>}
                 >
-                  receiver <span className="text-foreground">{k.receiver}</span>{" "}
-                  · methods [{k.methods.join(", ")}] · gas allowance{" "}
+                  receiver <span className="text-foreground">{k.receiver}</span>
+                  , methods [{k.methods.join(", ")}], gas allowance{" "}
                   {k.allowanceNear ?? "unlimited"} NEAR
                 </Fact>
               ))}
@@ -344,7 +340,7 @@ function CoverageSection({ view }: { view: CertView }) {
           },
           {
             value: formatMusdc(view.reserve_locked),
-            unit: `/ ${formatMusdc(view.reserve_promised)}`,
+            unit: `/ ${formatMusdc(view.reserve_promised)} mUSDC`,
             smallUnit: true,
             label: "Reserve locked / promised",
             text:
@@ -394,6 +390,7 @@ function MeterSection({ view }: { view: CertView }) {
       />
       <div className="mt-12">
         <Stats
+          cols={2}
           stats={[{ value: String(pct), unit: "%", label: "Spent vs bound" }]}
         />
         <div
@@ -532,15 +529,14 @@ function ClaimsSection({
                   className="text-muted-foreground max-w-2xl wrap-anywhere"
                 >
                   by <span className="text-foreground">{c.challenger}</span> for
-                  victim <span className="text-foreground">{c.victim}</span> ·
-                  bond {formatMusdc(c.bond)} · filed {isoUtc(c.filed_at)}
+                  victim <span className="text-foreground">{c.victim}</span>,
+                  bond {formatMusdc(c.bond)}, filed {isoUtc(c.filed_at)}
                   {c.adjudicated
-                    ? ` · arbiter: ${c.proven ? "proven" : "not proven"}, harm ${formatMusdc(c.harm)}`
+                    ? `, arbiter: ${c.proven ? "proven" : "not proven"}, harm ${formatMusdc(c.harm)}`
                     : ""}
                   {ev ? (
                     <>
-                      {" "}
-                      · evidence <span className="text-foreground">{ev}</span>
+                      , evidence <span className="text-foreground">{ev}</span>
                     </>
                   ) : null}
                 </Text>

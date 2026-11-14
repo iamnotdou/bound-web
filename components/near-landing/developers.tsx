@@ -6,8 +6,8 @@ import { Term } from "@/components/near-landing/term";
 import { NEAR_SNIPPETS } from "@/lib/near/links";
 
 /**
- * The developer surface on a hairline grid. Code blocks are the one place
- * monospace (`font-code`) is allowed.
+ * The developer surface on a hairline grid. Monospace is for docs code
+ * blocks only, so the commands here are Switzer and wrap rather than clip.
  */
 const tools: { title: string; text: React.ReactNode; code: string }[] = [
   {
@@ -59,16 +59,16 @@ export function Developers() {
                 >
                   {tool.text}
                 </Text>
-                <pre className="bg-muted text-foreground font-code mt-8 text-xs leading-relaxed overflow-x-auto p-4 whitespace-pre">
-                  <code className="font-code">{tool.code}</code>
-                </pre>
+                <p className="bg-muted text-foreground mt-8 p-4 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">
+                  <code className="font-sans">{tool.code}</code>
+                </p>
               </div>
             ))}
           </div>
           <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <Text tag="p" variant="textSM" className="text-muted-foreground">
               Or over HTTP:{" "}
-              <code className="font-code text-foreground wrap-anywhere text-xs">
+              <code className="text-foreground font-sans wrap-anywhere">
                 {NEAR_SNIPPETS.http}
               </code>
             </Text>

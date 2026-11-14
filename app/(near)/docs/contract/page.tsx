@@ -406,10 +406,8 @@ function MethodCard({ m }: { m: Method }) {
         </Row>
         <Row k="Does">{m.does}</Row>
         <Row k="Errors">
-          <span className="flex flex-wrap gap-1">
-            {m.errors.map((e) => (
-              <C key={e}>{e}</C>
-            ))}
+          <span className="text-foreground wrap-anywhere">
+            {m.errors.join(", ")}
           </span>
         </Row>
       </dl>

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { LegacyNearRun } from "@/components/near/app/legacy/run";
+import { NEAR_ONLY } from "@/lib/site";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { clsx } from "clsx";
@@ -46,14 +48,14 @@ async function checkAll(steps: DemoStep[]): Promise<Map<string, TxStatus>> {
   return out;
 }
 
-const backLink =
-  "text-inverse-foreground/70 hover:text-inverse-foreground focus-visible:ring-primary/30 rounded-sm text-sm transition-colors focus-visible:ring-3 focus-visible:outline-none";
 const inlineLink =
   "text-foreground rounded-sm underline decoration-1 underline-offset-4 transition-colors focus-visible:ring-3 focus-visible:ring-primary/30 focus-visible:outline-none";
 
 export default async function NearRunPage({
   params,
 }: PageProps<"/app/near/run/[runId]">) {
+  // The main site keeps the pre-Navy page; only the NEAR build is Navy.
+  if (!NEAR_ONLY) return <LegacyNearRun params={params} />;
   const { runId } = await params;
   const run = findRun(runId);
   if (!run) notFound();
@@ -71,15 +73,12 @@ export default async function NearRunPage({
   return (
     <>
       <GradientHero labelledBy="run-heading">
-        <Link href="/app/near" className={backLink}>
-          Bound on NEAR
-        </Link>
         <Text
           tag="p"
           variant="textXS"
-          className="text-inverse-foreground/70 mt-10 uppercase"
+          className="text-inverse-foreground/70 uppercase"
         >
-          Demo run {run.runId} · {run.startedAt.replace("T", " ").slice(0, 19)}{" "}
+          Demo run {run.runId}, {run.startedAt.replace("T", " ").slice(0, 19)}{" "}
           UTC
         </Text>
         <Text
@@ -256,7 +255,7 @@ function StepRow({ step, check }: { step: DemoStep; check?: TxStatus }) {
           variant="textSM"
           className="text-muted-foreground mt-1 wrap-anywhere"
         >
-          {step.method} on {step.receiver} · {v.text}
+          {step.method} on {step.receiver}, {v.text}
         </Text>
         {step.hash ? (
           <div className="mt-2">

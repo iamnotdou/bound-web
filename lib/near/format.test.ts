@@ -15,7 +15,12 @@ import {
   type AccessKey,
   type CertView,
 } from "./format";
-import { DEMO_RUNS, NEAR_DEPLOYMENT, findRun } from "./deployment";
+import {
+  DEMO_RUNS,
+  NEAR_DEPLOYMENT,
+  findRun,
+  supersededReason,
+} from "./deployment";
 
 // The current contract, from the synced deployment record.
 const C = NEAR_DEPLOYMENT.contracts.bound.accountId;
@@ -248,6 +253,17 @@ describe("committed records", () => {
       expect(r.pass).toBe(true);
       expect(r.asserts.every((a) => a.pass)).toBe(true);
       expect(findRun(r.runId)).toBe(r);
+    }
+  });
+  it("name the right reason for each superseded run", () => {
+    const v2 = findRun("mwfiv11v");
+    expect(v2?.superseded).toBe(true);
+    expect(supersededReason(v2!)).toMatch(/second review's fixes/);
+    expect(supersededReason(v2!)).not.toMatch(/aliasing/);
+    for (const id of ["mwfgi0ij", "mwfgqr0u"]) {
+      const v1 = findRun(id);
+      expect(v1?.superseded).toBe(true);
+      expect(supersededReason(v1!)).toMatch(/aliasing/);
     }
   });
 });

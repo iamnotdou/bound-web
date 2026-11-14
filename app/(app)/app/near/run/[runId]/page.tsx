@@ -9,7 +9,12 @@ import {
   XCircle,
 } from "lucide-react";
 import { Panel, TxLink } from "@/components/app/near/ui";
-import { ACT_TITLES, findRun, type DemoStep } from "@/lib/near/deployment";
+import {
+  ACT_TITLES,
+  findRun,
+  supersededReason,
+  type DemoStep,
+} from "@/lib/near/deployment";
 import { txStatus, type TxStatus } from "@/lib/near/rpc";
 import { cn } from "@/lib/utils";
 
@@ -87,10 +92,10 @@ export default async function NearRunPage({
           {run.superseded ? (
             <>
               This run used the superseded contract{" "}
-              <span className="font-address">{run.contract}</span> (a
-              certificate-id aliasing bug, fixed in the current contract), so
-              its certificates #{run.certId} and #{run.cert2Id} are not on the
-              contract this page reads. Its transactions still check out.
+              <span className="font-address">{run.contract}</span> (
+              {supersededReason(run)}), so its certificates #{run.certId} and #
+              {run.cert2Id} are not on the contract this page reads. Its
+              transactions still check out.
             </>
           ) : (
             <>

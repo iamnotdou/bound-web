@@ -81,6 +81,23 @@ export function supersededLabel(r: DemoRun): string {
   return prev ? prev.accountId.split(".")[0] : r.contract;
 }
 
+/** Why each superseded contract was replaced, in page prose. */
+const SUPERSEDED_WHY: Record<string, string> = {
+  "bound-v1": "a certificate-id aliasing bug, fixed in bound-v2",
+  "bound-v2":
+    "it ran the code from before the second review's fixes, see DESIGN.md section 10",
+};
+
+/** Why the contract a superseded run used was replaced. */
+export function supersededReason(r: DemoRun): string {
+  const prev = record.previous.find((p) => p.accountId === r.contract);
+  return (
+    SUPERSEDED_WHY[supersededLabel(r)] ??
+    prev?.reason ??
+    "an earlier version of the contract"
+  );
+}
+
 /** Runs on the current contract (their certificate ids are live). */
 export const CURRENT_RUNS = DEMO_RUNS.filter((r) => !r.superseded);
 

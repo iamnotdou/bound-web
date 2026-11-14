@@ -1,399 +1,819 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Bound on NEAR — deck</title>
+<title>Bound on NEAR: deck</title>
 <meta name="description" content="Bound on NEAR: a surety bond for AI agents. Built at NEAR HACKATHON." />
-<meta property="og:title" content="Bound on NEAR — deck" />
+<meta name="theme-color" content="#f8f8fd" />
+<meta property="og:title" content="Bound on NEAR: deck" />
 <meta property="og:description" content="Know a NEAR agent's worst case before you deal with it. Built at NEAR HACKATHON." />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Bound on NEAR" />
 <meta property="og:url" content="https://near.boundprotocol.dev/deck" />
 <meta property="og:image" content="https://near.boundprotocol.dev/opengraph-image" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Bound on NEAR — deck" />
+<meta name="twitter:title" content="Bound on NEAR: deck" />
 <meta name="twitter:image" content="https://near.boundprotocol.dev/opengraph-image" />
 <link rel="icon" href="/mini-logo.svg" type="image/svg+xml" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,601&display=swap" />
 <style>
-  /* Bound's own tokens, lifted from app/globals.css so the deck and the
-     product cannot drift apart. */
+  /* Navy tokens, the same oklch values the NEAR site uses (app/navy.css), so
+     the deck and the product read as one system. */
   :root {
-    --background: #09090b;          /* zinc-950 */
-    --foreground: #ffffff;
-    --card: #1c1c1f;                /* zinc-800 mixed toward black */
-    --muted-foreground: #a1a1aa;    /* zinc-400 */
-    --primary: oklch(68.5% 0.204 39.4);   /* #FF5400 */
-    --border: rgba(255, 255, 255, 0.075);
-    --radius: 0.625rem;
-    --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-    --font-address: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --background: oklch(98.8% 0.006 275);
+    --foreground: oklch(20% 0.04 275);
+    --muted-foreground: oklch(48% 0.03 275);
+    --faint-foreground: oklch(64% 0.025 275);
+    --muted: oklch(97.2% 0.01 275);
+    --border: oklch(91% 0.016 275);
+    --input: oklch(82% 0.025 275);
+    --primary: oklch(52% 0.22 268);
+    --primary-foreground: oklch(1 0 0);
+    --primary-highlight: oklch(60% 0.2 268);
+    --inverse: oklch(16% 0.05 270);
+    --inverse-foreground: oklch(1 0 0);
+    --inverse-highlight: oklch(30% 0.06 270);
+    --mist: oklch(95% 0.02 275);
+    --lilac: oklch(91% 0.045 280);
+    --frost: oklch(94% 0.025 245);
+    --deep: oklch(30% 0.14 268);
+    --lavender: oklch(78% 0.1 275);
+    --haze: oklch(92% 0.04 275);
+    --font-sans: "Switzer", ui-sans-serif, system-ui, sans-serif;
+    /* Wrapper standard: max-w-340 mx-auto px-8 */
+    --wrap: 85rem;
+    --gutter: clamp(1rem, 4vw, 2rem);
+    color-scheme: light;
   }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; background: var(--background); }
   body {
     font-family: var(--font-sans);
+    font-feature-settings: "liga" 1, "calt" 1;
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
   }
+  ::selection { background: var(--inverse); color: var(--inverse-foreground); }
+  h1, h2, h3, p, ol, ul, dl, dd, table { margin: 0; padding: 0; }
+  h1 em, h2 em { font-style: italic; font-weight: 600; }
+  b, strong { font-weight: 500; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 
-  .deck { position: relative; width: 100vw; height: 100vh; }
-
+  /* --- deck frame ------------------------------------------------- */
+  .deck { position: relative; width: 100vw; height: 100vh; height: 100dvh; }
   .slide {
     position: absolute; inset: 0;
     display: none;
-    flex-direction: column;
-    justify-content: center;
-    padding: clamp(2.5rem, 6vw, 6rem);
-    padding-bottom: clamp(4.5rem, 8vw, 7rem);
-    opacity: 0;
-    transition: opacity .25s ease;
+    overflow-x: hidden; overflow-y: auto;
+    background: var(--background);
   }
-  .slide[data-active] { display: flex; opacity: 1; }
+  .slide[data-active] { display: block; }
+  /* The frame fills the slide; the body row sits in the middle when it
+     fits and scrolls from the top when it does not. */
+  .frame { position: relative; display: flex; flex-direction: column; min-height: 100%; }
+  .wrap { position: relative; width: 100%; max-width: var(--wrap); margin-inline: auto; padding-inline: var(--gutter); }
+  .top { padding-top: clamp(1.5rem, 4vh, 2.5rem); }
+  .body { margin-block: auto; padding-block: clamp(2rem, 6vh, 4rem); }
+  .foot {
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+    gap: .75rem 2rem; padding-bottom: clamp(1.25rem, 3.5vh, 2.25rem);
+  }
 
-  /* --- chrome ------------------------------------------------------ */
-  .meta {
-    position: absolute; top: clamp(1.5rem, 3vw, 2.5rem); left: clamp(2.5rem, 6vw, 6rem);
-    font-size: clamp(.62rem, .82vw, .75rem);
-    letter-spacing: .18em; text-transform: uppercase;
+  /* --- site grid: 12 columns, side label in 3, content from column 4 */
+  .grid { display: grid; row-gap: clamp(1.25rem, 3vh, 3rem); }
+  .side, .main, .full { min-width: 0; }
+  @media (min-width: 1024px) {
+    .grid { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 2rem; }
+    .side { grid-column: span 3 / span 3; }
+    .main { grid-column: 4 / span 9; }
+    .full { grid-column: 1 / -1; }
+  }
+  .full { margin-top: clamp(.5rem, 2vh, 2.5rem); }
+
+  /* --- type ------------------------------------------------------- */
+  .label {
+    font-size: .875rem; line-height: 1.25rem; font-weight: 500;
+    text-transform: uppercase; color: var(--foreground);
+  }
+  .small {
+    font-size: .75rem; line-height: 1rem; text-transform: uppercase;
     color: var(--muted-foreground);
   }
-  .page {
-    position: absolute; bottom: clamp(1.5rem, 3vw, 2.5rem); right: clamp(2.5rem, 6vw, 6rem);
-    font-size: clamp(.62rem, .82vw, .75rem);
-    letter-spacing: .12em; color: var(--muted-foreground);
-    font-family: var(--font-address);
+  .display {
+    font-weight: 400; letter-spacing: -.025em; line-height: 1;
+    font-size: clamp(4.5rem, 14vw, 12rem);
   }
-  .page b { color: var(--foreground); font-weight: 500; }
-  .byline {
-    position: absolute; bottom: clamp(1.5rem, 3vw, 2.5rem); left: clamp(2.5rem, 6vw, 6rem);
-    font-size: clamp(.62rem, .82vw, .75rem);
-    letter-spacing: .14em; text-transform: uppercase; color: var(--muted-foreground);
+  .heading {
+    font-weight: 400; letter-spacing: -.025em; line-height: 1.08;
+    font-size: clamp(1.875rem, 3.9vw, 3.75rem);
+    max-width: 22ch; text-wrap: balance;
   }
+  .lead {
+    font-size: clamp(1rem, 1.35vw, 1.25rem); line-height: 1.6;
+    color: var(--muted-foreground); max-width: 46ch; text-wrap: pretty;
+  }
+  .lead + .lead { margin-top: 1rem; }
+  .heading + .lead { margin-top: clamp(1rem, 2.5vh, 1.5rem); }
+  .lead strong { color: var(--foreground); }
+  .accent { color: var(--primary); font-weight: 500; }
+  .num { font-variant-numeric: tabular-nums; }
+  .counter { font-size: .875rem; line-height: 1.25rem; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+  .counter b { color: var(--foreground); font-weight: 500; }
+
+  a { color: inherit; text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: .2em; }
+  a:focus { outline: none; }
+  a:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 30%, transparent); }
+
+  /* --- card rows: gapless, grounds cycle inverse, primary, lilac, muted */
+  .cards { display: grid; list-style: none; }
+  @media (min-width: 640px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1024px) {
+    .cards.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cards.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  .card {
+    display: flex; flex-direction: column; justify-content: space-between;
+    gap: clamp(2.5rem, 10vh, 8rem); padding: 1.5rem; min-width: 0;
+  }
+  .card p.small { font-size: .75rem; line-height: 1rem; }
+  .card p { font-size: 1rem; line-height: 1.5; text-wrap: pretty; overflow-wrap: anywhere; }
+  .card p + p { margin-top: .25rem; font-size: .875rem; line-height: 1.25rem; }
+  .card:nth-child(4n+1) { background: var(--inverse); color: var(--inverse-foreground); }
+  .card:nth-child(4n+2) { background: var(--primary); color: var(--primary-foreground); }
+  .card:nth-child(4n+3) { background: var(--lilac); color: var(--foreground); }
+  .card:nth-child(4n+4) { background: var(--muted); color: var(--foreground); }
+  .card:nth-child(4n+1) .small, .card:nth-child(4n+2) .small,
+  .card:nth-child(4n+1) .sub, .card:nth-child(4n+2) .sub { color: color-mix(in oklab, var(--inverse-foreground) 75%, transparent); }
+  .card:nth-child(4n+3) .small, .card:nth-child(4n+4) .small,
+  .card:nth-child(4n+3) .sub, .card:nth-child(4n+4) .sub { color: var(--muted-foreground); }
+  .card b { font-weight: 500; }
+
+  /* --- hairline grid: parent top and left, cells bottom and right ---- */
+  .hairline { display: grid; list-style: none; border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+  @media (min-width: 640px) { .hairline { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .hairline > li {
+    display: flex; flex-direction: column; justify-content: space-between;
+    gap: clamp(1.5rem, 5vh, 3.5rem); padding: 1.5rem; min-width: 0;
+    border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+  }
+  .hairline .cmd { font-size: clamp(1rem, 1.35vw, 1.25rem); line-height: 1.4; font-weight: 500; overflow-wrap: anywhere; }
+  .hairline .cmd li { list-style: none; }
+  .hairline .sub { margin-top: .25rem; font-size: .875rem; line-height: 1.25rem; color: var(--muted-foreground); }
+
+  /* --- tables: compare-table rows, striped with the muted fill ----- */
+  table { width: 100%; border-collapse: collapse; font-size: clamp(.875rem, 1.05vw, 1rem); line-height: 1.5; }
+  th, td { text-align: left; vertical-align: top; padding: clamp(.65rem, 1.7vh, 1.25rem) 1.25rem; }
+  thead th {
+    padding-top: 0; font-weight: 400; font-size: .75rem; line-height: 1rem;
+    text-transform: uppercase; color: var(--muted-foreground);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:nth-child(odd) { background: var(--muted); }
+  td { color: var(--muted-foreground); text-wrap: pretty; }
+  td b, td.strong { color: var(--foreground); font-weight: 500; }
+  td.result { color: var(--foreground); font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .note { margin-top: clamp(1rem, 3vh, 2rem); }
+
+  /* --- gradient slides ------------------------------------------- */
+  .hero { position: relative; flex: 1 0 auto; display: flex; flex-direction: column; min-height: 68%; overflow: hidden; }
+  .riser { position: relative; flex: 1 0 auto; display: flex; flex-direction: column; justify-content: flex-end; min-height: 42%; overflow: hidden; }
+  .shader-fallback, .shader { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .shader { opacity: 0; transition: opacity 1s ease; }
+  .shader[data-ready] { opacity: 1; }
+  .arch-gradient {
+    background:
+      radial-gradient(ellipse 150% 85% at 65% 0%,
+        var(--inverse) 0%, var(--inverse) 38%, var(--deep) 52%,
+        var(--primary) 64%, var(--lavender) 78%, transparent 94%),
+      radial-gradient(ellipse 90% 50% at 0% 55%, oklch(60% 0.18 268 / 0.5) 0%, transparent 70%),
+      linear-gradient(to bottom, var(--haze) 0%, var(--background) 100%);
+  }
+  .arch-gradient-flip {
+    background:
+      radial-gradient(ellipse 150% 85% at 65% 100%,
+        var(--inverse) 0%, var(--inverse) 38%, var(--deep) 52%,
+        var(--primary) 64%, var(--lavender) 78%, transparent 94%),
+      linear-gradient(to top, var(--haze) 0%, var(--background) 100%);
+  }
+  .on-ink, .on-ink .label, .on-ink .counter b { color: var(--inverse-foreground); }
+  .on-ink .small, .on-ink .counter { color: color-mix(in oklab, var(--inverse-foreground) 75%, transparent); }
+  .hero .body { margin-block: auto; }
+  .hero .display { margin-top: clamp(.75rem, 2vh, 1.5rem); }
+  .riser .foot { padding-top: clamp(6rem, 24vh, 14rem); }
+
   .rail {
-    position: fixed; left: 0; bottom: 0; height: 2px;
+    position: fixed; left: 0; bottom: 0; height: 2px; width: 0;
     background: var(--primary); transition: width .25s ease; z-index: 10;
   }
 
-  /* --- type -------------------------------------------------------- */
-  .tag {
-    display: inline-block; align-self: flex-start;
-    font-size: clamp(.62rem, .8vw, .72rem);
-    letter-spacing: .16em; text-transform: uppercase;
-    color: var(--primary);
-    border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
-    background: color-mix(in oklab, var(--primary) 10%, transparent);
-    border-radius: 999px; padding: .35rem .8rem; margin-bottom: 1.6rem;
-  }
-  h1 {
-    font-size: clamp(3rem, 8.5vw, 8rem);
-    line-height: .95; letter-spacing: -.035em; font-weight: 600;
-    margin: 0 0 1.5rem;
-  }
-  h2 {
-    font-size: clamp(2.2rem, 5.6vw, 4.6rem);
-    line-height: 1.02; letter-spacing: -.03em; font-weight: 600;
-    margin: 0 0 1.5rem; text-wrap: balance;
-  }
-  h3 {
-    font-size: clamp(1.6rem, 3.4vw, 3rem);
-    line-height: 1.06; letter-spacing: -.025em; font-weight: 600;
-    margin: 0 0 1.25rem; text-wrap: balance;
-  }
-  p.lead {
-    font-size: clamp(1rem, 1.55vw, 1.4rem);
-    line-height: 1.55; color: var(--muted-foreground);
-    max-width: 52ch; margin: 0 0 1rem; text-wrap: balance;
-  }
-  p.lead strong { color: var(--foreground); font-weight: 500; }
-  .hl { color: var(--primary); font-weight: 500; }
-  .addr { font-family: var(--font-address); font-size: .82em; letter-spacing: -.01em; }
-
-  /* --- surfaces ---------------------------------------------------- */
-  .grid { display: grid; gap: 1rem; margin-top: .5rem; }
-  .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .card {
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: 0 0 0 1px var(--border);
-    padding: clamp(1rem, 1.6vw, 1.5rem);
-  }
-  .card .k {
-    font-size: clamp(.6rem, .78vw, .7rem); letter-spacing: .14em;
-    text-transform: uppercase; color: var(--muted-foreground);
-    margin-bottom: .6rem;
-  }
-  .card .v { font-size: clamp(.95rem, 1.25vw, 1.15rem); line-height: 1.45; }
-  .card .v b { font-weight: 600; }
-
-  table {
-    width: 100%; border-collapse: collapse; margin-top: .5rem;
-    font-size: clamp(.82rem, 1.12vw, 1.05rem);
-  }
-  th, td {
-    text-align: left; padding: .7rem .9rem;
-    border-bottom: 1px solid var(--border); vertical-align: top;
-  }
-  th {
-    font-size: clamp(.6rem, .76vw, .7rem); letter-spacing: .14em;
-    text-transform: uppercase; color: var(--muted-foreground); font-weight: 500;
-  }
-  td.num, th.num { text-align: right; font-family: var(--font-address); }
-  td b { font-weight: 600; }
-  tr:last-child td { border-bottom: 0; }
-
-  .rule {
-    width: 4.5rem; height: 3px; background: var(--primary);
-    border-radius: 2px; margin: 0 0 1.6rem;
-  }
-
-  /* Entrance: the same quiet fade the app uses, not a slide transition. */
+  /* Entrance: a quiet fade, not a slide transition. */
   .slide[data-active] .anim { animation: rise .45s cubic-bezier(.2,.7,.3,1) backwards; }
   .slide[data-active] .anim:nth-child(2) { animation-delay: .05s; }
   .slide[data-active] .anim:nth-child(3) { animation-delay: .1s; }
   .slide[data-active] .anim:nth-child(4) { animation-delay: .15s; }
-  .slide[data-active] .anim:nth-child(5) { animation-delay: .2s; }
   @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .anim { animation: none !important; } }
+  @media (prefers-reduced-motion: reduce) {
+    .anim { animation: none !important; }
+    .shader, .rail { transition: none; }
+  }
 
-  @media (max-width: 720px) {
-    .grid.three, .grid.two { grid-template-columns: minmax(0, 1fr); }
-    .slide { justify-content: flex-start; overflow-y: auto; padding-top: 4rem; }
-    th, td { padding: .5rem .5rem; }
+  @media (max-width: 639px) {
+    th, td { padding-inline: .75rem; }
+    td.result { white-space: normal; }
+    .card { gap: 2.5rem; }
   }
 </style>
 </head>
 <body>
-<div class="deck" id="deck">
+<main class="deck" id="deck" aria-roledescription="slide deck" aria-label="Bound on NEAR">
 
-  <!-- 01 · cover -->
-  <section class="slide">
-    <div class="meta">NEAR HACKATHON · 2026</div>
-    <span class="tag anim">NEAR testnet</span>
-    <h1 class="anim">Bound</h1>
-    <div class="rule anim"></div>
-    <p class="lead anim" style="max-width:46ch">
-      A surety bond for AI agents on NEAR. <strong>Know an agent's worst case
-      before you deal with it</strong>, with a number anyone can read in one
-      view call.
-    </p>
-    <div class="byline">near.boundprotocol.dev</div>
-    <div class="page"><b>01</b> / 10</div>
-  </section>
-
-  <!-- 02 · problem -->
-  <section class="slide">
-    <div class="meta">The problem</div>
-    <h2 class="anim">An agent with a key<br />is an unpriced risk</h2>
-    <p class="lead anim">
-      Services are asked to sell to agents, and to extend them credit, on
-      <strong>&ldquo;trust me, my agent is safe.&rdquo;</strong> Nobody can
-      check that sentence, size it, or recover against it.
-    </p>
-    <p class="lead anim">
-      A prompt-injected agent spends whatever its key allows, and when harm
-      happens there is no money set aside and no rule for who is paid first.
-    </p>
-    <div class="page"><b>02</b> / 10</div>
-  </section>
-
-  <!-- 03 · solution -->
-  <section class="slide">
-    <div class="meta">The solution</div>
-    <h3 class="anim">One certificate, three numbers you can check</h3>
-    <div class="grid three anim">
-      <div class="card">
-        <div class="k">Reserve</div>
-        <div class="v">Pre-funded by the operator and <b>locked in the contract</b>. Arbitrated victims are paid from it first.</div>
+  <!-- 01 cover -->
+  <section class="slide" aria-roledescription="slide" aria-label="1 of 10">
+    <div class="frame">
+      <div class="hero on-ink">
+        <div aria-hidden="true" class="shader-fallback arch-gradient"></div>
+        <canvas class="shader" data-gradient-shader aria-hidden="true"></canvas>
+        <div class="wrap top">
+          <p class="label"><span aria-hidden="true">///</span> NEAR HACKATHON · 2026</p>
+        </div>
+        <div class="wrap body grid">
+          <div class="main">
+            <p class="small anim">NEAR testnet</p>
+            <h1 class="display anim">Bound</h1>
+          </div>
+        </div>
       </div>
-      <div class="card">
-        <div class="k">Slashable stake</div>
-        <div class="v">An auditor locks <b>its own capital</b> behind the certificate and is slashed for what the reserve could not cover.</div>
+      <div class="wrap body grid" style="padding-block:clamp(1rem,3vh,2rem)">
+        <p class="lead main anim">
+          A surety bond for AI agents on NEAR. <strong>Know an agent's worst case
+          before you deal with it</strong>, with a number anyone can read in one
+          view call.
+        </p>
       </div>
-      <div class="card">
-        <div class="k">Spend meter</div>
-        <div class="v">Every payment is limited by the float and metered in spent, and goes only to <b>allowlisted recipients</b> when the operator sets an allowlist.</div>
+      <div class="wrap foot">
+        <a class="counter" href="https://near.boundprotocol.dev">near.boundprotocol.dev</a>
+        <p class="counter"><b>01</b> / 10</p>
       </div>
     </div>
-    <p class="lead anim" style="margin-top:1.5rem">
-      <span class="hl">Coverage = reserve + auditor stake.</span> The bound is a
-      meter, not a guarantee.
-    </p>
-    <div class="page"><b>03</b> / 10</div>
   </section>
 
-  <!-- 04 · how it works -->
-  <section class="slide">
-    <div class="meta">How it works</div>
-    <h3 class="anim">Publish, confine, pay, claim, settle</h3>
-    <table class="anim">
-      <thead><tr><th>Who</th><th>Does</th></tr></thead>
-      <tbody>
-        <tr><td><b>Operator</b></td><td>publishes the certificate (bound, reserve, float cap, allowlist, expiry) and funds it</td></tr>
-        <tr><td><b>Agent</b></td><td>accepts once, then keeps only a function-call key that can call <span class="addr">pay</span></td></tr>
-        <tr><td><b>Auditor</b></td><td>attests by locking stake, earns the premium (less a 10% protocol fee)</td></tr>
-        <tr><td><b>Victim</b></td><td>files a harm claim, which opens a claim window and freezes payments; the arbiter rules; when the window ends anyone closes it</td></tr>
-      </tbody>
-    </table>
-    <p class="lead anim" style="margin-top:1.4rem">
-      Settlement waterfall, run <span class="addr">mwfnc6q8</span>:
-      <span class="hl addr">120 = 100 reserve + 20 slash</span>. The
-      auditor's other 180 was not touched.
-    </p>
-    <div class="page"><b>04</b> / 10</div>
+  <!-- 02 problem -->
+  <section class="slide" aria-roledescription="slide" aria-label="2 of 10">
+    <div class="frame">
+      <div class="wrap body grid">
+        <p class="label side"><span aria-hidden="true">///</span> The problem</p>
+        <div class="main">
+          <h2 class="heading anim">An agent with a key<br />is an <em>unpriced risk</em></h2>
+          <p class="lead anim">
+            Services are asked to sell to agents, and to extend them credit, on
+            <strong>&ldquo;trust me, my agent is safe.&rdquo;</strong> Nobody can
+            check that sentence, size it, or recover against it.
+          </p>
+          <p class="lead anim">
+            A prompt-injected agent spends whatever its key allows, and when harm
+            happens there is no money set aside and no rule for who is paid first.
+          </p>
+        </div>
+      </div>
+      <div class="wrap foot"><span></span><p class="counter"><b>02</b> / 10</p></div>
+    </div>
   </section>
 
-  <!-- 05 · why NEAR -->
-  <section class="slide">
-    <div class="meta">Why NEAR</div>
-    <h3 class="anim">The account model does half the enforcement</h3>
-    <div class="grid two anim">
-      <div class="card">
-        <div class="k">Function-call access key</div>
-        <div class="v">The agent's only key is scoped to the Bound contract and <b>the single method pay</b>, gas-only allowance.</div>
+  <!-- 03 solution -->
+  <section class="slide" aria-roledescription="slide" aria-label="3 of 10">
+    <div class="frame">
+      <div class="wrap body grid">
+        <p class="label side"><span aria-hidden="true">///</span> The solution</p>
+        <div class="main">
+          <h2 class="heading anim">One certificate, <em>three numbers</em> you can check</h2>
+          <p class="lead anim">
+            <span class="accent">Coverage = reserve + auditor stake.</span> The bound is a
+            meter, not a guarantee.
+          </p>
+        </div>
+        <ul class="full cards c3 anim">
+          <li class="card">
+            <p class="small">Reserve</p>
+            <p>Pre-funded by the operator and <b>locked in the contract</b>. Arbitrated victims are paid from it first.</p>
+          </li>
+          <li class="card">
+            <p class="small">Slashable stake</p>
+            <p>An auditor locks <b>its own capital</b> behind the certificate and is slashed for what the reserve could not cover.</p>
+          </li>
+          <li class="card">
+            <p class="small">Spend meter</p>
+            <p>Every payment is limited by the float and metered in spent, and goes only to <b>allowlisted recipients</b> when the operator sets an allowlist.</p>
+          </li>
+        </ul>
       </div>
-      <div class="card">
-        <div class="k">Named accounts</div>
-        <div class="v">Certificates and allowlists name <b>readable accounts</b>, not key hashes.</div>
+      <div class="wrap foot"><span></span><p class="counter"><b>03</b> / 10</p></div>
+    </div>
+  </section>
+
+  <!-- 04 how it works -->
+  <section class="slide" aria-roledescription="slide" aria-label="4 of 10">
+    <div class="frame">
+      <div class="wrap body grid">
+        <p class="label side"><span aria-hidden="true">///</span> How it works</p>
+        <div class="main">
+          <h2 class="heading anim">Publish, confine, pay, claim, <em>settle</em></h2>
+        </div>
+        <div class="full anim">
+          <table>
+            <thead><tr><th scope="col">Who</th><th scope="col">Does</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">Operator</td><td>publishes the certificate (bound, reserve, float cap, allowlist, expiry) and funds it</td></tr>
+              <tr><td class="strong">Agent</td><td>accepts once, then keeps only a function-call key that can call <b>pay</b></td></tr>
+              <tr><td class="strong">Auditor</td><td>attests by locking stake, earns the premium (less a 10% protocol fee)</td></tr>
+              <tr><td class="strong">Victim</td><td>files a harm claim, which opens a claim window and freezes payments; the arbiter rules; when the window ends anyone closes it</td></tr>
+            </tbody>
+          </table>
+          <p class="lead note">
+            Settlement waterfall, run <strong>mwfnc6q8</strong>:
+            <span class="accent num">120 = 100 reserve + 20 slash</span>. The
+            auditor's other 180 was not touched.
+          </p>
+        </div>
       </div>
-      <div class="card">
-        <div class="k">View calls</div>
-        <div class="v"><span class="addr">verify</span>, <span class="addr">get_cert</span> and the access-key list are <b>free reads anyone can make</b>. No wallet, no indexer.</div>
+      <div class="wrap foot"><span></span><p class="counter"><b>04</b> / 10</p></div>
+    </div>
+  </section>
+
+  <!-- 05 why NEAR -->
+  <section class="slide" aria-roledescription="slide" aria-label="5 of 10">
+    <div class="frame">
+      <div class="wrap body grid">
+        <p class="label side"><span aria-hidden="true">///</span> Why NEAR</p>
+        <div class="main">
+          <h2 class="heading anim">The account model does <em>half the enforcement</em></h2>
+        </div>
+        <ul class="full cards c4 anim">
+          <li class="card">
+            <p class="small">Function-call access key</p>
+            <p>The agent's only key is scoped to the Bound contract and <b>the single method pay</b>, gas-only allowance.</p>
+          </li>
+          <li class="card">
+            <p class="small">Named accounts</p>
+            <p>Certificates and allowlists name <b>readable accounts</b>, not key hashes.</p>
+          </li>
+          <li class="card">
+            <p class="small">View calls</p>
+            <p>verify, get_cert and the access-key list are <b>free reads anyone can make</b>. No wallet, no indexer.</p>
+          </li>
+          <li class="card">
+            <p class="small">No code on the agent</p>
+            <p>No contract and <b>no global contract</b> on the agent account: nothing on it can route around the meter.</p>
+          </li>
+        </ul>
       </div>
-      <div class="card">
-        <div class="k">No code on the agent</div>
-        <div class="v">No contract and <b>no global contract</b> on the agent account: nothing on it can route around the meter.</div>
+      <div class="wrap foot"><span></span><p class="counter"><b>05</b> / 10</p></div>
+    </div>
+  </section>
+
+  <!-- 06 proof -->
+  <section class="slide" aria-roledescription="slide" aria-label="6 of 10">
+    <div class="frame">
+      <div class="wrap body grid">
+        <p class="label side"><span aria-hidden="true">///</span> Demo and proof</p>
+        <div class="main">
+          <p class="small anim">Run mwfnc6q8</p>
+          <h2 class="heading anim" style="margin-top:.75rem">Recorded, then <em>re-checked</em> against the chain</h2>
+        </div>
+        <div class="full anim">
+          <table>
+            <thead><tr><th scope="col">Claim</th><th scope="col">Result</th></tr></thead>
+            <tbody>
+              <tr><td><b>Recorded transactions</b>, each re-checked on an archival node by the run page</td><td class="result">37 / 37</td></tr>
+              <tr><td><b>Assertions</b> on balances, statuses and keys</td><td class="result">36 pass</td></tr>
+              <tr><td><b>Hijacked-key attempts</b>: overspend, off-allowlist, ft_transfer, mint, withdraw, send NEAR</td><td class="result">all refused</td></tr>
+              <tr><td><b>False fraud claim</b> rejected in the same transaction, bond forfeited</td><td class="result">rejected</td></tr>
+              <tr><td><b>Contract code hash</b> against the wasm built from the tagged commit</td><td class="result">matches</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="wrap foot"><span></span><p class="counter"><b>06</b> / 10</p></div>
+    </div>
+  </section>
+
+  <!-- 07 developer surface -->
+  <section class="slide" aria-roledescription="slide" aria-label="7 of 10">
+    <div class="frame">
+      <div class="wrap body grid">
+        <p class="label side"><span aria-hidden="true">///</span> Developer surface</p>
+        <div class="main">
+          <h2 class="heading anim">Ask the <em>same question</em> from anywhere</h2>
+        </div>
+        <ul class="full hairline anim">
+          <li>
+            <p class="small">SDK</p>
+            <div><p class="cmd">npm install @bound/near</p><p class="sub">a typed client for the contract</p></div>
+          </li>
+          <li>
+            <p class="small">CLI</p>
+            <div><p class="cmd">verify &lt;agent&gt;</p><p class="sub">the deal-or-refuse answer from a terminal</p></div>
+          </li>
+          <li>
+            <p class="small">MCP server</p>
+            <ul class="cmd" aria-label="MCP tools">
+              <li>near_verify_agent</li>
+              <li>near_get_certificate</li>
+              <li>near_check_agent_keys</li>
+              <li>near_pay</li>
+            </ul>
+          </li>
+          <li>
+            <p class="small">HTTP</p>
+            <div><p class="cmd">GET /api/near/verify/&lt;agent&gt;</p><p class="sub">for a service gate</p></div>
+          </li>
+        </ul>
+      </div>
+      <div class="wrap foot"><span></span><p class="counter"><b>07</b> / 10</p></div>
+    </div>
+  </section>
+
+  <!-- 08 built in the window -->
+  <section class="slide" aria-roledescription="slide" aria-label="8 of 10">
+    <div class="frame">
+      <div class="wrap body grid">
+        <p class="label side"><span aria-hidden="true">///</span> What was built in the window</p>
+        <div class="main">
+          <h2 class="heading anim">From zero to a <em>settled claim</em> on testnet</h2>
+        </div>
+        <div class="full anim">
+          <table>
+            <thead><tr><th scope="col">What</th><th scope="col">State</th></tr></thead>
+            <tbody>
+              <tr><td><b>Bound contract</b> in Rust on near-sdk, with an open-mint test token</td><td class="result">bound-v3 live</td></tr>
+              <tr><td><b>Two rounds of review fixes</b>, each redeployed; earlier versions kept and labelled superseded</td><td class="result">v1 · v2 · v3</td></tr>
+              <tr><td><b>@bound/near</b>: client, CLI, MCP server; plus a 402-style demo service gate in the repo</td><td class="result">package</td></tr>
+              <tr><td><b>End-to-end demo</b>, eight acts, committed as evidence</td><td class="result">4 runs</td></tr>
+              <tr><td><b>This site</b>: verify, certificates, run pages, docs</td><td class="result">read-only</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="wrap foot"><span></span><p class="counter"><b>08</b> / 10</p></div>
+    </div>
+  </section>
+
+  <!-- 09 trust model -->
+  <section class="slide" aria-roledescription="slide" aria-label="9 of 10">
+    <div class="frame">
+      <div class="wrap body grid">
+        <p class="label side"><span aria-hidden="true">///</span> The honest slide</p>
+        <div class="main">
+          <h2 class="heading anim">Trust model and <em>limits</em></h2>
+        </div>
+        <div class="full anim">
+          <table>
+            <thead><tr><th scope="col">A claim we could have made</th><th scope="col">What is actually true</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">It moves real money</td><td><b>testnet only</b>, with an open-mint test token</td></tr>
+              <tr><td class="strong">Claims are decided trustlessly</td><td>arithmetic proofs are; a harm claim is decided by <b>one arbiter account, held by the author</b></td></tr>
+              <tr><td class="strong">The contract is immutable</td><td>its deployer key is still on it; <b>the code-hash check</b> is how you see it has not changed</td></tr>
+              <tr><td class="strong">An independent auditor</td><td>the demo auditor and treasury are <b>ours, and disclosed</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="wrap foot"><span></span><p class="counter"><b>09</b> / 10</p></div>
+    </div>
+  </section>
+
+  <!-- 10 roadmap and ask -->
+  <section class="slide" aria-roledescription="slide" aria-label="10 of 10">
+    <div class="frame">
+      <div class="wrap grid" style="padding-top:clamp(2.5rem,8vh,6rem)">
+        <p class="label side"><span aria-hidden="true">///</span> What comes next</p>
+        <div class="main">
+          <p class="small anim">Roadmap</p>
+          <h2 class="heading anim" style="margin-top:.75rem">
+            <em>Mainnet</em>, a DAO arbiter,<br />Intents funding
+          </h2>
+          <p class="lead anim" style="max-width:52ch;color:var(--foreground)">
+            Deploy to <strong>mainnet</strong> with the deployer key removed. Hand the
+            arbiter role to a <strong>Sputnik DAO</strong>. Let operators fund reserves
+            through <strong>NEAR Intents</strong>. The ask: a first service willing to
+            gate its agents on a certificate.
+          </p>
+        </div>
+      </div>
+      <div class="riser on-ink">
+        <div aria-hidden="true" class="shader-fallback arch-gradient-flip"></div>
+        <canvas class="shader" data-gradient-shader data-flip="true" aria-hidden="true"></canvas>
+        <div class="wrap foot">
+          <p class="counter">
+            <a href="https://near.boundprotocol.dev">near.boundprotocol.dev</a> ·
+            <a href="https://github.com/iamnotdou/bound/tree/near-hackathon" target="_blank" rel="noopener">github.com/iamnotdou/bound/tree/near-hackathon</a> ·
+            <a href="https://www.npmjs.com/package/@bound/near" target="_blank" rel="noopener">npm @bound/near</a>
+          </p>
+          <p class="counter"><b>10</b> / 10</p>
+        </div>
       </div>
     </div>
-    <div class="page"><b>05</b> / 10</div>
   </section>
 
-  <!-- 06 · proof -->
-  <section class="slide">
-    <div class="meta">Demo and proof</div>
-    <span class="tag anim">Run mwfnc6q8</span>
-    <h3 class="anim">Recorded, then re-checked against the chain</h3>
-    <table class="anim">
-      <thead><tr><th>Claim</th><th class="num">Result</th></tr></thead>
-      <tbody>
-        <tr><td><b>Recorded transactions</b>, each re-checked on an archival node by the run page</td><td class="num">37 / 37</td></tr>
-        <tr><td><b>Assertions</b> on balances, statuses and keys</td><td class="num">36 pass</td></tr>
-        <tr><td><b>Hijacked-key attempts</b>: overspend, off-allowlist, ft_transfer, mint, withdraw, send NEAR</td><td class="num">all refused</td></tr>
-        <tr><td><b>False fraud claim</b> rejected in the same transaction, bond forfeited</td><td class="num">rejected</td></tr>
-        <tr><td><b>Contract code hash</b> against the wasm built from the tagged commit</td><td class="num">matches</td></tr>
-      </tbody>
-    </table>
-    <div class="page"><b>06</b> / 10</div>
-  </section>
-
-  <!-- 07 · developer surface -->
-  <section class="slide">
-    <div class="meta">Developer surface</div>
-    <h3 class="anim">Ask the same question from anywhere</h3>
-    <div class="grid two anim">
-      <div class="card">
-        <div class="k">SDK</div>
-        <div class="v"><span class="addr">npm install @bound/near</span><br />a typed client for the contract</div>
-      </div>
-      <div class="card">
-        <div class="k">CLI</div>
-        <div class="v"><span class="addr">verify &lt;agent&gt;</span><br />the deal-or-refuse answer from a terminal</div>
-      </div>
-      <div class="card">
-        <div class="k">MCP server</div>
-        <div class="v"><span class="addr">near_verify_agent · near_get_certificate · near_check_agent_keys · near_pay</span></div>
-      </div>
-      <div class="card">
-        <div class="k">HTTP</div>
-        <div class="v"><span class="addr">GET /api/near/verify/&lt;agent&gt;</span><br />for a service gate</div>
-      </div>
-    </div>
-    <div class="page"><b>07</b> / 10</div>
-  </section>
-
-  <!-- 08 · built in the window -->
-  <section class="slide">
-    <div class="meta">What was built in the window</div>
-    <h3 class="anim">From zero to a settled claim on testnet</h3>
-    <table class="anim">
-      <thead><tr><th>What</th><th class="num">State</th></tr></thead>
-      <tbody>
-        <tr><td><b>Bound contract</b> in Rust on near-sdk, with an open-mint test token</td><td class="num">bound-v3 live</td></tr>
-        <tr><td><b>Two rounds of review fixes</b>, each redeployed; earlier versions kept and labelled superseded</td><td class="num">v1 · v2 · v3</td></tr>
-        <tr><td><b>@bound/near</b>: client, CLI, MCP server; plus a 402-style demo service gate in the repo</td><td class="num">package</td></tr>
-        <tr><td><b>End-to-end demo</b>, eight acts, committed as evidence</td><td class="num">4 runs</td></tr>
-        <tr><td><b>This site</b>: verify, certificates, run pages, docs</td><td class="num">read-only</td></tr>
-      </tbody>
-    </table>
-    <div class="page"><b>08</b> / 10</div>
-  </section>
-
-  <!-- 09 · trust model -->
-  <section class="slide">
-    <div class="meta">The honest slide</div>
-    <h3 class="anim">Trust model and limits</h3>
-    <table class="anim">
-      <thead><tr><th>A claim we could have made</th><th>What is actually true</th></tr></thead>
-      <tbody>
-        <tr><td>It moves real money</td><td><b>testnet only</b>, with an open-mint test token</td></tr>
-        <tr><td>Claims are decided trustlessly</td><td>arithmetic proofs are; a harm claim is decided by <b>one arbiter account, held by the author</b></td></tr>
-        <tr><td>The contract is immutable</td><td>its deployer key is still on it; <b>the code-hash check</b> is how you see it has not changed</td></tr>
-        <tr><td>An independent auditor</td><td>the demo auditor and treasury are <b>ours, and disclosed</b></td></tr>
-      </tbody>
-    </table>
-    <div class="page"><b>09</b> / 10</div>
-  </section>
-
-  <!-- 10 · roadmap and ask -->
-  <section class="slide">
-    <div class="meta">What comes next</div>
-    <span class="tag anim">Roadmap</span>
-    <h1 class="anim" style="font-size:clamp(2.4rem,6vw,5.4rem)">Mainnet, a DAO arbiter,<br />Intents funding</h1>
-    <div class="rule anim"></div>
-    <p class="lead anim" style="max-width:52ch">
-      Deploy to <strong>mainnet</strong> with the deployer key removed. Hand the
-      arbiter role to a <strong>Sputnik DAO</strong>. Let operators fund reserves
-      through <strong>NEAR Intents</strong>. The ask: a first service willing to
-      gate its agents on a certificate.
-    </p>
-    <div class="byline addr" style="text-transform:none;letter-spacing:0">
-      near.boundprotocol.dev · github.com/iamnotdou/bound/tree/near-hackathon · npm @bound/near
-    </div>
-    <div class="page"><b>10</b> / 10</div>
-  </section>
-
-</div>
-<div class="rail" id="rail"></div>
+</main>
+<div class="rail" id="rail" aria-hidden="true"></div>
+<p class="sr-only" id="status" aria-live="polite"></p>
 
 <script>
   // Keyboard first: a deck is driven from a clicker, which sends arrows and
   // page keys. Click advances too, because somebody always drives it by hand.
   const slides = [...document.querySelectorAll(".slide")];
   const rail = document.getElementById("rail");
+  const status = document.getElementById("status");
   let at = 0;
 
   function show(next) {
     at = Math.max(0, Math.min(slides.length - 1, next));
     slides.forEach((s, i) => i === at ? s.setAttribute("data-active", "") : s.removeAttribute("data-active"));
+    slides[at].scrollTop = 0;
     rail.style.width = ((at + 1) / slides.length * 100) + "vw";
+    status.textContent = "Slide " + (at + 1) + " of " + slides.length;
     if (location.hash !== "#" + (at + 1)) history.replaceState(null, "", "#" + (at + 1));
   }
 
   addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    // Enter and Space on a focused link keep their meaning
+    if ((e.key === "Enter" || e.key === " ") && e.target.closest && e.target.closest("a")) return;
     if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); show(at + 1); }
     if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); show(at - 1); }
     if (e.key === "Home") show(0);
     if (e.key === "End") show(slides.length - 1);
   });
-  addEventListener("click", (e) => show(at + (e.clientX < innerWidth * 0.25 ? -1 : 1)));
+  addEventListener("click", (e) => {
+    if (e.target.closest && e.target.closest("a")) return;
+    if (getSelection && String(getSelection()).length) return;
+    show(at + (e.clientX < innerWidth * 0.25 ? -1 : 1));
+  });
+  addEventListener("hashchange", () => show((parseInt(location.hash.slice(1), 10) || 1) - 1));
 
   show(Math.max(0, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+</script>
+
+<script>
+  // The gradient shader: a slow, grainy navy arch with an ultramarine rim
+  // melting into lavender. It hangs from the top on the cover and rises from
+  // the bottom on the closing slide. The CSS gradient behind it stays when
+  // WebGL is not available; reduced motion gets one still frame.
+  (function () {
+    const vertex = `
+      attribute vec2 position;
+      void main() { gl_Position = vec4(position, 0.0, 1.0); }
+    `;
+    const fragment = `
+      precision highp float;
+      uniform vec2 uResolution;
+      uniform float uTime;
+      uniform float uFlip;
+      uniform vec2 uMouse;
+      uniform float uPush;
+      uniform vec3 uInk;
+      uniform vec3 uDeep;
+      uniform vec3 uPrimary;
+      uniform vec3 uLavender;
+      uniform vec3 uHaze;
+      uniform vec3 uGround;
+
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(
+          mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+          mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+          f.y
+        );
+      }
+      float fbm(vec2 p) {
+        float value = 0.0;
+        float amplitude = 0.5;
+        for (int i = 0; i < 4; i++) {
+          value += amplitude * noise(p);
+          p *= 2.0;
+          amplitude *= 0.5;
+        }
+        return value;
+      }
+      vec2 push(vec2 uv) {
+        vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+        vec2 delta = (uv - uMouse) * aspect;
+        float falloff = exp(-dot(delta, delta) * 6.0);
+        return uv - delta / aspect * falloff * 0.5 * uPush;
+      }
+      void main() {
+        vec2 screen = gl_FragCoord.xy / uResolution;
+        vec2 uv = push(screen);
+        uv.y = mix(1.0 - uv.y, uv.y, uFlip);
+        float t = uTime * 0.04;
+        vec2 q = vec2(fbm(uv * 1.5 + t), fbm(uv * 1.5 - t + 3.7));
+        vec2 p = uv + (q - 0.5) * 0.18;
+        vec2 center = vec2(0.65 + sin(t * 2.0) * 0.05, 0.0);
+        float d = length((p - center) / vec2(1.5, 0.85));
+        vec3 ground = mix(uHaze, uGround, uv.y);
+        vec3 color = uInk;
+        color = mix(color, uDeep, smoothstep(0.38, 0.52, d));
+        color = mix(color, uPrimary, smoothstep(0.52, 0.64, d));
+        color = mix(color, uLavender, smoothstep(0.64, 0.8, d));
+        color = mix(color, ground, smoothstep(0.8, 0.98, d));
+        float glow = 1.0 - smoothstep(0.0, 1.0, length((p - vec2(0.0, 0.55)) / vec2(0.9, 0.5)));
+        color = mix(color, uPrimary, glow * 0.35 * smoothstep(0.4, 0.7, d));
+        float fade = 1.0 - smoothstep(0.8, 1.0, mix(1.0 - screen.y, screen.y, uFlip));
+        color = mix(uGround, color, fade);
+        gl_FragColor = vec4(color, fade);
+      }
+    `;
+    const finish = `
+      precision highp float;
+      uniform sampler2D uImage;
+      uniform vec2 uResolution;
+      uniform float uSeed;
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      void main() {
+        vec4 color = texture2D(uImage, gl_FragCoord.xy / uResolution);
+        float grain = hash(gl_FragCoord.xy + uSeed) - 0.5;
+        gl_FragColor = vec4(color.rgb + grain * 0.05 * color.a, 1.0);
+      }
+    `;
+
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const fract = (v) => v - Math.floor(v);
+    let probe = null;
+    function toRgb(color) {
+      if (!probe) probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = color;
+      probe.fillRect(0, 0, 1, 1);
+      const d = probe.getImageData(0, 0, 1, 1).data;
+      return [d[0] / 255, d[1] / 255, d[2] / 255];
+    }
+    function token(name, fallback) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+    }
+    function compile(gl, type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      return shader;
+    }
+    function link(gl, source) {
+      const program = gl.createProgram();
+      gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, vertex));
+      gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, source));
+      gl.bindAttribLocation(program, 0, "position");
+      gl.linkProgram(program);
+      return gl.getProgramParameter(program, gl.LINK_STATUS) ? program : null;
+    }
+
+    function start(canvas) {
+      let gl = null;
+      try {
+        gl = canvas.getContext("webgl", { antialias: false, alpha: false, failIfMajorPerformanceCaveat: true });
+      } catch (_) { gl = null; }
+      if (!gl) return;
+      const program = link(gl, fragment);
+      const post = link(gl, finish);
+      if (!program || !post) return;
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+      const texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const buffer = gl.createFramebuffer();
+      const small = { width: 1, height: 1 };
+
+      gl.useProgram(post);
+      gl.uniform1i(gl.getUniformLocation(post, "uImage"), 0);
+      const postResolution = gl.getUniformLocation(post, "uResolution");
+      const seed = gl.getUniformLocation(post, "uSeed");
+
+      gl.useProgram(program);
+      const colors = {
+        uInk: token("--inverse", "oklch(16% 0.05 270)"),
+        uDeep: token("--deep", "oklch(30% 0.14 268)"),
+        uPrimary: token("--primary", "oklch(52% 0.22 268)"),
+        uLavender: token("--lavender", "oklch(78% 0.1 275)"),
+        uHaze: token("--haze", "oklch(92% 0.04 275)"),
+        uGround: token("--background", "oklch(98.8% 0.006 275)"),
+      };
+      for (const name in colors) gl.uniform3fv(gl.getUniformLocation(program, name), toRgb(colors[name]));
+      gl.uniform1f(gl.getUniformLocation(program, "uFlip"), canvas.dataset.flip ? 1 : 0);
+      const resolution = gl.getUniformLocation(program, "uResolution");
+      const mouseUniform = gl.getUniformLocation(program, "uMouse");
+      const pushUniform = gl.getUniformLocation(program, "uPush");
+      const time = gl.getUniformLocation(program, "uTime");
+      const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, push: 0, target: 0 };
+      if (!reduceMotion) {
+        addEventListener("pointermove", (event) => {
+          if (event.pointerType !== "mouse") return;
+          const rect = canvas.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          mouse.tx = (event.clientX - rect.left) / rect.width;
+          mouse.ty = 1 - (event.clientY - rect.top) / rect.height;
+          mouse.target = mouse.tx >= 0 && mouse.tx <= 1 && mouse.ty >= 0 && mouse.ty <= 1 ? 1 : 0;
+        }, { passive: true });
+        document.documentElement.addEventListener("pointerleave", () => (mouse.target = 0));
+      }
+
+      const begin = performance.now();
+      let frame = 0;
+      let last = 0;
+      let running = false;
+
+      function draw(now) {
+        mouse.x += (mouse.tx - mouse.x) * 0.08;
+        mouse.y += (mouse.ty - mouse.y) * 0.08;
+        mouse.push += (mouse.target - mouse.push) * 0.05;
+        gl.uniform2f(mouseUniform, mouse.x, mouse.y);
+        gl.uniform1f(pushUniform, mouse.push);
+        const seconds = reduceMotion ? 0 : (now - begin) / 1000;
+        gl.uniform1f(time, seconds);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, buffer);
+        gl.viewport(0, 0, small.width, small.height);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.useProgram(post);
+        gl.uniform1f(seed, fract(seconds) * 100);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.useProgram(program);
+      }
+      function resize() {
+        // A hidden slide has no size; wait until it is shown
+        if (!canvas.clientWidth || !canvas.clientHeight) return;
+        const area = canvas.clientWidth * canvas.clientHeight;
+        const ratio = Math.min(0.5, Math.sqrt(400000 / area));
+        small.width = Math.max(Math.round(canvas.clientWidth * ratio), 1);
+        small.height = Math.max(Math.round(canvas.clientHeight * ratio), 1);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, small.width, small.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, buffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        gl.uniform2f(resolution, small.width, small.height);
+        const dpr = Math.min(devicePixelRatio || 1, 1.5);
+        canvas.width = Math.round(canvas.clientWidth * dpr);
+        canvas.height = Math.round(canvas.clientHeight * dpr);
+        gl.useProgram(post);
+        gl.uniform2f(postResolution, canvas.width, canvas.height);
+        gl.useProgram(program);
+        draw(performance.now());
+        canvas.setAttribute("data-ready", "");
+      }
+      // About 30 frames a second is plenty for a slow drift
+      function loop(now) {
+        frame = requestAnimationFrame(loop);
+        if (now - last < 33) return;
+        last = now;
+        draw(now);
+      }
+
+      new ResizeObserver(resize).observe(canvas);
+      resize();
+
+      // Only animate while the slide is on screen
+      if (!reduceMotion) {
+        new IntersectionObserver(([entry]) => {
+          if (entry.isIntersecting && !running) frame = requestAnimationFrame(loop);
+          if (!entry.isIntersecting) cancelAnimationFrame(frame);
+          running = entry.isIntersecting;
+        }).observe(canvas);
+      }
+    }
+
+    function boot() {
+      if (!("IntersectionObserver" in window) || !("ResizeObserver" in window)) return;
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          start(entry.target);
+        }
+      }, { rootMargin: "200px" });
+      document.querySelectorAll("[data-gradient-shader]").forEach((canvas) => observer.observe(canvas));
+    }
+    const idle = () => ("requestIdleCallback" in window ? requestIdleCallback(boot, { timeout: 2000 }) : setTimeout(boot, 200));
+    if (document.readyState === "complete") idle();
+    else addEventListener("load", idle, { once: true });
+  })();
 </script>
 </body>
 </html>

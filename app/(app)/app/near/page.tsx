@@ -47,7 +47,7 @@ import {
 export const revalidate = 15;
 
 export const metadata: Metadata = {
-  title: "Bound on NEAR testnet",
+  title: { absolute: "Bound on NEAR testnet" },
   description:
     "Verify a NEAR agent's Bound certificate before dealing with it: reserve, auditor stake, spend meter and settlement, read live from testnet with no wallet.",
 };

@@ -9,5 +9,6 @@ export default function NearHomeOpengraphImage() {
   return renderOgImage(
     "A surety bond for NEAR agents: a pre-funded reserve, an auditor's slashable stake and a spend meter, live on NEAR testnet.",
     "Built at NEAR HACKATHON",
+    "navy",
   );
 }
